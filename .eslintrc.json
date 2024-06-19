@@ -1,3 +1,148 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": ["airbnb-base", "airbnb/rules/react", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["jest", "@typescript-eslint", "react-hooks"],
+  "rules": {
+    "consistent-return": 0,
+    "func-names": 0,
+    "import/extensions": [
+      1,
+      "ignorePackages",
+      {
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "import/no-extraneous-dependencies": 0,
+    "import/no-mutable-exports": 0,
+    "import/order": [
+      2,
+      {
+        "alphabetize": {
+          "caseInsensitive": true,
+          "order": "asc"
+        },
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          ["parent", "sibling"],
+          "index",
+          "object",
+          "unknown"
+        ],
+        "newlines-between": "always",
+        "pathGroups": [
+          {
+            "group": "unknown",
+            "pattern": "{.,..,../..}/**/*.+(scss)",
+            "patternOptions": { "dot": true, "nocomment": true },
+            "position": "after"
+          },
+          {
+            "group": "external",
+            "pattern": "@hivebrite/**",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react"]
+      }
+    ],
+    "import/prefer-default-export": 0,
+    "lines-between-class-members": [
+      1,
+      "always",
+      { "exceptAfterSingleLine": true }
+    ],
+    "no-nested-ternary": 0,
+    "no-param-reassign": 0,
+    "no-plusplus": 0,
+    "no-promise-executor-return": 0,
+    "no-restricted-exports": 0,
+    "no-restricted-imports": [
+      1,
+      {
+        "patterns": ["../../*"]
+      }
+    ],
+    "no-return-assign": 0,
+    "no-shadow": 0,
+    "no-underscore-dangle": 0,
+    "no-unused-expressions": [
+      2,
+      {
+        "allowShortCircuit": true
+      }
+    ],
+    "no-unused-vars": [
+      2,
+      { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }
+    ],
+    "no-use-before-define": 0,
+    "padding-line-between-statements": [
+      2,
+      { "blankLine": "always", "next": "return", "prev": "*" },
+      {
+        "blankLine": "always",
+        "next": ["if", "for", "function", "expression"],
+        "prev": ["const", "let"]
+      }
+    ],
+    "react/default-props-match-prop-types": 0,
+    "react/destructuring-assignment": [
+      1,
+      "always",
+      { "ignoreClassFields": true }
+    ],
+    "react/forbid-prop-types": 0,
+    "react/function-component-definition": [
+      2,
+      {
+        "namedComponents": "arrow-function",
+        "unnamedComponents": "arrow-function"
+      }
+    ],
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [".test.js", ".stories.js", ".jsx", ".tsx"]
+      }
+    ],
+    "react/jsx-props-no-spreading": 0,
+    "react/no-array-index-key": 0,
+    "react/no-unstable-nested-components": [2, { "allowAsProps": true }],
+    "react/prop-types": 0,
+    "react/require-default-props": 0,
+
+    "vars-on-top": 0,
+
+    "@typescript-eslint/ban-ts-comment": "error",
+    "@typescript-eslint/consistent-type-assertions": [
+      "error",
+      {
+        "assertionStyle": "as",
+        "objectLiteralTypeAssertions": "allow"
+      }
+    ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "@typescript-eslint/prefer-ts-expect-error": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error"
+  },
+
+  "import/resolver": {
+    "node": {
+      "extensions": [".js", ".jsx", [".ts", ".d.ts", ".tsx"]]
+    }
+  }
 }
