@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 
+// Schéma BBD pour un membre
 const ClimbingMemberSchema = z.object({
   id: z.string(),
   firstName: z.string(),
@@ -23,14 +24,15 @@ const ClimbingMemberSchema = z.object({
   zipCode: z.string().trim().length(5),
   city: z.string(),
   picture: z.optional(z.string()),
-  isMediaCompliant: z.string().nullable(),
-  hasPaid: z.string().nullable(),
+  isMediaCompliant: z.boolean().nullable(), // Utilisation de boolean
+  hasPaid: z.boolean().nullable(), /// Utilisation de boolean
   legalContactFirstName: z.optional(z.string()),
   legalContactLastName: z.optional(z.string()),
   legalContactPhoneNumber: z.optional(z.string()),
   legalContactId: z.optional(z.string()),
 });
 
+// Gestion des erreurs
 export type ClimbingState = {
   errors?: {
     firstName?: string[];
@@ -42,8 +44,8 @@ export type ClimbingState = {
     zipCode?: string[];
     city?: string[];
     picture?: string[];
-    isMediaCompliant?: string[];
-    hasPaid?: string[];
+    isMediaCompliant?: boolean[]; // Utilisation de boolean
+    hasPaid?: boolean[]; // Utilisation de boolean
     legalContactFirstName?: string[];
     legalContactLastName?: string[];
     legalContactPhoneNumber?: string[];
@@ -59,9 +61,11 @@ const UpdateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
 });
 
+// Fonction pour créer un membre
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
+  isRegistration: boolean,
 ) {
   const validatedFields = CreateClimbingMember.safeParse({
     firstName: formData.get('firstName'),
@@ -72,14 +76,17 @@ export async function createClimbingMember(
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    isMediaCompliant: formData.get('isMediaCompliant'),
-    hasPaid: formData.get('hasPaid'),
+    isMediaCompliant: formData.get('isMediaCompliant') === 'false', // Conversion en boolean
+    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ?
   });
+
+  //console.log('actions.ts createClimbingMember:', validatedFields);
+  //résultat du console.log: object validatedFields avec champs success: true, et data: {avec les champs}
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Champs manquants. Impossible de créer un membre.',
+      message: 'Champs manquants. Impossible de créer un membre.', // message à modifier selon isRegistration?
     };
   }
 
@@ -109,6 +116,7 @@ export async function createClimbingMember(
       legalContactPhoneNumber
     ) {
       legalContactId = randomUUID();
+
       await sql`
         INSERT INTO legal_contacts (id, last_name, first_name, phone_number)
         VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber})
@@ -143,21 +151,29 @@ export async function createClimbingMember(
         ${city},
         ${picture},
         ${isMediaCompliant},
-        ${hasPaid},
+        ${isRegistration ? false : hasPaid},
         ${legalContactId}
       )
     `;
+
+    console.log(isRegistration);
+
+    //console.log('Création du membre dans actions.ts:', firstName, lastName); // OK fonctionne
+    // Test redirection conditionnelle
+    if (!isRegistration) {
+      // Redirection pour un admin
+      revalidatePath('/dashboard/climbing');
+      redirect('/dashboard/climbing');
+    }
   } catch (error) {
-    console.log(error);
+    console.log('Database Error: Failed to create a member.', error);
     return {
       message: 'Database Error: Failed to create a member.',
     };
   }
-
-  revalidatePath('/dashboard/climbing');
-  redirect('/dashboard/climbing');
 }
 
+// Fonction de mise à jour d'um membre (admin)
 export async function updateClimbingMember(
   id: string,
   _prevState: ClimbingState,
@@ -166,14 +182,14 @@ export async function updateClimbingMember(
   const validationStatus = UpdateClimbingMember.safeParse({
     firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
-    birthDate: formData.get('birthDate'),
+    birthDate: formData.get('birthDate'), // mettre un number?
     email: formData.get('email'),
     phoneNumber: formData.get('phoneNumber'),
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    isMediaCompliant: formData.get('isMediaCompliant'),
-    hasPaid: formData.get('hasPaid'),
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean à voir pour la valeur
+    hasPaid: formData.get('hasPaid') === 'true', // Conversion en boolean à voir pour la valeur
   });
 
   if (!validationStatus.success) {

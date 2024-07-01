@@ -1,5 +1,5 @@
-import Form from '@/app/ui/climbing/create-form';
 import Breadcrumbs from '@/app/ui/common/breadcrumbs';
+import Form from '@/app/ui/climbing/create-form';
 
 export default async function Page() {
   return (
