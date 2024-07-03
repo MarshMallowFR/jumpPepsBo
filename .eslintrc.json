@@ -139,10 +139,11 @@
     "react-hooks/exhaustive-deps": "warn",
     "react-hooks/rules-of-hooks": "error"
   },
-
-  "import/resolver": {
-    "node": {
-      "extensions": [".js", ".jsx", [".ts", ".d.ts", ".tsx"]]
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".d.ts", ".tsx"]
+      }
     }
   }
 }
