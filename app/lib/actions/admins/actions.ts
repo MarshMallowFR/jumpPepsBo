@@ -137,7 +137,7 @@ export async function updateAdmin(
 
   try {
     await sql`
-      UPDATE members
+      UPDATE admins
       SET last_name = ${lastName},
         first_name = ${firstName},
         email =   ${email}
