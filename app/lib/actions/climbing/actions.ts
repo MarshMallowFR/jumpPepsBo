@@ -5,31 +5,63 @@ import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
+import { v2 as cloudinary } from 'cloudinary';
+import { NextRequest, NextResponse } from 'next/server';
+//import formidable from 'formidable';
 
 // Schéma BBD pour un membre
 const ClimbingMemberSchema = z.object({
   id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  birthDate: z.string(),
-  email: z.string(),
-  phoneNumber: z.preprocess((value) => {
-    if (typeof value !== 'string') {
-      return value;
-    }
+  firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
+  lastName: z.string().min(1, `Veuillez indiquer le nom.`),
+  birthDate: z.string().min(1, `Veuillez indiquer la date de naissance.`),
+  email: z.string().min(1, `Veuillez indiquer un email de contact.`),
+  phoneNumber: z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') {
+        return value;
+      }
 
-    return value.trim().replace(/\s+/g, '');
-  }, z.string().length(10)),
-  street: z.string(),
-  zipCode: z.string().trim().length(5),
-  city: z.string(),
+      return value.trim().replace(/\s+/g, '');
+    },
+    z
+      .string()
+      .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
+  ),
+  street: z.string().min(1, `Une adresse est requise.`),
+  zipCode: z
+    .string()
+    .trim()
+    .length(5, 'Le code postal doit contenir 5 chiffres.'),
+  city: z.string().min(1, `La ville est requise`),
   picture: z.optional(z.string()),
   isMediaCompliant: z.boolean().nullable(), // Utilisation de boolean
-  hasPaid: z.boolean().nullable(), /// Utilisation de boolean
-  legalContactFirstName: z.optional(z.string()),
-  legalContactLastName: z.optional(z.string()),
+  hasPaid: z.boolean().nullable(), // Utilisation de boolean
+  legalContactFirstName: z.optional(
+    z
+      .string()
+      .min(1, `Veuillez indiquer le prénom du.de la représentant.e légal.e.`),
+  ),
+  legalContactLastName: z.optional(
+    z
+      .string()
+      .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`),
+  ),
   legalContactPhoneNumber: z.optional(z.string()),
-  legalContactId: z.optional(z.string()),
+  legalContactId: z.optional(
+    z.preprocess(
+      (value) => {
+        if (typeof value !== 'string') {
+          return value;
+        }
+
+        return value.trim().replace(/\s+/g, '');
+      },
+      z
+        .string()
+        .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
+    ),
+  ),
 });
 
 // Gestion des erreurs
@@ -76,17 +108,20 @@ export async function createClimbingMember(
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    isMediaCompliant: formData.get('isMediaCompliant') === 'false', // Conversion en boolean
+    //picture: formData.get('picture'), // NE FONCTIONNE PAS
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true', //Conversion en boolean
     hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ?
   });
 
-  //console.log('actions.ts createClimbingMember:', validatedFields);
-  //résultat du console.log: object validatedFields avec champs success: true, et data: {avec les champs}
+  console.log(
+    'fichier actions.ts fonction createClimbingMember:',
+    validatedFields,
+  );
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Champs manquants. Impossible de créer un membre.', // message à modifier selon isRegistration?
+      message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
     };
   }
 
@@ -99,13 +134,27 @@ export async function createClimbingMember(
     street,
     zipCode,
     city,
-    picture,
     isMediaCompliant,
     hasPaid,
     legalContactFirstName,
     legalContactLastName,
     legalContactPhoneNumber,
   } = validatedFields.data;
+
+  // let pictureUrl = null;
+  // if (files.picture) {
+  //   try {
+  //     const result = await cloudinary.uploader.upload(files.picture.path, {
+  //       folder: 'members',
+  //       public_id: randomUUID(),
+  //     });
+  //     pictureUrl = result.secure_url;
+  //   } catch (uploadError) {
+  //     return {
+  //       message: 'Error uploading the picture to Cloudinary',
+  //     };
+  //   }
+  // }
 
   try {
     let legalContactId = undefined;
@@ -156,9 +205,6 @@ export async function createClimbingMember(
       )
     `;
 
-    console.log(isRegistration);
-
-    //console.log('Création du membre dans actions.ts:', firstName, lastName); // OK fonctionne
     // Test redirection conditionnelle
     if (!isRegistration) {
       // Redirection pour un admin
@@ -182,14 +228,14 @@ export async function updateClimbingMember(
   const validationStatus = UpdateClimbingMember.safeParse({
     firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
-    birthDate: formData.get('birthDate'), // mettre un number?
+    birthDate: formData.get('birthDate'),
     email: formData.get('email'),
     phoneNumber: formData.get('phoneNumber'),
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean à voir pour la valeur
-    hasPaid: formData.get('hasPaid') === 'true', // Conversion en boolean à voir pour la valeur
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
+    hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
   });
 
   if (!validationStatus.success) {
