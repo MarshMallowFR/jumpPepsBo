@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
-import formidable from 'formidable';
 
 // Configuration de Cloudinary
 cloudinary.config({
@@ -98,32 +97,27 @@ const UpdateClimbingMember = ClimbingMemberSchema.omit({
 
 export async function createClimbingMember(
   _prevState: ClimbingState,
-  formData: formidable.IncomingForm,
+  formData: FormData,
   isRegistration: boolean,
 ) {
   try {
-    const fields = await parseFormData(formData);
-
     const validatedFields = CreateClimbingMember.safeParse({
-      firstName: fields.firstName,
-      lastName: fields.lastName,
-      birthDate: fields.birthDate,
-      email: fields.email,
-      phoneNumber: fields.phoneNumber,
-      street: fields.street,
-      zipCode: fields.zipCode,
-      city: fields.city,
-      isMediaCompliant: fields.isMediaCompliant === 'true',
-      hasPaid: isRegistration ? false : fields.hasPaid === 'false',
-      legalContactFirstName: fields.legalContactFirstName,
-      legalContactLastName: fields.legalContactLastName,
-      legalContactPhoneNumber: fields.legalContactPhoneNumber,
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      birthDate: formData.get('birthDate'),
+      email: formData.get('email'),
+      phoneNumber: formData.get('phoneNumber'),
+      street: formData.get('street'),
+      zipCode: formData.get('zipCode'),
+      city: formData.get('city'),
+      isMediaCompliant: formData.get('isMediaCompliant'),
+      hasPaid: formData.get('hasPaid'),
     });
 
-    console.log(
-      'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
-      validatedFields,
-    );
+    // console.log(
+    //   'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
+    //   validatedFields,
+    // );
 
     if (!validatedFields.success) {
       return {
@@ -161,15 +155,28 @@ export async function createClimbingMember(
         VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber})
       `;
     }
-    let pictureUrl = '';
-    const files: formidable.Files = fields.files;
 
-    if (files && files.picture) {
-      const file = Array.isArray(files.picture)
-        ? files.picture[0]
-        : files.picture;
-      const result = await cloudinary.uploader.upload(file.filepath);
-      pictureUrl = result.secure_url;
+    // Uploader l'image à Cloudinary et obtenir l'URL
+    let imageUrl = '';
+    const file = formData.get('image') as File;
+    if (file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const result: any = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { tags: ['nextjs-server-actions-upload-sneakers'] },
+            function (error, result) {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(result);
+            },
+          )
+          .end(buffer);
+      });
+      imageUrl = result.secure_url;
     }
 
     await sql`
@@ -198,7 +205,7 @@ export async function createClimbingMember(
         ${street},
         ${zipCode},
         ${city},
-        ${pictureUrl},
+        ${imageUrl},
         ${isMediaCompliant},
         ${isRegistration ? false : hasPaid},
         ${legalContactId}
