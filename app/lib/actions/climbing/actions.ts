@@ -6,8 +6,14 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import { v2 as cloudinary } from 'cloudinary';
-import { NextRequest, NextResponse } from 'next/server';
-//import formidable from 'formidable';
+import formidable from 'formidable';
+
+// Configuration de Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Schéma BBD pour un membre
 const ClimbingMemberSchema = z.object({
@@ -21,7 +27,6 @@ const ClimbingMemberSchema = z.object({
       if (typeof value !== 'string') {
         return value;
       }
-
       return value.trim().replace(/\s+/g, '');
     },
     z
@@ -35,8 +40,8 @@ const ClimbingMemberSchema = z.object({
     .length(5, 'Le code postal doit contenir 5 chiffres.'),
   city: z.string().min(1, `La ville est requise`),
   picture: z.optional(z.string()),
-  isMediaCompliant: z.boolean().nullable(), // Utilisation de boolean
-  hasPaid: z.boolean().nullable(), // Utilisation de boolean
+  isMediaCompliant: z.boolean().nullable(),
+  hasPaid: z.boolean().nullable(),
   legalContactFirstName: z.optional(
     z
       .string()
@@ -54,7 +59,6 @@ const ClimbingMemberSchema = z.object({
         if (typeof value !== 'string') {
           return value;
         }
-
         return value.trim().replace(/\s+/g, '');
       },
       z
@@ -64,7 +68,6 @@ const ClimbingMemberSchema = z.object({
   ),
 });
 
-// Gestion des erreurs
 export type ClimbingState = {
   errors?: {
     firstName?: string[];
@@ -76,8 +79,8 @@ export type ClimbingState = {
     zipCode?: string[];
     city?: string[];
     picture?: string[];
-    isMediaCompliant?: boolean[]; // Utilisation de boolean
-    hasPaid?: boolean[]; // Utilisation de boolean
+    isMediaCompliant?: boolean[];
+    hasPaid?: boolean[];
     legalContactFirstName?: string[];
     legalContactLastName?: string[];
     legalContactPhoneNumber?: string[];
@@ -93,72 +96,59 @@ const UpdateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
 });
 
-// Fonction pour créer un membre
 export async function createClimbingMember(
   _prevState: ClimbingState,
-  formData: FormData,
+  formData: formidable.IncomingForm,
   isRegistration: boolean,
 ) {
-  const validatedFields = CreateClimbingMember.safeParse({
-    firstName: formData.get('firstName'),
-    lastName: formData.get('lastName'),
-    birthDate: formData.get('birthDate'),
-    email: formData.get('email'),
-    phoneNumber: formData.get('phoneNumber'),
-    street: formData.get('street'),
-    zipCode: formData.get('zipCode'),
-    city: formData.get('city'),
-    //picture: formData.get('picture'), // NE FONCTIONNE PAS
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true', //Conversion en boolean
-    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ?
-  });
-
-  console.log(
-    'fichier actions.ts fonction createClimbingMember:',
-    validatedFields,
-  );
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
-    };
-  }
-
-  const {
-    firstName,
-    lastName,
-    birthDate,
-    email,
-    phoneNumber,
-    street,
-    zipCode,
-    city,
-    isMediaCompliant,
-    hasPaid,
-    legalContactFirstName,
-    legalContactLastName,
-    legalContactPhoneNumber,
-  } = validatedFields.data;
-
-  // let pictureUrl = null;
-  // if (files.picture) {
-  //   try {
-  //     const result = await cloudinary.uploader.upload(files.picture.path, {
-  //       folder: 'members',
-  //       public_id: randomUUID(),
-  //     });
-  //     pictureUrl = result.secure_url;
-  //   } catch (uploadError) {
-  //     return {
-  //       message: 'Error uploading the picture to Cloudinary',
-  //     };
-  //   }
-  // }
-
   try {
-    let legalContactId = undefined;
+    const fields = await parseFormData(formData);
 
+    const validatedFields = CreateClimbingMember.safeParse({
+      firstName: fields.firstName,
+      lastName: fields.lastName,
+      birthDate: fields.birthDate,
+      email: fields.email,
+      phoneNumber: fields.phoneNumber,
+      street: fields.street,
+      zipCode: fields.zipCode,
+      city: fields.city,
+      isMediaCompliant: fields.isMediaCompliant === 'true',
+      hasPaid: isRegistration ? false : fields.hasPaid === 'false',
+      legalContactFirstName: fields.legalContactFirstName,
+      legalContactLastName: fields.legalContactLastName,
+      legalContactPhoneNumber: fields.legalContactPhoneNumber,
+    });
+
+    console.log(
+      'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
+      validatedFields,
+    );
+
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
+      };
+    }
+
+    const {
+      firstName,
+      lastName,
+      birthDate,
+      email,
+      phoneNumber,
+      street,
+      zipCode,
+      city,
+      isMediaCompliant,
+      hasPaid,
+      legalContactFirstName,
+      legalContactLastName,
+      legalContactPhoneNumber,
+    } = validatedFields.data;
+
+    let legalContactId;
     if (
       legalContactFirstName &&
       legalContactLastName &&
@@ -170,6 +160,16 @@ export async function createClimbingMember(
         INSERT INTO legal_contacts (id, last_name, first_name, phone_number)
         VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber})
       `;
+    }
+    let pictureUrl = '';
+    const files: formidable.Files = fields.files;
+
+    if (files && files.picture) {
+      const file = Array.isArray(files.picture)
+        ? files.picture[0]
+        : files.picture;
+      const result = await cloudinary.uploader.upload(file.filepath);
+      pictureUrl = result.secure_url;
     }
 
     await sql`
@@ -198,24 +198,20 @@ export async function createClimbingMember(
         ${street},
         ${zipCode},
         ${city},
-        ${picture},
+        ${pictureUrl},
         ${isMediaCompliant},
         ${isRegistration ? false : hasPaid},
         ${legalContactId}
       )
     `;
 
-    // Test redirection conditionnelle
     if (!isRegistration) {
-      // Redirection pour un admin
       revalidatePath('/dashboard/climbing');
       redirect('/dashboard/climbing');
     }
   } catch (error) {
-    console.log('Database Error: Failed to create a member.', error);
-    return {
-      message: 'Database Error: Failed to create a member.',
-    };
+    console.error('Database Error: Failed to create a member.', error);
+    return { error };
   }
 }
 
