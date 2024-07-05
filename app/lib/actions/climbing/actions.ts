@@ -14,6 +14,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Configuration de l'image
+const MAX_FILE_SIZE = 500000;
+const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+];
+
 // Schéma BBD pour un membre
 const ClimbingMemberSchema = z.object({
   id: z.string(),
@@ -38,7 +47,27 @@ const ClimbingMemberSchema = z.object({
     .trim()
     .length(5, 'Le code postal doit contenir 5 chiffres.'),
   city: z.string().min(1, `La ville est requise`),
-  picture: z.optional(z.string()),
+  picture: z
+    .array(z.custom<File>())
+    .refine(
+      (files) => {
+        // Check if all items in the array are instances of the File object
+        return files.every((file) => file instanceof File);
+      },
+      {
+        // If the refinement fails, throw an error with this message
+        message: 'Veuillez importer une photo.',
+      },
+    )
+    .refine(
+      (files) => files.every((file) => file.size <= MAX_FILE_SIZE),
+      `La taille maximum de l'image est 5MB.`,
+    )
+    .refine(
+      (files) =>
+        files.every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
+      'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+    ),
   isMediaCompliant: z.boolean().nullable(),
   hasPaid: z.boolean().nullable(),
   legalContactFirstName: z.optional(
@@ -77,7 +106,7 @@ export type ClimbingState = {
     street?: string[];
     zipCode?: string[];
     city?: string[];
-    picture?: string[];
+    picture?: any[];
     isMediaCompliant?: boolean[];
     hasPaid?: boolean[];
     legalContactFirstName?: string[];
@@ -100,30 +129,53 @@ export async function createClimbingMember(
   formData: FormData,
   isRegistration: boolean,
 ) {
+  const validatedFields = CreateClimbingMember.safeParse({
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    birthDate: formData.get('birthDate'),
+    email: formData.get('email'),
+    phoneNumber: formData.get('phoneNumber'),
+    street: formData.get('street'),
+    zipCode: formData.get('zipCode'),
+    city: formData.get('city'),
+    picture: [formData.get('picture')],
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true', //Conversion en boolean
+    hasPaid: isRegistration ? false : formData.get('hasPaid'), //=== 'false', // Conversion en boolean - 'true' ?
+  });
+
+  // console.log(
+  //   'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
+  //   validatedFields
+  // );
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
+    };
+  }
+
   try {
-    const validatedFields = CreateClimbingMember.safeParse({
-      firstName: formData.get('firstName'),
-      lastName: formData.get('lastName'),
-      birthDate: formData.get('birthDate'),
-      email: formData.get('email'),
-      phoneNumber: formData.get('phoneNumber'),
-      street: formData.get('street'),
-      zipCode: formData.get('zipCode'),
-      city: formData.get('city'),
-      isMediaCompliant: formData.get('isMediaCompliant'),
-      hasPaid: formData.get('hasPaid'),
-    });
-
-    // console.log(
-    //   'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
-    //   validatedFields,
-    // );
-
-    if (!validatedFields.success) {
-      return {
-        errors: validatedFields.error.flatten().fieldErrors,
-        message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
-      };
+    let imageUrl = '';
+    const picture = formData.get('picture') as File;
+    if (picture) {
+      const arrayBuffer = await picture.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const result = await new Promise<any>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { tags: ['nextjs-server-actions-upload-sneakers'] },
+            (error, result) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(result);
+            },
+          )
+          .end(buffer);
+      });
+      imageUrl = result.secure_url;
     }
 
     const {
@@ -154,29 +206,6 @@ export async function createClimbingMember(
         INSERT INTO legal_contacts (id, last_name, first_name, phone_number)
         VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber})
       `;
-    }
-
-    // Uploader l'image à Cloudinary et obtenir l'URL
-    let imageUrl = '';
-    const file = formData.get('image') as File;
-    if (file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      const result: any = await new Promise((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            { tags: ['nextjs-server-actions-upload-sneakers'] },
-            function (error, result) {
-              if (error) {
-                reject(error);
-                return;
-              }
-              resolve(result);
-            },
-          )
-          .end(buffer);
-      });
-      imageUrl = result.secure_url;
     }
 
     await sql`
@@ -223,82 +252,105 @@ export async function createClimbingMember(
 }
 
 // Fonction de mise à jour d'um membre (admin)
-export async function updateClimbingMember(
-  id: string,
-  _prevState: ClimbingState,
-  formData: FormData,
-) {
-  const validationStatus = UpdateClimbingMember.safeParse({
-    firstName: formData.get('firstName'),
-    lastName: formData.get('lastName'),
-    birthDate: formData.get('birthDate'),
-    email: formData.get('email'),
-    phoneNumber: formData.get('phoneNumber'),
-    street: formData.get('street'),
-    zipCode: formData.get('zipCode'),
-    city: formData.get('city'),
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
-    hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
-  });
+// export async function updateClimbingMember(
+//   id: string,
+//   _prevState: ClimbingState,
+//   formData: FormData,
+// ) {
+//   const validationStatus = UpdateClimbingMember.safeParse({
+//     firstName: formData.get('firstName'),
+//     lastName: formData.get('lastName'),
+//     birthDate: formData.get('birthDate'),
+//     email: formData.get('email'),
+//     phoneNumber: formData.get('phoneNumber'),
+//     street: formData.get('street'),
+//     zipCode: formData.get('zipCode'),
+//     city: formData.get('city'),
+//     picture: [formData.get('picture')],
+//     isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
+//     hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
+//   });
 
-  if (!validationStatus.success) {
-    return {
-      errors: validationStatus.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Update Invoice.',
-    };
-  }
+//   if (!validationStatus.success) {
+//     return {
+//       errors: validationStatus.error.flatten().fieldErrors,
+//       message: `Informations manquantes pour finaliser la mise à jour de l'adhérent.e.`,
+//     };
+//   }
 
-  const {
-    firstName,
-    lastName,
-    birthDate,
-    email,
-    phoneNumber,
-    street,
-    zipCode,
-    city,
-    picture,
-    isMediaCompliant,
-    hasPaid,
-    legalContactFirstName,
-    legalContactLastName,
-    legalContactPhoneNumber,
-    legalContactId,
-  } = validationStatus.data;
+//     let imageUrl = '';
+//     const picture = formData.get('picture') as File;
+//     if (picture) {
+//       const arrayBuffer = await picture.arrayBuffer();
+//       const buffer = new Uint8Array(arrayBuffer);
+//       const result = await new Promise<any>((resolve, reject) => {
+//         cloudinary.uploader
+//           .upload_stream(
+//             { tags: ['nextjs-server-actions-upload-sneakers'] },
+//             (error, result) => {
+//               if (error) {
+//                 reject(error);
+//                 return;
+//               }
+//               resolve(result);
+//             },
+//           )
+//           .end(buffer);
+//       });
+//       imageUrl = result.secure_url;
+//     }
 
-  try {
-    const updateMember = await sql`
-      UPDATE members
-      SET last_name = ${lastName},
-        first_name = ${firstName},
-        birth_date = ${birthDate},
-        email =   ${email},
-        phone_number = ${phoneNumber},
-        street= ${street},
-        zip_code= ${zipCode},
-        city= ${city},
-        picture= ${picture},
-        is_media_compliant= ${!!isMediaCompliant},
-        has_paid= ${!!hasPaid},
-        legal_contact_id= ${legalContactId}
-      WHERE id = ${id}
-    `;
-    const updateLegalContact = await sql`
-      UPDATE legal_contacts
-      SET last_name = ${legalContactLastName},
-        first_name = ${legalContactFirstName},
-        phone_number = ${legalContactPhoneNumber}
-      WHERE id = ${legalContactId}
-    `;
+//   const {
+//     firstName,
+//     lastName,
+//     birthDate,
+//     email,
+//     phoneNumber,
+//     street,
+//     zipCode,
+//     city,
+//     picture,
+//     isMediaCompliant,
+//     hasPaid,
+//     legalContactFirstName,
+//     legalContactLastName,
+//     legalContactPhoneNumber,
+//     legalContactId,
+//   } = validationStatus.data;
 
-    await Promise.all([updateMember, updateLegalContact]);
-  } catch (error) {
-    return { message: 'Database Error: Failed to Update a member.' };
-  }
+//   try {
+//     const updateMember = await sql`
+//       UPDATE members
+//       SET last_name = ${lastName},
+//         first_name = ${firstName},
+//         birth_date = ${birthDate},
+//         email =   ${email},
+//         phone_number = ${phoneNumber},
+//         street= ${street},
+//         zip_code= ${zipCode},
+//         city= ${city},
+//         picture= ${imageUrl},
+//         is_media_compliant= ${!!isMediaCompliant},
+//         has_paid= ${!!hasPaid},
+//         legal_contact_id= ${legalContactId}
+//       WHERE id = ${id}
+//     `;
+//     const updateLegalContact = await sql`
+//       UPDATE legal_contacts
+//       SET last_name = ${legalContactLastName},
+//         first_name = ${legalContactFirstName},
+//         phone_number = ${legalContactPhoneNumber}
+//       WHERE id = ${legalContactId}
+//     `;
 
-  revalidatePath('/dashboard/climbing');
-  redirect('/dashboard/climbing');
-}
+//     await Promise.all([updateMember, updateLegalContact]);
+//   } catch (error) {
+//     return { message: 'Database Error: Failed to Update a member.' };
+//   }
+
+//   revalidatePath('/dashboard/climbing');
+//   redirect('/dashboard/climbing');
+// }
 
 export async function deleteMember(id: string) {
   try {
