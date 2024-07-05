@@ -63,9 +63,7 @@ export default function FormRegistration({
     formData.set('isMediaCompliant', isMediaCompliant.toString());
     if (picture) {
       formData.set('picture', picture);
-      console.log('registration picture:', picture);
     }
-    console.log('registration formData:', formData.get('picture'));
     dispatch(formData);
   };
 

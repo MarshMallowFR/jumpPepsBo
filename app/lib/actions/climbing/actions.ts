@@ -51,11 +51,9 @@ const ClimbingMemberSchema = z.object({
     .array(z.custom<File>())
     .refine(
       (files) => {
-        // Check if all items in the array are instances of the File object
         return files.every((file) => file instanceof File);
       },
       {
-        // If the refinement fails, throw an error with this message
         message: 'Veuillez importer une photo.',
       },
     )
@@ -145,12 +143,19 @@ export async function createClimbingMember(
 
   // console.log(
   //   'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
-  //   validatedFields
+  //   validatedFields,
   // );
 
   if (!validatedFields.success) {
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
+    if (fieldErrors.picture) {
+      return {
+        errors: { picture: fieldErrors.picture },
+        message: `Erreur lors de l'import de l'image.`,
+      };
+    }
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: fieldErrors,
       message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
     };
   }
