@@ -122,6 +122,7 @@ const UpdateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
 });
 
+// Création d'un nouveau membre (admin and client side)
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
@@ -256,106 +257,105 @@ export async function createClimbingMember(
   }
 }
 
-// Fonction de mise à jour d'um membre (admin)
-// export async function updateClimbingMember(
-//   id: string,
-//   _prevState: ClimbingState,
-//   formData: FormData,
-// ) {
-//   const validationStatus = UpdateClimbingMember.safeParse({
-//     firstName: formData.get('firstName'),
-//     lastName: formData.get('lastName'),
-//     birthDate: formData.get('birthDate'),
-//     email: formData.get('email'),
-//     phoneNumber: formData.get('phoneNumber'),
-//     street: formData.get('street'),
-//     zipCode: formData.get('zipCode'),
-//     city: formData.get('city'),
-//     picture: [formData.get('picture')],
-//     isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
-//     hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
-//   });
+// Fonction de mise à jour d'um membre (admin side)
+export async function updateClimbingMember(
+  id: string,
+  _prevState: ClimbingState,
+  formData: FormData,
+) {
+  const validationStatus = UpdateClimbingMember.safeParse({
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    birthDate: formData.get('birthDate'),
+    email: formData.get('email'),
+    phoneNumber: formData.get('phoneNumber'),
+    street: formData.get('street'),
+    zipCode: formData.get('zipCode'),
+    city: formData.get('city'),
+    picture: [formData.get('picture')],
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
+    hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
+  });
 
-//   if (!validationStatus.success) {
-//     return {
-//       errors: validationStatus.error.flatten().fieldErrors,
-//       message: `Informations manquantes pour finaliser la mise à jour de l'adhérent.e.`,
-//     };
-//   }
+  if (!validationStatus.success) {
+    return {
+      errors: validationStatus.error.flatten().fieldErrors,
+      message: `Informations manquantes pour finaliser la mise à jour de l'adhérent.e.`,
+    };
+  }
 
-//     let imageUrl = '';
-//     const picture = formData.get('picture') as File;
-//     if (picture) {
-//       const arrayBuffer = await picture.arrayBuffer();
-//       const buffer = new Uint8Array(arrayBuffer);
-//       const result = await new Promise<any>((resolve, reject) => {
-//         cloudinary.uploader
-//           .upload_stream(
-//             { tags: ['nextjs-server-actions-upload-sneakers'] },
-//             (error, result) => {
-//               if (error) {
-//                 reject(error);
-//                 return;
-//               }
-//               resolve(result);
-//             },
-//           )
-//           .end(buffer);
-//       });
-//       imageUrl = result.secure_url;
-//     }
+  let imageUrl = '';
+  const uploadedPicture = formData.get('picture') as File;
+  if (uploadedPicture) {
+    const arrayBuffer = await uploadedPicture.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+    const result = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { tags: ['nextjs-server-actions-upload-sneakers'] },
+          (error, result) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+            resolve(result);
+          },
+        )
+        .end(buffer);
+    });
+    imageUrl = result.secure_url;
+  }
 
-//   const {
-//     firstName,
-//     lastName,
-//     birthDate,
-//     email,
-//     phoneNumber,
-//     street,
-//     zipCode,
-//     city,
-//     picture,
-//     isMediaCompliant,
-//     hasPaid,
-//     legalContactFirstName,
-//     legalContactLastName,
-//     legalContactPhoneNumber,
-//     legalContactId,
-//   } = validationStatus.data;
+  const {
+    firstName,
+    lastName,
+    birthDate,
+    email,
+    phoneNumber,
+    street,
+    zipCode,
+    city,
+    isMediaCompliant,
+    hasPaid,
+    legalContactFirstName,
+    legalContactLastName,
+    legalContactPhoneNumber,
+    legalContactId,
+  } = validationStatus.data;
 
-//   try {
-//     const updateMember = await sql`
-//       UPDATE members
-//       SET last_name = ${lastName},
-//         first_name = ${firstName},
-//         birth_date = ${birthDate},
-//         email =   ${email},
-//         phone_number = ${phoneNumber},
-//         street= ${street},
-//         zip_code= ${zipCode},
-//         city= ${city},
-//         picture= ${imageUrl},
-//         is_media_compliant= ${!!isMediaCompliant},
-//         has_paid= ${!!hasPaid},
-//         legal_contact_id= ${legalContactId}
-//       WHERE id = ${id}
-//     `;
-//     const updateLegalContact = await sql`
-//       UPDATE legal_contacts
-//       SET last_name = ${legalContactLastName},
-//         first_name = ${legalContactFirstName},
-//         phone_number = ${legalContactPhoneNumber}
-//       WHERE id = ${legalContactId}
-//     `;
+  try {
+    const updateMember = await sql`
+      UPDATE members
+      SET last_name = ${lastName},
+        first_name = ${firstName},
+        birth_date = ${birthDate},
+        email =   ${email},
+        phone_number = ${phoneNumber},
+        street= ${street},
+        zip_code= ${zipCode},
+        city= ${city},
+        picture= ${imageUrl},
+        is_media_compliant= ${!!isMediaCompliant},
+        has_paid= ${!!hasPaid},
+        legal_contact_id= ${legalContactId}
+      WHERE id = ${id}
+    `;
+    const updateLegalContact = await sql`
+      UPDATE legal_contacts
+      SET last_name = ${legalContactLastName},
+        first_name = ${legalContactFirstName},
+        phone_number = ${legalContactPhoneNumber}
+      WHERE id = ${legalContactId}
+    `;
 
-//     await Promise.all([updateMember, updateLegalContact]);
-//   } catch (error) {
-//     return { message: 'Database Error: Failed to Update a member.' };
-//   }
+    await Promise.all([updateMember, updateLegalContact]);
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update a member.' };
+  }
 
-//   revalidatePath('/dashboard/climbing');
-//   redirect('/dashboard/climbing');
-// }
+  revalidatePath('/dashboard/climbing');
+  redirect('/dashboard/climbing');
+}
 
 export async function deleteMember(id: string) {
   try {
