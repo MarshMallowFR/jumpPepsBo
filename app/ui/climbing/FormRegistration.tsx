@@ -43,8 +43,6 @@ export default function FormRegistration({
     dispatch(formData);
     if (formData) {
       setToastMessage('Inscription réussie!');
-    } else {
-      setToastMessage("Erreur lors de l'inscription.");
     }
   };
 
