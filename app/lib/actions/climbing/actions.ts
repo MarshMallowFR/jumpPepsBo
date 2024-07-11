@@ -98,8 +98,8 @@ export type ClimbingState = {
     zipCode?: string[];
     city?: string[];
     picture?: any[];
-    isMediaCompliant?: boolean[];
-    hasPaid?: boolean[];
+    isMediaCompliant?: string[];
+    hasPaid?: string[];
     legalContactFirstName?: string[];
     legalContactLastName?: string[];
     legalContactPhoneNumber?: string[];
@@ -241,8 +241,8 @@ export async function updateClimbingMember(
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
     picture: [formData.get('picture')],
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true', // Conversion en boolean
-    hasPaid: formData.get('hasPaid') === 'false', // Conversion en boolean
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
+    hasPaid: formData.get('hasPaid') === 'false',
   });
 
   if (!validationStatus.success) {
