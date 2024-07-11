@@ -7,11 +7,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function getCloudinaryPicture(
-  formData: FormData,
-): Promise<string> {
+export async function getCloudinaryPicture(picture: File): Promise<string> {
   let imageUrl = '';
-  const picture = formData.get('picture') as File;
   if (picture) {
     const arrayBuffer = await picture.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -33,31 +30,3 @@ export async function getCloudinaryPicture(
   }
   return imageUrl;
 }
-
-// Autre façon de faire pour la const buffer
-// export async function getCloudinaryPicture(
-//   formData: FormData,
-// ): Promise<string> {
-//   let imageUrl = '';
-//   const picture = formData.get('picture') as File;
-//   if (picture) {
-//     const arrayBuffer = await picture.arrayBuffer();
-//     const buffer = Buffer.from(new Uint8Array(arrayBuffer));
-//     const result = await new Promise((resolve, reject) => {
-//       cloudinary.uploader
-//         .upload_stream(
-//           { tags: ['nextjs-server-actions-upload-sneakers'] },
-//           (error, result) => {
-//             if (error) {
-//               reject(error);
-//               return;
-//             }
-//             resolve(result);
-//           },
-//         )
-//         .end(buffer);
-//     });
-//     imageUrl = result.secure_url;
-//   }
-//   return imageUrl;
-// }

@@ -135,8 +135,6 @@ export async function createClimbingMember(
     hasPaid: isRegistration ? false : formData.get('hasPaid') === 'true',
   });
 
-  console.log('validatedFields dans fichier action.ts:', validatedFields);
-
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
     if (fieldErrors.picture) {
@@ -152,7 +150,9 @@ export async function createClimbingMember(
   }
 
   try {
-    const imageUrl = await getCloudinaryPicture(formData);
+    const imageUrl = await getCloudinaryPicture(
+      formData.get('picture') as File,
+    );
 
     const {
       firstName,
@@ -255,7 +255,7 @@ export async function updateClimbingMember(
     };
   }
 
-  const imageUrl = await getCloudinaryPicture(formData);
+  const imageUrl = await getCloudinaryPicture(formData.get('picture') as File);
 
   const {
     firstName,
