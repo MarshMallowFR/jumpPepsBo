@@ -23,21 +23,13 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  // const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
-  // const [isMediaCompliant, setIsMediaCompliant] = useState(
-  //   member?.isMediaCompliant ?? false,
-  // );
-  const [isMediaCompliant, setIsMediaCompliant] = useState(false);
-  const [hasPaid, setHasPaid] = useState(false);
+  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
+  const [isMediaCompliant, setIsMediaCompliant] = useState(
+    member?.isMediaCompliant ?? false,
+  );
   const [isMinor, setIsMinor] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
 
-  // const handleIsMediaCompliant = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setIsMediaCompliant(e.target.checked);
-  // };
-  // const handleHasPaid = (e: ChangeEvent<HTMLInputElement>) => {
-  //   setHasPaid(e.target.checked);
-  // };
   const handleHasPaid = () => {
     setHasPaid((prevState) => !prevState);
   };
