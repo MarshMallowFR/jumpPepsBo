@@ -135,6 +135,8 @@ export async function createClimbingMember(
     hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ? A vérifier pour partie admin
   });
 
+  console.log('validatedFields dans fichier action.ts:', validatedFields);
+
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
     if (fieldErrors.picture) {
@@ -215,10 +217,11 @@ export async function createClimbingMember(
       )
     `;
 
-    if (!isRegistration) {
-      revalidatePath('/dashboard/climbing');
-      redirect('/dashboard/climbing');
-    }
+    // Pas de redirection pour le moment car erreur
+    // if (!isRegistration) {
+    //   revalidatePath('/dashboard/climbing');
+    //   redirect('/dashboard/climbing');
+    // }
   } catch (error) {
     console.error('Database Error: Failed to create a member.', error);
     return { error };

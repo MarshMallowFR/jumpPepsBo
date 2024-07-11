@@ -15,7 +15,8 @@ import { ToggleInput } from '../common/toggleInput';
 import { handleBirthDate } from './handleBirthday';
 import { PictureUpload } from '../common/PictureUpload';
 
-//A CORRIGER: Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
+//A CORRIGER: Création du membre se fait bien dans la BBD mais le champs hasPaid se met automatiquement à true + erreur lors de la redirection si redirection s=> Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
+//Database Error: Failed to create a member. Error: NEXT_REDIRECT
 interface FormProps {
   dispatch: (payload: FormData) => void;
   member?: Member;
@@ -23,7 +24,7 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
+  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false); // lors de la création d'un membre, se met à true (test fait avec true par default aussi). pourquoi?!
   const [isMediaCompliant, setIsMediaCompliant] = useState(
     member?.isMediaCompliant ?? false,
   );
@@ -64,11 +65,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
           label="Prénom"
           idFor="firstName"
           settingKey="firstName"
-          error={state.errors?.firstName}
+          error={state?.errors?.firstName}
         />
         <TextInput
           defaultValue={member?.lastName}
-          error={state.errors?.lastName}
+          error={state?.errors?.lastName}
           idFor="lastName"
           label="Nom"
           settingKey="lastName"
@@ -76,7 +77,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
         <div className="mb-4 w-full flex">
           <TextInput
             defaultValue={formatTimestamp(member?.birthDate)}
-            error={state.errors?.birthDate}
+            error={state?.errors?.birthDate}
             handleChange={handleBirthDate(setIsMinor)}
             label="Date de naissance"
             idFor="birthDate"
@@ -90,7 +91,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Numéro de téléphone"
             idFor="phoneNumber"
             settingKey="phoneNumber"
-            error={state.errors?.phoneNumber}
+            error={state?.errors?.phoneNumber}
           />
           <TextInput
             className="ml-2 flex-1"
@@ -98,7 +99,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Email"
             idFor="email"
             settingKey="email"
-            error={state.errors?.email}
+            error={state?.errors?.email}
           />
         </div>
         <TextInput
@@ -106,7 +107,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
           label="Rue"
           idFor="street"
           settingKey="street"
-          error={state.errors?.street}
+          error={state?.errors?.street}
         />
         <div className="mb-4 w-full flex">
           <TextInput
@@ -114,7 +115,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Code postal"
             idFor="zipCode"
             settingKey="zipCode"
-            error={state.errors?.zipCode}
+            error={state?.errors?.zipCode}
           />
           <TextInput
             className="ml-4 flex-1"
@@ -122,7 +123,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Ville"
             idFor="city"
             settingKey="city"
-            error={state.errors?.city}
+            error={state?.errors?.city}
           />
         </div>
         <div className="mb-4 flex items-center">
@@ -180,14 +181,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
               />
               <TextInput
                 defaultValue={member?.legalContactLastName}
-                error={state.errors?.legalContactLastName}
+                error={state?.errors?.legalContactLastName}
                 idFor="legalContactLastName"
                 label="Nom du contact"
                 settingKey="legalContactLastName"
               />
               <TextInput
                 defaultValue={member?.legalContactPhoneNumber}
-                error={state.errors?.legalContactPhoneNumber}
+                error={state?.errors?.legalContactPhoneNumber}
                 idFor="legalContactPhoneNumber"
                 label="Numéro de téléphone du contact"
                 settingKey="legalContactPhoneNumber"
@@ -202,7 +203,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
           error={state?.errors?.picture}
         />
 
-        {state.message ? (
+        {state?.message ? (
           <p className="mt-2 text-sm text-red-500">{state.message}</p>
         ) : null}
       </div>
