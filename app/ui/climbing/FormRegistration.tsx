@@ -1,14 +1,13 @@
-// import dayjs from 'dayjs';
-import { ChangeEvent, useState } from 'react';
-import { ClimbingState } from '@/app/lib/actions/climbing/actions'; // type utilisé pour la gestiondes erreurs
+import { useState } from 'react';
+import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import { Button } from '../common/button';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { PictureUpload } from '../common/PictureUpload';
-import { Member } from '@/app/lib/types/climbing'; // type membre
+import { Member } from '@/app/lib/types/climbing';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { handleBirthDate } from './handleBirthday';
 
-//typage des props du formulaire
 interface FormProps {
   dispatch: (payload: FormData) => void;
   member?: Member;
@@ -20,45 +19,19 @@ export default function FormRegistration({
   dispatch,
   member,
 }: FormProps) {
+  const [isMinor, setIsMinor] = useState(false);
   const [isMediaCompliant, setIsMediaCompliant] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
 
-  // Gestion age
-  const [isMinor, setIsMinor] = useState(false);
-  const handleBirthDate = (e: ChangeEvent<HTMLInputElement>) => {
-    const [year, month, day] = e.target.value.split('-');
-
-    if (!day || !month || !year) {
-      return;
-    }
-
-    const birthday = new Date(+year, +month - 1, +day);
-    const today = new Date();
-    const monthDiff = today.getMonth() - birthday.getMonth();
-    let age = today.getFullYear() - birthday.getFullYear();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthday.getDate())
-    ) {
-      age--;
-    }
-
-    setIsMinor(age < 18);
-  };
-  // Gestion media
   const handleIsMediaCompliant = () => {
     setIsMediaCompliant((prevState) => !prevState);
   };
 
-  //  Préparation envoi photo
-  const handlePictureChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      setPicture(files[0]);
-    }
+  const handlePictureChange = (file: File) => {
+    setPicture(file);
   };
-  // Conversion valeurs du formulaire en string si besoin avant envoi
+
+  // Conversion valeurs du formulaire au bon format avant envoi
   const handleSubmit = (formData: FormData) => {
     formData.set('isMediaCompliant', isMediaCompliant.toString());
     if (picture) {
@@ -86,7 +59,7 @@ export default function FormRegistration({
         <div className="mb-4 w-full flex">
           <TextInput
             type="date"
-            handleChange={handleBirthDate}
+            handleChange={handleBirthDate(setIsMinor)}
             label="Date de naissance"
             idFor="birthDate"
             placeholder="JJ/MM/AAAA"

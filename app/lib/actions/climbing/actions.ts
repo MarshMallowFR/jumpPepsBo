@@ -5,16 +5,9 @@ import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
-import { v2 as cloudinary } from 'cloudinary';
+import { getCloudinaryPicture } from '../../cloudinary/cloudinary';
 
-// Configuration de Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Configuration de l'image
+// Configuration de l'image pour gestion des erreurs avec zod
 const MAX_FILE_SIZE = 500000;
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
@@ -78,8 +71,7 @@ const ClimbingMemberSchema = z.object({
       .string()
       .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`),
   ),
-  legalContactPhoneNumber: z.optional(z.string()),
-  legalContactId: z.optional(
+  legalContactPhoneNumber: z.optional(
     z.preprocess(
       (value) => {
         if (typeof value !== 'string') {
@@ -92,6 +84,7 @@ const ClimbingMemberSchema = z.object({
         .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
     ),
   ),
+  legalContactId: z.optional(z.string()),
 });
 
 export type ClimbingState = {
@@ -138,14 +131,9 @@ export async function createClimbingMember(
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
     picture: [formData.get('picture')],
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true', //Conversion en boolean
-    hasPaid: isRegistration ? false : formData.get('hasPaid'), //=== 'false', // Conversion en boolean - 'true' ?
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
+    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ? A vérifier pour partie admin
   });
-
-  // console.log(
-  //   'fichier actions.ts fonction createClimbingMember/validatedFierlds:',
-  //   validatedFields,
-  // );
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
@@ -162,27 +150,7 @@ export async function createClimbingMember(
   }
 
   try {
-    let imageUrl = '';
-    const picture = formData.get('picture') as File;
-    if (picture) {
-      const arrayBuffer = await picture.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      const result = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            { tags: ['nextjs-server-actions-upload-sneakers'] },
-            (error, result) => {
-              if (error) {
-                reject(error);
-                return;
-              }
-              resolve(result);
-            },
-          )
-          .end(buffer);
-      });
-      imageUrl = result.secure_url;
-    }
+    const imageUrl = await getCloudinaryPicture(formData);
 
     const {
       firstName,
@@ -284,27 +252,7 @@ export async function updateClimbingMember(
     };
   }
 
-  let imageUrl = '';
-  const uploadedPicture = formData.get('picture') as File;
-  if (uploadedPicture) {
-    const arrayBuffer = await uploadedPicture.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-    const result = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          { tags: ['nextjs-server-actions-upload-sneakers'] },
-          (error, result) => {
-            if (error) {
-              reject(error);
-              return;
-            }
-            resolve(result);
-          },
-        )
-        .end(buffer);
-    });
-    imageUrl = result.secure_url;
-  }
+  const imageUrl = await getCloudinaryPicture(formData);
 
   const {
     firstName,

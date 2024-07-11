@@ -11,6 +11,5 @@ export default function RegisterForm() {
       createClimbingMember(prevState, formData, true),
     initialState,
   );
-  //console.log('register-form.tsx:', state); renvoie : {message: 'Database Error: Failed to create a member.'}
   return <FormRegistration dispatch={dispatch} state={state} />;
 }
