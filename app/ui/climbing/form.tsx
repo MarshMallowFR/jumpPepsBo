@@ -12,7 +12,7 @@ import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/button';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
-import { handleBirthDate } from './handleBirthday';
+import { handleBirthDate } from '../../utils/handleBirthday';
 import { PictureUpload } from '../common/PictureUpload';
 
 //A CORRIGER: erreur lors de la redirection si redirection => Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
