@@ -15,7 +15,7 @@ import { ToggleInput } from '../common/toggleInput';
 import { handleBirthDate } from './handleBirthday';
 import { PictureUpload } from '../common/PictureUpload';
 
-//A CORRIGER: Création du membre se fait bien dans la BBD mais le champs hasPaid se met automatiquement à true + erreur lors de la redirection si redirection s=> Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
+//A CORRIGER: erreur lors de la redirection si redirection => Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
 //Database Error: Failed to create a member. Error: NEXT_REDIRECT
 interface FormProps {
   dispatch: (payload: FormData) => void;
@@ -24,7 +24,8 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false); // lors de la création d'un membre, se met à true (test fait avec true par default aussi). pourquoi?!
+  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
+
   const [isMediaCompliant, setIsMediaCompliant] = useState(
     member?.isMediaCompliant ?? false,
   );

@@ -132,7 +132,7 @@ export async function createClimbingMember(
     city: formData.get('city'),
     picture: [formData.get('picture')],
     isMediaCompliant: formData.get('isMediaCompliant') === 'true',
-    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'false', // Conversion en boolean - 'true' ? A vérifier pour partie admin
+    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'true',
   });
 
   console.log('validatedFields dans fichier action.ts:', validatedFields);
