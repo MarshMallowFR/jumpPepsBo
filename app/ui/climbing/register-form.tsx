@@ -11,5 +11,25 @@ export default function RegisterForm() {
       createClimbingMember(prevState, formData, true),
     initialState,
   );
-  return <FormRegistration dispatch={dispatch} state={state} />;
+  return (
+    <div className="flex flex-col md:flex-row md:space-x-12 md:px-9">
+      <div className="min-w-0 w-full md:w-1/2">
+        <h2 className="text-lg font-bold">LICENCE ET TARIFS</h2>
+        <p className="my-2">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Expedita,
+          illum quae? Dolores, sapiente deserunt hic tenetur mollitia itaque
+          placeat accusamus eum doloribus, in quaerat atque numquam. Hic numquam
+          temporibus quos.
+        </p>
+        <h2 className="text-lg font-bold mt-8">HORAIRES</h2>
+        <p className="mt-2 mb-8">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Expedita,
+          illum quae? Dolores, sapiente deserunt hic tenetur mollitia itaque
+          placeat accusamus eum doloribus, in quaerat atque numquam. Hic numquam
+          temporibus quos.
+        </p>
+      </div>
+      <FormRegistration dispatch={dispatch} state={state} />
+    </div>
+  );
 }

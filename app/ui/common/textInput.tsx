@@ -22,23 +22,20 @@ export const TextInput = ({
   type = 'text',
 }: TextInputProps) => (
   <div className={`mb-4 ${className}`}>
-    <label htmlFor={idFor} className="mb-2 block text-sm font-medium">
+    <label htmlFor={idFor} className="mb-2 block text-sm font-semibold">
       {label}
     </label>
-    <div className="relative mt-2 rounded-md">
-      <div className="relative">
-        <input
-          aria-describedby={`${idFor}-error`}
-          className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-          defaultValue={defaultValue}
-          id={idFor}
-          name={settingKey}
-          onChange={handleChange}
-          placeholder={placeholder}
-          type={type}
-        />
-      </div>
-    </div>
+    <input
+      aria-describedby={`${idFor}-error`}
+      className="w-full rounded-md  py-2 pl-2 text-sm placeholder:text-gray border-slate-300 focus:border-orange-medium focus:ring-orange-medium"
+      defaultValue={defaultValue}
+      id={idFor}
+      name={settingKey}
+      onChange={handleChange}
+      placeholder={placeholder}
+      type={type}
+    />
+
     {error ? (
       <div
         aria-live="polite"
