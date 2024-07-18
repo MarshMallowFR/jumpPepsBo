@@ -18,7 +18,7 @@ export const ToggleInput = ({
   idFor,
 }: ToggleInputProps) => {
   return (
-    <div className="mb-4">
+    <div className="">
       <div className="mb-2 text-sm font-semibold flex items-center">
         <label>{label}</label>
         {icon}

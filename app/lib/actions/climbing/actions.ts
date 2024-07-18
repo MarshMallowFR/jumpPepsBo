@@ -141,11 +141,13 @@ export async function createClimbingMember(
       return {
         errors: { picture: fieldErrors.picture },
         message: `Erreur lors de l'import de l'image.`,
+        isSuccess: false,
       };
     }
     return {
       errors: fieldErrors,
       message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
+      isSuccess: false,
     };
   }
 
@@ -217,6 +219,7 @@ export async function createClimbingMember(
       )
     `;
 
+    return { message: 'Membre créé avec succès.', isSuccess: true };
     // Pas de redirection pour le moment car erreur
     // if (!isRegistration) {
     //   revalidatePath('/dashboard/climbing');
@@ -224,7 +227,11 @@ export async function createClimbingMember(
     // }
   } catch (error) {
     console.error('Database Error: Failed to create a member.', error);
-    return { error };
+    return {
+      error,
+      message: 'Erreur lors de la création du membre.',
+      isSuccess: false,
+    };
   }
 }
 

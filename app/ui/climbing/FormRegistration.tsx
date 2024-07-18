@@ -8,10 +8,12 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
 import { Toast } from '../common/Toast';
 import { UploadPicture } from '../common/UploadPicture';
-import { PictureUpload } from '../common/PictureUpload';
 
 interface FormProps {
-  dispatch: (payload: FormData) => void;
+  dispatch: (
+    payload: FormData,
+    callback: (message: string | null, isSuccess: boolean) => void,
+  ) => void;
   member?: Member;
   state: ClimbingState;
 }
@@ -26,6 +28,7 @@ export default function FormRegistration({
   const [picture, setPicture] = useState<File | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false); //test
 
   const handleIsMediaCompliant = () => {
     setIsMediaCompliant((prevState) => !prevState);
@@ -44,11 +47,13 @@ export default function FormRegistration({
     if (picture) {
       formData.set('picture', picture);
     }
-
-    dispatch(formData);
-    // if (formData) {
-    //   setToastMessage('Inscription réussie!');
-    // }
+    console.log('avant dispatch', formData);
+    dispatch(formData, (message: string | null, isSuccess: boolean) => {
+      console.log('après dispatch', formData, message);
+      if (isSuccess) {
+        setToastMessage(message);
+      }
+    });
   };
 
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
@@ -141,35 +146,7 @@ export default function FormRegistration({
             />
           </div>
         </div>
-        {!isMinor ? null : (
-          <div className="mb-4">
-            <h2 className="mb-2 block text-sm font-medium">
-              Coordonnées du représentant légal
-            </h2>
-            <div className="w-full flex justify-around">
-              <TextInput
-                idFor="legalContactFirstName"
-                label="Prénom du contact"
-                settingKey="legalContactFirstName"
-                error={state?.errors?.legalContactFirstName}
-              />
-              <TextInput
-                defaultValue={member?.legalContactLastName}
-                idFor="legalContactLastName"
-                label="Nom du contact"
-                settingKey="legalContactLastName"
-                error={state?.errors?.legalContactLastName}
-              />
-              <TextInput
-                defaultValue={member?.legalContactPhoneNumber}
-                idFor="legalContactPhoneNumber"
-                label="Numéro de téléphone du contact"
-                settingKey="legalContactPhoneNumber"
-                error={state?.errors?.legalContactPhoneNumber}
-              />
-            </div>
-          </div>
-        )}
+
         <div className="flex my-3 justify-between space-x-9">
           <div className="basis-1/2">
             <UploadPicture
@@ -210,17 +187,48 @@ export default function FormRegistration({
             </ToggleInput>
           </div>
         </div>
-        {state?.message ? (
+        {!isMinor ? null : (
+          <div className="my-6">
+            <h2 className="mb-2  text-sm font-semibold text-orange-medium">
+              Coordonnées du représentant légal
+            </h2>
+            <div className="flex space-x-3">
+              <TextInput
+                className="basis-1/2"
+                idFor="legalContactFirstName"
+                label="Prénom"
+                settingKey="legalContactFirstName"
+                error={state?.errors?.legalContactFirstName}
+              />
+              <TextInput
+                className="basis-1/2"
+                defaultValue={member?.legalContactLastName}
+                idFor="legalContactLastName"
+                label="Nom"
+                settingKey="legalContactLastName"
+                error={state?.errors?.legalContactLastName}
+              />
+            </div>
+            <TextInput
+              className="w-1/2"
+              defaultValue={member?.legalContactPhoneNumber}
+              idFor="legalContactPhoneNumber"
+              label="Numéro de téléphone"
+              settingKey="legalContactPhoneNumber"
+              error={state?.errors?.legalContactPhoneNumber}
+            />
+          </div>
+        )}
+        {state?.message && (
           <p className="mt-2 text-sm text-red-500">{state.message}</p>
-        ) : null}
+        )}
 
         <div className="mt-6 flex justify-center">
           <Button type="submit">ENVOYER</Button>
         </div>
       </form>
-      {toastMessage && (
-        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-      )}
+      {toastMessage && <Toast message={toastMessage} />}
+      {/* {isSuccess && <Toast message="Membre créé avec succès." />} */}
     </>
   );
 }
