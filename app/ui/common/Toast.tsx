@@ -38,9 +38,10 @@ import { useEffect, useState } from 'react';
 
 interface ToastProps {
   message: string;
+  type: 'success' | 'error';
 }
 
-export const Toast = ({ message }: ToastProps) => {
+export const Toast = ({ message, type }: ToastProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
