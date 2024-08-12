@@ -4,21 +4,21 @@ interface UploadPictureProps {
   error?: string[];
   handleChange: (file: File) => void;
   icon?: React.ReactNode;
-  label: string;
   idFor: string;
+  imageUrl?: string;
+  label: string;
   settingKey: string;
   type?: string;
-  imageUrl?: string;
 }
 
 export const UploadPicture = ({
   error,
   handleChange,
-  idFor,
-  label,
   icon,
-  settingKey,
+  idFor,
   imageUrl,
+  label,
+  settingKey,
   type = 'file',
 }: UploadPictureProps) => {
   const handleChangePicture = (e: React.ChangeEvent<HTMLInputElement>) => {
