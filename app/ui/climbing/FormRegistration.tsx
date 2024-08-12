@@ -47,6 +47,23 @@ export default function FormRegistration({
     dispatch(formData);
   };
 
+  // Remise à zéro des champs du formulaire si tout est OK
+  useEffect(() => {
+    if (state?.isSuccess) {
+      // états locaux
+      setIsMinor(false);
+      setIsMediaCompliant(false);
+      setPicture(null);
+      setPictureUrl(null);
+
+      // valeurs des champs
+      const form = document.querySelector('form');
+      if (form) {
+        form.reset();
+      }
+    }
+  }, [state?.isSuccess]);
+
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
   useEffect(() => {
     return () => {
