@@ -1,3 +1,9 @@
-export default function Page() {
-  return <div>test</div>;
+import FormRegistration from '@/app/ui/climbing/register-form';
+
+export default async function Page() {
+  return (
+    <main>
+      <FormRegistration />
+    </main>
+  );
 }

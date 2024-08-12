@@ -4,7 +4,9 @@ import Breadcrumbs from '@/app/ui/common/breadcrumbs';
 import { fetchAdminById } from '@/app/lib/data';
 import { Admin } from '@/app/lib/types/admins';
 
-export default async function Page({ params }: { params: { id: string } }) {
+type PageProps = { params: { id: string } };
+
+export default async function Page({ params }: PageProps) {
   const id = params.id;
   const admin: Admin | undefined = await fetchAdminById(id);
 

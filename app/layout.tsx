@@ -1,6 +1,5 @@
 import '@/app/ui/style/global.css';
-import { inter } from '@/app/ui/style/fonts';
-
+import { kanit } from '@/app/ui/style/fonts';
 
 export default function RootLayout({
   children,
@@ -9,7 +8,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${kanit.className} antialiased px-6 py-6`}>
         {children}
       </body>
     </html>

@@ -8,11 +8,16 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/button';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
-import { Member } from '@/app/lib/types/climbing';
+import { handleBirthDate } from '../../utils/handleBirthday';
+import { PictureUpload } from '../common/PictureUpload';
 
+//A CORRIGER: erreur lors de la redirection si redirection => Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
+//Database Error: Failed to create a member. Error: NEXT_REDIRECT
+// Revoir dispatch car la fonction a bien un return maintenant =>   dispatch: (payload: FormData) => Promise<ClimbingState>;
 interface FormProps {
   dispatch: (payload: FormData) => void;
   member?: Member;
@@ -20,58 +25,53 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  const [hasPaid, setHasPaid] = useState(member?.hasPaid);
+  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
+
   const [isMediaCompliant, setIsMediaCompliant] = useState(
-    member?.isMediaCompliant,
+    member?.isMediaCompliant ?? false,
   );
   const [isMinor, setIsMinor] = useState(false);
+  const [picture, setPicture] = useState<File | null>(null);
 
-  const handleBirthDate = (e: ChangeEvent<HTMLInputElement>) => {
-    const [year, month, day] = e.target.value.split('-');
-
-    if (!day || !month || !year) {
-      return;
-    }
-
-    const birthday = new Date(+year, +month - 1, +day);
-    const today = new Date();
-    const monthDiff = today.getMonth() - birthday.getMonth();
-    let age = today.getFullYear() - birthday.getFullYear();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthday.getDate())
-    ) {
-      age--;
-    }
-
-    setIsMinor(age < 18);
+  const handleHasPaid = () => {
+    setHasPaid((prevState) => !prevState);
   };
 
-  const handleIsMediaCompliant = (e: ChangeEvent<HTMLInputElement>) => {
-    setIsMediaCompliant(e.target.checked);
+  const handleIsMediaCompliant = () => {
+    setIsMediaCompliant((prevState) => !prevState);
   };
-  const handleHasPaid = (e: ChangeEvent<HTMLInputElement>) => {
-    setHasPaid(e.target.checked);
+
+  const handlePictureChange = (file: File) => {
+    setPicture(file);
   };
 
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
 
+  // Conversion valeurs du formulaire au bon format avant envoi
+  const handleSubmit = (formData: FormData) => {
+    formData.set('isMediaCompliant', isMediaCompliant.toString());
+    formData.set('hasPaid', hasPaid.toString());
+    if (picture) {
+      formData.set('picture', picture);
+    }
+    dispatch(formData);
+  };
+
   return (
-    <form action={dispatch}>
+    <form action={handleSubmit}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         <TextInput
           defaultValue={member?.firstName}
           label="Prénom"
           idFor="firstName"
           settingKey="firstName"
-          error={state.errors?.firstName}
+          error={state?.errors?.firstName}
         />
         <TextInput
           defaultValue={member?.lastName}
-          error={state.errors?.lastName}
+          error={state?.errors?.lastName}
           idFor="lastName"
           label="Nom"
           settingKey="lastName"
@@ -79,8 +79,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
         <div className="mb-4 w-full flex">
           <TextInput
             defaultValue={formatTimestamp(member?.birthDate)}
-            error={state.errors?.birthDate}
-            handleChange={handleBirthDate}
+            error={state?.errors?.birthDate}
+            handleChange={handleBirthDate(setIsMinor)}
             label="Date de naissance"
             idFor="birthDate"
             placeholder="JJ/MM/AAAA"
@@ -93,7 +93,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Numéro de téléphone"
             idFor="phoneNumber"
             settingKey="phoneNumber"
-            error={state.errors?.phoneNumber}
+            error={state?.errors?.phoneNumber}
           />
           <TextInput
             className="ml-2 flex-1"
@@ -101,7 +101,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Email"
             idFor="email"
             settingKey="email"
-            error={state.errors?.email}
+            error={state?.errors?.email}
           />
         </div>
         <TextInput
@@ -109,7 +109,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
           label="Rue"
           idFor="street"
           settingKey="street"
-          error={state.errors?.street}
+          error={state?.errors?.street}
         />
         <div className="mb-4 w-full flex">
           <TextInput
@@ -117,7 +117,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Code postal"
             idFor="zipCode"
             settingKey="zipCode"
-            error={state.errors?.zipCode}
+            error={state?.errors?.zipCode}
           />
           <TextInput
             className="ml-4 flex-1"
@@ -125,7 +125,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
             label="Ville"
             idFor="city"
             settingKey="city"
-            error={state.errors?.city}
+            error={state?.errors?.city}
           />
         </div>
         <div className="mb-4 flex items-center">
@@ -183,14 +183,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
               />
               <TextInput
                 defaultValue={member?.legalContactLastName}
-                error={state.errors?.legalContactLastName}
+                error={state?.errors?.legalContactLastName}
                 idFor="legalContactLastName"
                 label="Nom du contact"
                 settingKey="legalContactLastName"
               />
               <TextInput
                 defaultValue={member?.legalContactPhoneNumber}
-                error={state.errors?.legalContactPhoneNumber}
+                error={state?.errors?.legalContactPhoneNumber}
                 idFor="legalContactPhoneNumber"
                 label="Numéro de téléphone du contact"
                 settingKey="legalContactPhoneNumber"
@@ -198,39 +198,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
             </div>
           </div>
         )}
-        <div className="flex items-center justify-center w-full">
-          <label
-            htmlFor="dropzone-file"
-            className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <svg
-                className="w-10 h-10 mb-3 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">Cliquer pour charger</span> ou
-                déposer une photo
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                SVG, PNG, JPG or GIF (MAX. 800x400px)
-              </p>
-            </div>
-            <input id="dropzone-file" type="file" className="hidden" />
-          </label>
-        </div>
+        <PictureUpload
+          handleChange={handlePictureChange}
+          idFor="picture"
+          settingKey="picture"
+          error={state?.errors?.picture}
+        />
 
-        {state.message ? (
+        {state?.message ? (
           <p className="mt-2 text-sm text-red-500">{state.message}</p>
         ) : null}
       </div>
