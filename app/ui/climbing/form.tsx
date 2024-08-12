@@ -17,6 +17,7 @@ import { PictureUpload } from '../common/PictureUpload';
 
 //A CORRIGER: erreur lors de la redirection si redirection => Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
 //Database Error: Failed to create a member. Error: NEXT_REDIRECT
+// Revoir dispatch car la fonction a bien un return maintenant =>   dispatch: (payload: FormData) => Promise<ClimbingState>;
 interface FormProps {
   dispatch: (payload: FormData) => void;
   member?: Member;

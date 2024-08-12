@@ -24,8 +24,7 @@ export default function FormRegistration({
   const [isMediaCompliant, setIsMediaCompliant] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastType, setToastType] = useState<'success' | 'error'>('error');
+  ('error');
 
   const handleIsMediaCompliant = () => {
     setIsMediaCompliant((prevState) => !prevState);
@@ -39,38 +38,13 @@ export default function FormRegistration({
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     formData.set('isMediaCompliant', isMediaCompliant.toString());
 
     if (picture) {
       formData.set('picture', picture);
     }
-
-    try {
-      const response = await dispatch(formData);
-      console.log('Response:', response); // renvoie undefined ET du coup, même en cas de succès, on récupère un message d'erreur
-
-      if (response) {
-        // Vérifiez si la réponse contient `errors`
-        if (response.errors && Object.keys(response.errors).length === 0) {
-          setToastType('success');
-          setToastMessage('Membre créé avec succès.');
-        } else {
-          setToastType('error');
-          setToastMessage(
-            response.message || 'Erreur lors de la création du membre.',
-          );
-        }
-      } else {
-        // Si `response` est undefined ou null
-        setToastType('error');
-        setToastMessage('Erreur inconnue lors de la soumission du formulaire.');
-      }
-    } catch (error) {
-      setToastType('error');
-      setToastMessage('Erreur lors de la soumission du formulaire.');
-      console.error('Submission Error:', error);
-    }
+    dispatch(formData);
   };
 
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
@@ -86,11 +60,7 @@ export default function FormRegistration({
   return (
     <>
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formData = new FormData(e.currentTarget);
-          handleSubmit(formData);
-        }}
+        action={handleSubmit}
         className="rounded-md shadow-custom-shadow bg-gray p-8 min-w-0 w-full md:w-1/2"
       >
         <h2 className="text-lg font-bold">Formulaire de pré-insciption</h2>
@@ -248,7 +218,7 @@ export default function FormRegistration({
           <Button type="submit">ENVOYER</Button>
         </div>
       </form>
-      {toastMessage && <Toast message={toastMessage} type={toastType} />}
+      {state?.isSuccess && <Toast message="Pré-inscription réussie." />}
     </>
   );
 }

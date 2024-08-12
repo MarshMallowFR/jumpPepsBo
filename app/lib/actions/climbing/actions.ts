@@ -88,6 +88,7 @@ const ClimbingMemberSchema = z.object({
 });
 
 export type ClimbingState = {
+  isSuccess?: boolean;
   errors?: {
     firstName?: string[];
     lastName?: string[];
@@ -219,7 +220,7 @@ export async function createClimbingMember(
       )
     `;
 
-    return { message: 'Membre créé avec succès.', isSuccess: true };
+    return { isSuccess: true };
     // Pas de redirection pour le moment car erreur
     // if (!isRegistration) {
     //   revalidatePath('/dashboard/climbing');
