@@ -2,7 +2,6 @@ import Pagination from '@/app/ui/common/pagination';
 import Search from '@/app/ui/common/search';
 import Table from '@/app/ui/admins/table';
 import { CreateBtn } from '@/app/ui/common/buttons';
-import { lusitana } from '@/app/ui/style/fonts';
 import { AdminTableSkeleton } from '@/app/ui/common/skeletons';
 import { Suspense } from 'react';
 import { fetchAdminsPages } from '@/app/lib/data';
@@ -23,7 +22,7 @@ export default async function Page({
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>Admins</h1>
+        <h1 className="text-2xl">Admins</h1>
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder="Rechercher des admins" />

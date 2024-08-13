@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { ChangeEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import {
   CheckIcon,
@@ -17,9 +17,11 @@ import { PictureUpload } from '../common/PictureUpload';
 
 //A CORRIGER: erreur lors de la redirection si redirection => Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported. at stringify
 //Database Error: Failed to create a member. Error: NEXT_REDIRECT
-// Revoir dispatch car la fonction a bien un return maintenant =>   dispatch: (payload: FormData) => Promise<ClimbingState>;
+
+// Vérifier si le champs member.pictureUrl (ou quelque chose d'approchant) existe
+
 interface FormProps {
-  dispatch: (payload: FormData) => void;
+  dispatch: (payload: FormData) => Promise<ClimbingState>;
   member?: Member;
   state: ClimbingState;
 }
@@ -32,6 +34,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   );
   const [isMinor, setIsMinor] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
+  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
 
   const handleHasPaid = () => {
     setHasPaid((prevState) => !prevState);
@@ -43,6 +46,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const handlePictureChange = (file: File) => {
     setPicture(file);
+    // url locale pour la prévisualisation en attendant l'envoie du formulaire
+    const url = URL.createObjectURL(file);
+    setPictureUrl(url);
   };
 
   const formatTimestamp = (date?: string) => {
@@ -59,9 +65,18 @@ export default function Form({ state, dispatch, member }: FormProps) {
     dispatch(formData);
   };
 
+  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
+  useEffect(() => {
+    return () => {
+      if (pictureUrl) {
+        URL.revokeObjectURL(pictureUrl);
+      }
+    };
+  }, [pictureUrl]);
+
   return (
     <form action={handleSubmit}>
-      <div className="rounded-md bg-gray-50 p-4 md:p-6">
+      <div className="rounded-md bg-gray p-4 md:p-6">
         <TextInput
           defaultValue={member?.firstName}
           label="Prénom"
@@ -145,6 +160,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               )}
             </label>
           </ToggleInput>
+
           <ToggleInput
             icon={
               <InformationCircleIcon
