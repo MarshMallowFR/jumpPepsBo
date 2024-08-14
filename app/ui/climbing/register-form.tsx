@@ -6,7 +6,6 @@ import {
   ClimbingState,
 } from '@/app/lib/actions/climbing/actions';
 import FormRegistration from './FormRegistration';
-import { Kanit } from 'next/font/google';
 import { kanit } from '../style/fonts';
 
 export default function RegisterForm() {
