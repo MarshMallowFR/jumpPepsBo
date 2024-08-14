@@ -14,7 +14,7 @@ import { authenticate } from '@/app/lib/actions/authentication/actions';
 export default function LoginForm() {
   const [code, action] = useFormState(authenticate, undefined);
 
-  console.log({code});
+  //console.log({ code });
 
   return (
     <form action={action} className="space-y-3">
@@ -83,7 +83,10 @@ function LoginButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button className="mt-4 w-full" aria-disabled={pending}>
+    <Button
+      className={`mt-4 w-full ${lusitana.className}`}
+      aria-disabled={pending}
+    >
       Se connecter <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
     </Button>
   );

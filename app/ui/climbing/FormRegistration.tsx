@@ -3,7 +3,6 @@ import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import { Button } from '../common/button';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
-import { Member } from '@/app/lib/types/climbing';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
 import { Toast } from '../common/Toast';
@@ -11,20 +10,14 @@ import { UploadPicture } from '../common/UploadPicture';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
-  member?: Member;
   state: ClimbingState;
 }
 
-export default function FormRegistration({
-  state,
-  dispatch,
-  member,
-}: FormProps) {
+export default function FormRegistration({ state, dispatch }: FormProps) {
   const [isMinor, setIsMinor] = useState(false);
   const [isMediaCompliant, setIsMediaCompliant] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
-  ('error');
 
   const handleIsMediaCompliant = () => {
     setIsMediaCompliant((prevState) => !prevState);
@@ -88,6 +81,7 @@ export default function FormRegistration({
         <div className=" flex mt-6 space-x-3">
           <TextInput
             className="basis-1/2"
+            color="orange"
             label="Prénom"
             idFor="firstName"
             settingKey="firstName"
@@ -95,6 +89,7 @@ export default function FormRegistration({
           />
           <TextInput
             className="basis-1/2"
+            color="orange"
             idFor="lastName"
             label="Nom"
             settingKey="lastName"
@@ -102,6 +97,7 @@ export default function FormRegistration({
           />
         </div>
         <TextInput
+          color="orange"
           type="email"
           label="Email"
           idFor="email"
@@ -112,6 +108,7 @@ export default function FormRegistration({
         <div className="flex mt-3 space-x-3">
           <TextInput
             className="basis-1/2"
+            color="orange"
             type="tel"
             label="Numéro de téléphone"
             idFor="phoneNumber"
@@ -120,6 +117,7 @@ export default function FormRegistration({
           />
           <TextInput
             className="basis-1/2"
+            color="orange"
             type="date"
             handleChange={handleBirthDate(setIsMinor)}
             label="Date de naissance"
@@ -131,6 +129,7 @@ export default function FormRegistration({
         </div>
         <div className="mt-3">
           <TextInput
+            color="orange"
             label="Rue"
             idFor="street"
             settingKey="street"
@@ -139,6 +138,7 @@ export default function FormRegistration({
           <div className="flex space-x-3">
             <TextInput
               className="basis-1/3"
+              color="orange"
               type="number"
               label="Code postal"
               idFor="zipCode"
@@ -147,6 +147,7 @@ export default function FormRegistration({
             />
             <TextInput
               className="basis-2/3"
+              color="orange"
               label="Ville"
               idFor="city"
               settingKey="city"
@@ -174,16 +175,17 @@ export default function FormRegistration({
           </div>
           <div className="basis-1/2">
             <ToggleInput
+              color="orange"
+              defaultValue={isMediaCompliant}
+              idFor="isMediaCompliant"
               icon={
                 <InformationCircleIcon
                   className="h-4 w-4 ml-2 text-gray-600"
                   title="Autorise le club à utiliser l'image de l'adhérent à des fins non commerciales sur tout type de support"
                 />
               }
-              label="Autorisation média"
-              defaultValue={isMediaCompliant}
               handleChange={handleIsMediaCompliant}
-              idFor="isMediaCompliant"
+              label="Autorisation média"
               settingKey="isMediaCompliant"
             >
               <label
@@ -203,6 +205,7 @@ export default function FormRegistration({
             <div className="flex space-x-3">
               <TextInput
                 className="basis-1/2"
+                color="orange"
                 idFor="legalContactFirstName"
                 label="Prénom"
                 settingKey="legalContactFirstName"
@@ -210,7 +213,7 @@ export default function FormRegistration({
               />
               <TextInput
                 className="basis-1/2"
-                defaultValue={member?.legalContactLastName}
+                color="orange"
                 idFor="legalContactLastName"
                 label="Nom"
                 settingKey="legalContactLastName"
@@ -219,7 +222,7 @@ export default function FormRegistration({
             </div>
             <TextInput
               className="w-1/2"
-              defaultValue={member?.legalContactPhoneNumber}
+              color="orange"
               idFor="legalContactPhoneNumber"
               label="Numéro de téléphone"
               settingKey="legalContactPhoneNumber"
@@ -232,7 +235,9 @@ export default function FormRegistration({
         )}
 
         <div className="mt-6 flex justify-center">
-          <Button type="submit">ENVOYER</Button>
+          <Button type="submit" color="orange">
+            ENVOYER
+          </Button>
         </div>
       </form>
       {state?.isSuccess && <Toast message="Pré-inscription réussie." />}
