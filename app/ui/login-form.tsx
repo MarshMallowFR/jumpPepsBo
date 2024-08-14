@@ -14,8 +14,6 @@ import { authenticate } from '@/app/lib/actions/authentication/actions';
 export default function LoginForm() {
   const [code, action] = useFormState(authenticate, undefined);
 
-  //console.log({ code });
-
   return (
     <form action={action} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">

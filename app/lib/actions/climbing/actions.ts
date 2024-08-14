@@ -234,6 +234,7 @@ export async function createClimbingMember(
 // Fonction de mise à jour d'um membre (admin side)
 export async function updateClimbingMember(
   id: string,
+  currentPictureUrl: string,
   _prevState: ClimbingState,
   formData: FormData,
 ) {
@@ -258,7 +259,15 @@ export async function updateClimbingMember(
     };
   }
 
-  const imageUrl = await getCloudinaryPicture(formData.get('picture') as File);
+  // Vérifier si une nouvelle image a été téléchargée
+  let imageUrl;
+  const pictureFile = formData.get('picture') as File | null;
+
+  if (pictureFile && pictureFile.size > 0) {
+    imageUrl = await getCloudinaryPicture(pictureFile);
+  } else {
+    imageUrl = currentPictureUrl;
+  }
 
   const {
     firstName,

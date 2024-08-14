@@ -21,7 +21,7 @@ export function Button({
     <button
       {...rest}
       className={clsx(
-        '  flex h-10 items-center rounded-lg px-6 py-3 text-sm font-bold text-white  transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-50 shadow-custom-shadow',
+        'flex h-10 items-center rounded-lg px-6 py-3 text-sm font-bold text-white  transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-50 shadow-custom-shadow',
         colorClasses[color],
         className,
       )}
