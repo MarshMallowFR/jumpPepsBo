@@ -6,6 +6,8 @@ import {
   ClimbingState,
 } from '@/app/lib/actions/climbing/actions';
 import FormRegistration from './FormRegistration';
+import { Kanit } from 'next/font/google';
+import { kanit } from '../style/fonts';
 
 export default function RegisterForm() {
   const initialState: ClimbingState = {
@@ -22,7 +24,9 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:space-x-12 md:px-9">
+    <div
+      className={`flex flex-col md:flex-row md:space-x-12 md:px-9 ${kanit.className}`}
+    >
       <div className="min-w-0 w-full md:w-1/2">
         <h2 className="text-lg font-bold">LICENCE ET TARIFS</h2>
         <p className="my-2">

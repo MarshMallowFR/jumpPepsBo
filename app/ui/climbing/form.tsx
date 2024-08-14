@@ -277,5 +277,3 @@ export default function Form({ state, dispatch, member }: FormProps) {
     </>
   );
 }
-
-//Redirection faite avant que le Toast puisse s'afficher

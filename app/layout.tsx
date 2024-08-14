@@ -1,5 +1,5 @@
 import '@/app/ui/style/global.css';
-import { kanit } from '@/app/ui/style/fonts';
+import { lusitana } from '@/app/ui/style/fonts';
 
 export default function RootLayout({
   children,
@@ -8,7 +8,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${kanit.className} antialiased px-6 py-6`}>
+      <body className={`${lusitana.className} antialiased px-6 py-6`}>
         {children}
       </body>
     </html>
