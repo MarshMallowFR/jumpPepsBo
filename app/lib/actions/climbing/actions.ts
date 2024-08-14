@@ -221,11 +221,6 @@ export async function createClimbingMember(
     `;
 
     return { isSuccess: true };
-    // Pas de redirection pour le moment car erreur
-    // if (!isRegistration) {
-    //   revalidatePath('/dashboard/climbing');
-    //   redirect('/dashboard/climbing');
-    // }
   } catch (error) {
     console.error('Database Error: Failed to create a member.', error);
     return {

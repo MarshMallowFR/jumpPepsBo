@@ -35,7 +35,7 @@ export const UploadPicture = ({
       </div>
       <label
         htmlFor={idFor}
-        className="flex items-center justify-center w-14 h-14 bg-orange-medium rounded-full shadow-custom-shadow cursor-pointer"
+        className="flex items-center justify-center w-14 h-14 bg-orange-medium rounded-full cursor-pointer"
       >
         {imageUrl ? (
           <img

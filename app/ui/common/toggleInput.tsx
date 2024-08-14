@@ -31,7 +31,7 @@ export const ToggleInput = ({
     },
   };
   return (
-    <div className="">
+    <div>
       <div className="mb-2 text-sm font-semibold flex items-center">
         <label>{label}</label>
         {icon}
@@ -51,7 +51,7 @@ export const ToggleInput = ({
             className="sr-only peer"
           />
           <div
-            className={`w-11 h-6 ${colorClasses[color].bg} rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-white after:rounded-full after:h-5 after:w-5 after:transition-all ${colorClasses[color].ring} shadow-custom-shadow`}
+            className={`w-11 h-6 ${colorClasses[color].bg} rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-white after:rounded-full after:h-5 after:w-5 after:transition-all ${colorClasses[color].ring}`}
           ></div>
         </label>
         {children}
