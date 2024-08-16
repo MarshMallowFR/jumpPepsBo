@@ -28,11 +28,12 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const [isMediaCompliant, setIsMediaCompliant] = useState(
     member?.isMediaCompliant ?? false,
   );
-  const [picture, setPicture] = useState<File | null>(null);
+  const [picture, setPicture] = useState<File | string | null>(
+    member?.picture || null,
+  );
   const [pictureUrl, setPictureUrl] = useState<string | null>(
     member?.picture || null,
   );
-
   const handleHasPaid = () => {
     setHasPaid((prevState) => !prevState);
   };
@@ -59,6 +60,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
     if (picture) {
       formData.set('picture', picture);
     }
+
     dispatch(formData);
   };
 
