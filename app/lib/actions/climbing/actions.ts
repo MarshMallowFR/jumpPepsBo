@@ -233,7 +233,7 @@ export async function updateClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
 ) {
-  const validationStatus = UpdateClimbingMember.partial().safeParse({
+  const validationStatus = UpdateClimbingMember.safeParse({
     firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
     birthDate: formData.get('birthDate'),
