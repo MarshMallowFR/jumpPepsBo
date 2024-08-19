@@ -41,23 +41,19 @@ const ClimbingMemberSchema = z.object({
     .length(5, 'Le code postal doit contenir 5 chiffres.'),
   city: z.string().min(1, `La ville est requise`),
   picture: z
-    .array(z.custom<File>())
-    .refine(
-      (files) => {
-        return files.every((file) => file instanceof File);
-      },
-      {
-        message: 'Veuillez importer une photo.',
-      },
-    )
-    .refine(
-      (files) => files.every((file) => file.size <= MAX_FILE_SIZE),
-      `La taille maximum de l'image est 5MB.`,
-    )
-    .refine(
-      (files) =>
-        files.every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
-      'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+    .string()
+    .url('Veuillez fournir une URL valide.')
+    .or(
+      z
+        .instanceof(File)
+        .refine(
+          (file) => file.size <= MAX_FILE_SIZE,
+          `La taille maximum de l'image est 5MB.`,
+        )
+        .refine(
+          (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+          'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+        ),
     ),
   isMediaCompliant: z.boolean().nullable(),
   hasPaid: z.boolean().nullable(),
@@ -131,7 +127,7 @@ export async function createClimbingMember(
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    picture: [formData.get('picture')],
+    picture: formData.get('picture'),
     isMediaCompliant: formData.get('isMediaCompliant') === 'true',
     hasPaid: isRegistration ? false : formData.get('hasPaid') === 'true',
   });
@@ -246,9 +242,9 @@ export async function updateClimbingMember(
     street: formData.get('street'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    picture: [formData.get('picture')],
+    picture: formData.get('picture'),
     isMediaCompliant: formData.get('isMediaCompliant') === 'true',
-    hasPaid: formData.get('hasPaid') === 'false',
+    hasPaid: formData.get('hasPaid') === 'true',
   });
 
   if (!validationStatus.success) {
@@ -258,7 +254,17 @@ export async function updateClimbingMember(
     };
   }
 
-  const imageUrl = await getCloudinaryPicture(formData.get('picture') as File);
+  // Vérifier si une nouvelle image a été téléchargée
+  let imageUrl: string | undefined;
+  const pictureInput = validationStatus.data.picture || null;
+
+  if (pictureInput instanceof File) {
+    imageUrl = await getCloudinaryPicture(pictureInput);
+  } else if (typeof pictureInput === 'string') {
+    imageUrl = pictureInput;
+  } else {
+    imageUrl = undefined; // Pas d'image à mettre à jour
+  }
 
   const {
     firstName,
@@ -288,7 +294,7 @@ export async function updateClimbingMember(
         street= ${street},
         zip_code= ${zipCode},
         city= ${city},
-        picture= ${imageUrl},
+        picture = ${imageUrl},
         is_media_compliant= ${!!isMediaCompliant},
         has_paid= ${!!hasPaid},
         legal_contact_id= ${legalContactId}
@@ -304,13 +310,15 @@ export async function updateClimbingMember(
 
     await Promise.all([updateMember, updateLegalContact]);
   } catch (error) {
-    return { message: 'Database Error: Failed to Update a member.' };
+    console.error('Database Error: Failed to update the member.', error);
+    return { message: 'Erreur lors de la mise à jour du membre.' };
   }
 
   revalidatePath('/dashboard/climbing');
   redirect('/dashboard/climbing');
 }
 
+// Fonction pour supprimer un membre de la base de données
 export async function deleteMember(id: string) {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
