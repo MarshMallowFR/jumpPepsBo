@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useFormState } from 'react-dom';
 import { validateAdmin } from '@/app/lib/actions/admins/actions';
 
-import { Button } from '../common/button';
+import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 
 export default function ValidateForm() {

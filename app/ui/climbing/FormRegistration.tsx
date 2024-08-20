@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
-import { Button } from '../common/button';
+import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
