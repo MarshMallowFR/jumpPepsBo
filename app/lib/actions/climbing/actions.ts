@@ -5,7 +5,10 @@ import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
-import { getCloudinaryPicture } from '../../cloudinary/cloudinary';
+import {
+  getCloudinaryPicture,
+  deleteCloudinaryImage,
+} from '../../cloudinary/cloudinary';
 
 // Configuration de l'image pour gestion des erreurs avec zod
 const MAX_FILE_SIZE = 500000;
@@ -319,12 +322,23 @@ export async function updateClimbingMember(
 }
 
 // Fonction pour supprimer un membre de la base de données
-export async function deleteMember(id: string) {
+export async function deleteMember(
+  id: string,
+  imageUrl: string,
+): Promise<{ message: string }> {
   try {
-    await sql`DELETE FROM invoices WHERE id = ${id}`;
-    revalidatePath('/dashboard/invoices');
-    return { message: 'Deleted Invoice.' };
+    await sql`DELETE FROM members WHERE id = ${id}`;
+    const publicId = imageUrl.split('/').pop()?.split('.')[0];
+    if (publicId) {
+      const cloudinaryResult = await deleteCloudinaryImage(publicId);
+      console.log(cloudinaryResult.message);
+    } else {
+      console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+    }
+    return { message: 'Membre supprimé.' };
   } catch (error) {
-    return { message: 'Database Error: Failed to Delete Invoice.' };
+    return { message: 'Erreur lors de la suppression du membre.' };
+  } finally {
+    revalidatePath('/dashboard/climbing');
   }
 }

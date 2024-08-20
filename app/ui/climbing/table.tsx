@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import { UpdateBtn, DeleteBtn } from '@/app/ui/common/buttons';
+import { UpdateBtn } from '@/app/ui/common/buttons';
+import { DeleteBtn } from '../common/DeleteBtn';
 import Status from '@/app/ui/climbing/status';
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
-import { deleteMember } from '@/app/lib/actions/climbing/actions';
 
 export default async function ClimbingTable({
   query,
@@ -43,10 +43,7 @@ export default async function ClimbingTable({
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
                       <Image
-                        src={
-                          member.picture ||
-                          'https://source.unsplash.com/random/?people'
-                        }
+                        src={member.picture}
                         className="rounded-full max-h-7"
                         width={28}
                         height={28}
@@ -68,7 +65,7 @@ export default async function ClimbingTable({
                       <UpdateBtn
                         href={`/dashboard/climbing/${member.id}/edit`}
                       />
-                      <DeleteBtn action={deleteMember.bind(null, member.id)} />
+                      <DeleteBtn id={member.id} imageUrl={member.picture} />
                     </div>
                   </td>
                 </tr>
