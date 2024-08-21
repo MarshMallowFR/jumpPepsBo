@@ -10,7 +10,7 @@ import {
 import Link from 'next/link';
 import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
-import { TextInput } from '../common/TextInput';
+import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 
 import { handleBirthDate } from '../../utils/handleBirthday';
