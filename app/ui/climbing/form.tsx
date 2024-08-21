@@ -10,8 +10,9 @@ import {
 import Link from 'next/link';
 import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
-import { TextInput } from '../common/textInput';
+import { TextInput } from '../common/TextInput';
 import { ToggleInput } from '../common/toggleInput';
+
 import { handleBirthDate } from '../../utils/handleBirthday';
 import { PictureUpload } from '../common/PictureUpload';
 import { Toast } from '../common/Toast';
@@ -23,6 +24,7 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
+  const [displayToast, setDisplayToast] = useState(false);
   const [isMinor, setIsMinor] = useState(false);
   const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
   const [isMediaCompliant, setIsMediaCompliant] = useState(
@@ -76,6 +78,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   // Redirection vers dashboard après un délai en cas de succès
   useEffect(() => {
     if (state?.isSuccess) {
+      setDisplayToast(true);
       const timer = setTimeout(() => {
         window.location.href = '/dashboard/climbing'; // Redirection côté client
       }, 1000);
@@ -275,7 +278,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
           <Button type="submit">{member ? 'Editer' : 'Créer'} membre</Button>
         </div>
       </form>
-      {state?.isSuccess && <Toast message="Création du membre effectuée." />}
+      {displayToast && <Toast message="Création du membre effectuée." />}
     </>
   );
 }

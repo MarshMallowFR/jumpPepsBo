@@ -152,13 +152,14 @@ export async function updateAdmin(
   redirect('/dashboard/admins');
 }
 
-export async function deleteAdmin(id: string) {
+export async function deleteAdmin(id: string): Promise<{ message: string }> {
   try {
     await sql`DELETE FROM admins WHERE id = ${id}`;
-    revalidatePath('/dashboard/admins');
-    return { message: 'Deleted Admin.' };
+    return { message: 'Admin supprimé.' };
   } catch (error) {
-    return { message: 'Database Error: Failed to Delete Admin.' };
+    return { message: `Erreur lors de la suppression de l'admin.` };
+  } finally {
+    revalidatePath('/dashboard/admins');
   }
 }
 

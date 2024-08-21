@@ -5,7 +5,7 @@ import { useFormState } from 'react-dom';
 import { validateAdmin } from '@/app/lib/actions/admins/actions';
 
 import { Button } from '../common/buttons';
-import { TextInput } from '../common/textInput';
+import { TextInput } from '../common/TextInput';
 
 export default function ValidateForm() {
   const params = useSearchParams();

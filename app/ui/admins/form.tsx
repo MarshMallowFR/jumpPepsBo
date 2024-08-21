@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { AdminState } from '@/app/lib/actions/admins/actions';
 import { Admin } from '@/app/lib/types/admins';
 import { Button } from '../common/buttons';
-import { TextInput } from '../common/textInput';
+import { TextInput } from '../common/TextInput';
 import Status from '../climbing/status';
 
 interface FormProps {

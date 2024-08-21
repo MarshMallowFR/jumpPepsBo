@@ -1,4 +1,4 @@
-import { PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import clsx from 'clsx';
 
@@ -34,7 +34,7 @@ export function Button({
   );
 }
 
-// Les autres types de boutons (hors DeleBtn)
+// Les autres types de boutons
 export function CreateBtn({ href, text }: { href: string; text: string }) {
   return (
     <Link
@@ -52,5 +52,22 @@ export function UpdateBtn({ href }: { href: string }) {
     <Link href={href} className="rounded-md border p-2 hover:bg-gray-100">
       <PencilIcon className="w-5" />
     </Link>
+  );
+}
+
+interface DeleteBtnProps {
+  id: string;
+  handleDelete: () => Promise<void>;
+}
+
+export function DeleteBtn({ id, handleDelete }: DeleteBtnProps) {
+  return (
+    <button
+      id={id}
+      onClick={handleDelete}
+      className="rounded-md border p-2 hover:bg-gray-100"
+    >
+      <TrashIcon className="w-5" />
+    </button>
   );
 }

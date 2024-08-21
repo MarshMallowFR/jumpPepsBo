@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import { UpdateBtn } from '@/app/ui/common/buttons';
-import { DeleteBtn } from '../common/DeleteBtn';
 import Status from '@/app/ui/climbing/status';
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
+import DeleteMember from './delete-member';
 
 export default async function ClimbingTable({
   query,
@@ -65,7 +65,7 @@ export default async function ClimbingTable({
                       <UpdateBtn
                         href={`/dashboard/climbing/${member.id}/edit`}
                       />
-                      <DeleteBtn id={member.id} imageUrl={member.picture} />
+                      <DeleteMember id={member.id} imageUrl={member.picture} />
                     </div>
                   </td>
                 </tr>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import { Button } from '../common/buttons';
-import { TextInput } from '../common/textInput';
+import { TextInput } from '../common/TextInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
