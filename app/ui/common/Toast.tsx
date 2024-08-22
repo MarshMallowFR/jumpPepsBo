@@ -19,8 +19,14 @@ export const Toast = ({ message }: ToastProps) => {
     return null;
   }
 
+  const isSuccess = !message.toLowerCase().includes('erreur');
+
   return (
-    <div className="fixed bottom-6 right-6 p-4 rounded-md shadow-lg bg-green-500 text-white">
+    <div
+      className={`fixed top-16 right-6 p-4 rounded-md shadow-lg text-white transform transition-transform duration-500 ${
+        isVisible ? 'translate-x-0' : 'translate-x-full'
+      } ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`}
+    >
       {message}
     </div>
   );

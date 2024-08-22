@@ -140,7 +140,7 @@ export async function createClimbingMember(
     if (fieldErrors.picture) {
       return {
         errors: { picture: fieldErrors.picture },
-        message: `Erreur lors de l'import de l'image.`,
+        message: `Problème lors de l'import de l'image.`,
         isSuccess: false,
       };
     }
