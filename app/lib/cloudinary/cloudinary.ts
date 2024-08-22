@@ -41,11 +41,11 @@ export async function deleteCloudinaryImage(
       return {
         message: `l'image '${publicId}' a bien été supprimée de Cloudinary.`,
       };
-    } else {
-      return {
-        message: `Erreur dans la suppression de l'image '${publicId}' depuis Cloudinary.`,
-      };
     }
+
+    return {
+      message: `Erreur dans la suppression de l'image '${publicId}' depuis Cloudinary.`,
+    };
   } catch (error) {
     console.error('Cloudinary Error: Failed to delete image.', error);
     return {
