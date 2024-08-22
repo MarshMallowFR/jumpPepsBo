@@ -14,7 +14,7 @@ import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 
 import { handleBirthDate } from '../../utils/handleBirthday';
-import { PictureUpload } from '../common/testpictureUpload';
+import { PictureUpload } from '../common/pictureUpload';
 import ToastContextProvider, {
   ToastType,
 } from '@/app/lib/contexts/toastContext';
