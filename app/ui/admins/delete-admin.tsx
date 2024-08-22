@@ -1,7 +1,10 @@
 'use client';
 import { DeleteBtn } from '../common/buttons';
 import { deleteAdmin } from '@/app/lib/actions/admins/actions';
-import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
+import {
+  ToastType,
+  useToastContext,
+} from '@/app/lib/contexts/toastContexttest';
 
 export default function DeleteAdmin({ id }: { id: string }) {
   const { setIsVisible, setToastType, setToastMessage } = useToastContext();

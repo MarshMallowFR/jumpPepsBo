@@ -1,7 +1,10 @@
 'use client';
 import { deleteMember } from '@/app/lib/actions/climbing/actions';
 import { DeleteBtn } from '../common/buttons';
-import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
+import {
+  ToastType,
+  useToastContext,
+} from '@/app/lib/contexts/toastContexttest';
 interface DeleteMemberProps {
   id: string;
   imageUrl: string;

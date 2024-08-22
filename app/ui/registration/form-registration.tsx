@@ -5,10 +5,10 @@ import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
-import { UploadPicture } from '../common/registrationUploadPicture';
+import { UploadPicture } from './registrationUploadPicture';
 import ToastContextProvider, {
   ToastType,
-} from '@/app/lib/contexts/toastContext';
+} from '@/app/lib/contexts/toastContexttest';
 import ToastWrapper from '../common/toastWrapper';
 
 interface FormProps {
