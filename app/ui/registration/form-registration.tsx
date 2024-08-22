@@ -8,7 +8,7 @@ import { handleBirthDate } from '../../utils/handleBirthday';
 import { UploadPicture } from './registrationUploadPicture';
 import ToastContextProvider, {
   ToastType,
-} from '@/app/lib/contexts/toastContexttest';
+} from '@/app/lib/contexts/toastContext';
 import ToastWrapper from '../common/toastWrapper';
 
 interface FormProps {
