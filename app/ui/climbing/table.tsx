@@ -3,6 +3,7 @@ import { UpdateBtn } from '@/app/ui/common/buttons';
 import Status from '@/app/ui/climbing/status';
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
 import DeleteMember from './delete-member';
+import ToastContextProvider from '@/app/lib/contexts/toastContext';
 
 export default async function ClimbingTable({
   query,
@@ -65,7 +66,12 @@ export default async function ClimbingTable({
                       <UpdateBtn
                         href={`/dashboard/climbing/${member.id}/edit`}
                       />
-                      <DeleteMember id={member.id} imageUrl={member.picture} />
+                      <ToastContextProvider>
+                        <DeleteMember
+                          id={member.id}
+                          imageUrl={member.picture}
+                        />
+                      </ToastContextProvider>
                     </div>
                   </td>
                 </tr>

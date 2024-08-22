@@ -5,7 +5,7 @@ import {
   createClimbingMember,
   ClimbingState,
 } from '@/app/lib/actions/climbing/actions';
-import FormRegistration from './FormRegistration';
+import FormRegistration from './form-registration';
 import { kanit } from '../style/fonts';
 
 export default function RegisterForm() {

@@ -12,9 +12,15 @@ import {
 
 type ToastProviderProps = {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
-  setToastType: Dispatch<SetStateAction<string>>;
+  setToastType: Dispatch<SetStateAction<ToastType>>;
   setToastMessage: Dispatch<SetStateAction<string>>;
 };
+
+export enum ToastType {
+  ERROR = 'error',
+  SUCCESS = 'success',
+  INFO = 'info',
+}
 
 export const ToastContext = createContext<ToastProviderProps | undefined>(
   undefined,
@@ -22,16 +28,18 @@ export const ToastContext = createContext<ToastProviderProps | undefined>(
 
 const ToastContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [toastType, setToastType] = useState('success');
+  const [toastType, setToastType] = useState<ToastType>(ToastType.SUCCESS);
   const [message, setToastMessage] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-    }, 3000);
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 3000);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
 
   const value = useMemo(() => {
     return {
@@ -39,22 +47,20 @@ const ToastContextProvider = ({ children }: { children: React.ReactNode }) => {
       setToastType,
       setToastMessage,
     };
-  }, []);
-
-  if (!isVisible) {
-    return null;
-  }
+  }, [setIsVisible, setToastType, setToastMessage]);
 
   return (
     <ToastContext.Provider value={value}>
-      <div
-        className={`fixed top-16 right-6 p-4 rounded-md shadow-lg text-white transform transition-transform duration-500 ${
-          isVisible ? 'translate-x-0' : 'translate-x-full'
-        }
-      ${toastType === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
-      >
-        {message}
-      </div>
+      {isVisible && (
+        <div
+          className={`fixed top-16 right-6 p-4 rounded-md shadow-lg text-white transform transition-transform duration-500 ${
+            isVisible ? 'translate-x-0' : 'translate-x-full'
+          }
+      ${toastType === ToastType.SUCCESS ? 'bg-green-500' : 'bg-red-500'}`}
+        >
+          {message}
+        </div>
+      )}
       {children}
     </ToastContext.Provider>
   );

@@ -35,16 +35,16 @@ export const UploadPicture = ({
       </div>
       <label
         htmlFor={idFor}
-        className="flex items-center justify-center w-14 h-14 bg-orange-medium rounded-full cursor-pointer"
+        className="flex items-center justify-center w-24 h-32 bg-orange-medium rounded-lg cursor-pointer"
       >
         {imageUrl ? (
           <img
             src={imageUrl}
             alt="Uploaded"
-            className="rounded-full w-full h-full object-cover"
+            className="rounded-lg w-full h-full object-cover"
           />
         ) : (
-          <CameraIcon className="text-white h-5 w-5" />
+          <CameraIcon className="text-white h-9 w-9" />
         )}
         <input
           className="hidden"
