@@ -5,7 +5,7 @@ import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
-import { UploadPicture } from './registrationUploadPicture';
+import { UploadPicture } from '../common/registrationPictureUpload';
 import ToastContextProvider, {
   ToastType,
 } from '@/app/lib/contexts/toastContext';
