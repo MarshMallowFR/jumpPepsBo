@@ -2,6 +2,7 @@ import { UpdateBtn } from '@/app/ui/common/buttons';
 import { fetchFilteredAdmins } from '@/app/lib/data';
 import Status from '../climbing/status';
 import DeleteAdmin from './delete-admin';
+import ToastContextProvider from '@/app/lib/contexts/toastContext';
 
 export default async function AdminTable({
   query,
@@ -53,7 +54,9 @@ export default async function AdminTable({
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
                       <UpdateBtn href={`/dashboard/admins/${admin.id}/edit`} />
-                      <DeleteAdmin id={admin.id} />
+                      <ToastContextProvider>
+                        <DeleteAdmin id={admin.id} />
+                      </ToastContextProvider>
                     </div>
                   </td>
                 </tr>

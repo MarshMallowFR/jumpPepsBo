@@ -5,8 +5,11 @@ import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
-import { Toast } from '../common/Toast';
-import { UploadPicture } from '../common/UploadPicture';
+import { UploadPicture } from '../common/registrationPictureUpload';
+import ToastContextProvider, {
+  ToastType,
+} from '@/app/lib/contexts/toastContext';
+import ToastWrapper from '../common/toastWrapper';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -18,6 +21,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
   const [isMediaCompliant, setIsMediaCompliant] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [displayToast, setDisplayToast] = useState(false);
 
   const handleIsMediaCompliant = () => {
     setIsMediaCompliant((prevState) => !prevState);
@@ -31,13 +35,14 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     formData.set('isMediaCompliant', isMediaCompliant.toString());
 
     if (picture) {
       formData.set('picture', picture);
     }
-    dispatch(formData);
+    await dispatch(formData);
+    setDisplayToast(true);
   };
 
   // Remise à zéro des champs du formulaire si tout est OK
@@ -230,17 +235,19 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             />
           </div>
         )}
-        {state?.message && (
-          <p className="mt-2 text-sm text-red-500">{state.message}</p>
-        )}
-
         <div className="mt-6 flex justify-center">
           <Button type="submit" color="orange">
             ENVOYER
           </Button>
         </div>
       </form>
-      {state?.isSuccess && <Toast message="Pré-inscription réussie." />}
+      <ToastContextProvider>
+        <ToastWrapper
+          visible={displayToast}
+          message={state?.message}
+          toastType={state?.isSuccess ? ToastType.SUCCESS : ToastType.ERROR}
+        />
+      </ToastContextProvider>
     </>
   );
 }

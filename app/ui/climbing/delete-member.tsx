@@ -1,28 +1,31 @@
 'use client';
 import { deleteMember } from '@/app/lib/actions/climbing/actions';
 import { DeleteBtn } from '../common/buttons';
-import { useState } from 'react';
-import { Toast } from '../common/Toast';
+import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 interface DeleteMemberProps {
   id: string;
   imageUrl: string;
 }
 
 export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
-  const [message, setMessage] = useState<string>();
+  const { setIsVisible, setToastType, setToastMessage } = useToastContext();
   const handleDelete = async () => {
     try {
       const result = await deleteMember(id, imageUrl);
-      setMessage(result.message);
-    } catch (error) {
+      setIsVisible(true);
+      setToastType(ToastType.SUCCESS);
+      setToastMessage(result.message);
+    } catch (error: unknown) {
       console.error('Failed to delete member:', error);
+      setIsVisible(true);
+      setToastType(ToastType.ERROR);
+      if (error instanceof Error) {
+        setToastMessage(error.message);
+      } else {
+        setToastMessage('Une erreur est survenue.');
+      }
     }
   };
 
-  return (
-    <>
-      <DeleteBtn id={id} handleDelete={handleDelete} />
-      {message && <Toast message={message} />}
-    </>
-  );
+  return <DeleteBtn id={id} handleDelete={handleDelete} />;
 }

@@ -140,7 +140,6 @@ export async function createClimbingMember(
     if (fieldErrors.picture) {
       return {
         errors: { picture: fieldErrors.picture },
-        message: `Erreur lors de l'import de l'image.`,
         isSuccess: false,
       };
     }
@@ -219,7 +218,10 @@ export async function createClimbingMember(
       )
     `;
 
-    return { isSuccess: true };
+    return {
+      isSuccess: true,
+      message: 'Membre créé avec succès.',
+    };
   } catch (error) {
     console.error('Database Error: Failed to create a member.', error);
     return {
@@ -314,9 +316,10 @@ export async function updateClimbingMember(
     await Promise.all([updateMember, updateLegalContact]);
   } catch (error) {
     console.error('Database Error: Failed to update the member.', error);
-    return { message: 'Erreur lors de la mise à jour du membre.' };
+    return {
+      message: 'Erreur lors de la mise à jour du membre.',
+    };
   }
-
   revalidatePath('/dashboard/climbing');
   redirect('/dashboard/climbing');
 }
@@ -328,10 +331,9 @@ export async function deleteMember(
 ): Promise<{ message: string }> {
   try {
     await sql`DELETE FROM members WHERE id = ${id}`;
-    const publicId = imageUrl.split('/').pop()?.split('.')[0];
-    if (publicId) {
-      const cloudinaryResult = await deleteCloudinaryImage(publicId);
-      console.log(cloudinaryResult.message);
+    const imageId = imageUrl.split('/').pop()?.split('.')[0];
+    if (imageId) {
+      await deleteCloudinaryImage(imageId);
     } else {
       console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
     }

@@ -14,8 +14,11 @@ import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 
 import { handleBirthDate } from '../../utils/handleBirthday';
-import { PictureUpload } from '../common/PictureUpload';
-import { Toast } from '../common/Toast';
+import { PictureUpload } from '../common/pictureUpload';
+import ToastContextProvider, {
+  ToastType,
+} from '@/app/lib/contexts/toastContext';
+import ToastWrapper from '../common/toastWrapper';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -56,14 +59,15 @@ export default function Form({ state, dispatch, member }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     formData.set('isMediaCompliant', isMediaCompliant.toString());
     formData.set('hasPaid', hasPaid.toString());
     if (picture) {
       formData.set('picture', picture);
     }
 
-    dispatch(formData);
+    await dispatch(formData);
+    setDisplayToast(true);
   };
 
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
@@ -78,7 +82,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
   // Redirection vers dashboard après un délai en cas de succès
   useEffect(() => {
     if (state?.isSuccess) {
-      setDisplayToast(true);
       const timer = setTimeout(() => {
         window.location.href = '/dashboard/climbing'; // Redirection côté client
       }, 1000);
@@ -263,10 +266,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
               error={state?.errors?.picture}
             />
           )}
-
-          {state?.message ? (
-            <p className="mt-2 text-sm text-red-500">{state.message}</p>
-          ) : null}
         </div>
         <div className="mt-6 flex justify-end gap-4">
           <Link
@@ -278,7 +277,13 @@ export default function Form({ state, dispatch, member }: FormProps) {
           <Button type="submit">{member ? 'Editer' : 'Créer'} membre</Button>
         </div>
       </form>
-      {displayToast && <Toast message="Création du membre effectuée." />}
+      <ToastContextProvider>
+        <ToastWrapper
+          visible={displayToast}
+          message={state?.message}
+          toastType={state?.isSuccess ? ToastType.SUCCESS : ToastType.ERROR}
+        />
+      </ToastContextProvider>
     </>
   );
 }

@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { redirect, useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import handlerEmail from './sendMail';
 import { generateActivationToken, hashActivationToken } from './createToken';
@@ -222,6 +222,6 @@ export async function validateAdmin(
     redirect('/dashboard/admins');
   } catch (error) {
     console.log(error);
-    return { message: 'Database Error: Failed to Validate Admin.' };
+    return { message: `Erreur: Impossible de valider l'Admin.` };
   }
 }
