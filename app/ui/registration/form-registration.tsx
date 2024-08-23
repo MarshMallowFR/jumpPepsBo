@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
-import { Button } from '../common/buttons';
+import { Button, ButtonColors } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
@@ -236,7 +236,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           </div>
         )}
         <div className="mt-6 flex justify-center">
-          <Button type="submit" color="orange">
+          <Button type="submit" color={ButtonColors.ORANGE}>
             ENVOYER
           </Button>
         </div>
