@@ -3,7 +3,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 
 // Bouton général (avec texte)
-enum ButtonColors {
+export enum ButtonColors {
   ORANGE = 'orange',
   BLUE = 'blue',
 }
