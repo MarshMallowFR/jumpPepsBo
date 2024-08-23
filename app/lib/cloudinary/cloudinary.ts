@@ -39,7 +39,7 @@ export async function deleteCloudinaryImage(
 
     if (result.result === 'ok') {
       return {
-        message: `l'image '${publicId}' a bien été supprimée de Cloudinary.`,
+        message: `L'image a bien été supprimée.`,
       };
     }
 

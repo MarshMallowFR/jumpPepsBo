@@ -3,7 +3,10 @@ import Link from 'next/link';
 import clsx from 'clsx';
 
 // Bouton général (avec texte)
-type ButtonColors = 'orange' | 'blue';
+enum ButtonColors {
+  ORANGE = 'orange',
+  BLUE = 'blue',
+}
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -12,13 +15,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({
   children,
-  color = 'blue',
+  color = ButtonColors.BLUE,
   className,
   ...rest
 }: ButtonProps) {
   const colorClasses = {
-    orange: 'bg-orange-medium hover:bg-orange-light active:bg-gray',
-    blue: 'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
+    [ButtonColors.ORANGE]:
+      'bg-orange-medium hover:bg-orange-light active:bg-gray',
+    [ButtonColors.BLUE]: 'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
   };
   return (
     <button

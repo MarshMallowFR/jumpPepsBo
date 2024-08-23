@@ -12,7 +12,6 @@ export default function DeleteAdmin({ id }: { id: string }) {
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
     } catch (error: unknown) {
-      console.error('Failed to delete member:', error);
       setIsVisible(true);
       setToastType(ToastType.ERROR);
       if (error instanceof Error) {

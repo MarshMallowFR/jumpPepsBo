@@ -235,10 +235,6 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             />
           </div>
         )}
-        {/* {state?.message && (
-          <p className="mt-2 text-sm text-red-500">{state.message}</p>
-        )} */}
-
         <div className="mt-6 flex justify-center">
           <Button type="submit" color="orange">
             ENVOYER

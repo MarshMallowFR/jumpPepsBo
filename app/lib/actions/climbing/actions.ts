@@ -331,9 +331,9 @@ export async function deleteMember(
 ): Promise<{ message: string }> {
   try {
     await sql`DELETE FROM members WHERE id = ${id}`;
-    const publicId = imageUrl.split('/').pop()?.split('.')[0];
-    if (publicId) {
-      await deleteCloudinaryImage(publicId);
+    const imageId = imageUrl.split('/').pop()?.split('.')[0];
+    if (imageId) {
+      await deleteCloudinaryImage(imageId);
     } else {
       console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
     }
