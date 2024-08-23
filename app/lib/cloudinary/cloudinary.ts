@@ -55,12 +55,12 @@ export async function deleteCloudinaryImage(
 }
 
 // POUR PLUS TARD => SUPPRESSION GROUPEES D'IMAGES
-const publicIds = ['image_id_1', 'image_id_2', 'image_id_3']; // Les IDs publics des images à supprimer
+// const publicIds = ['image_id_1', 'image_id_2', 'image_id_3']; // Les IDs publics des images à supprimer
 
-cloudinary.api.delete_resources(publicIds, function (error, result) {
-  if (error) {
-    console.error('Erreur lors de la suppression des images :', error);
-  } else {
-    console.log('Images supprimées avec succès :', result);
-  }
-});
+// cloudinary.api.delete_resources(publicIds, function (error, result) {
+//   if (error) {
+//     console.error('Erreur lors de la suppression des images :', error);
+//   } else {
+//     console.log('Images supprimées avec succès :', result);
+//   }
+// });

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import { Button, ButtonColors } from '../common/buttons';
 import { TextInput } from '../common/textInput';
-import { ToggleInput } from '../common/toggleInput';
+import { ToggleInput, ToggleInputColors } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { handleBirthDate } from '../../utils/handleBirthday';
 import { UploadPicture } from '../common/registrationPictureUpload';
@@ -180,7 +180,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           </div>
           <div className="basis-1/2">
             <ToggleInput
-              color="orange"
+              color={ToggleInputColors.ORANGE}
               defaultValue={isMediaCompliant}
               idFor="isMediaCompliant"
               icon={

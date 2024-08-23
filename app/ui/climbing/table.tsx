@@ -4,6 +4,7 @@ import Status from '@/app/ui/climbing/status';
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
 import DeleteMember from './delete-member';
 import ToastContextProvider from '@/app/lib/contexts/toastContext';
+import SelectMembers from './select-members';
 
 export default async function ClimbingTable({
   query,
@@ -21,6 +22,9 @@ export default async function ClimbingTable({
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
+                <th>
+                  <span className="sr-only">Select All</span>
+                </th>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   Nom et prénom
                 </th>
@@ -41,6 +45,9 @@ export default async function ClimbingTable({
                   key={member.id}
                   className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
                 >
+                  <td>
+                    <SelectMembers id={member.id} />
+                  </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
                       <Image

@@ -1,4 +1,7 @@
-type ToggleInputColors = 'orange' | 'blue';
+export enum ToggleInputColors {
+  ORANGE = 'orange',
+  BLUE = 'blue',
+}
 interface ToggleInputProps {
   children: React.ReactNode;
   color?: ToggleInputColors;
@@ -12,7 +15,7 @@ interface ToggleInputProps {
 
 export const ToggleInput = ({
   children,
-  color = 'blue',
+  color = ToggleInputColors.BLUE,
   defaultValue,
   handleChange,
   icon,
@@ -21,11 +24,11 @@ export const ToggleInput = ({
   settingKey,
 }: ToggleInputProps) => {
   const colorClasses = {
-    orange: {
+    [ToggleInputColors.ORANGE]: {
       bg: 'bg-orange-light peer-checked:bg-orange-medium',
       ring: 'peer-checked:ring-orange-light',
     },
-    blue: {
+    [ToggleInputColors.BLUE]: {
       bg: 'bg-blue-200 peer-checked:bg-blue-500',
       ring: 'peer-checked:ring-blue-400',
     },
