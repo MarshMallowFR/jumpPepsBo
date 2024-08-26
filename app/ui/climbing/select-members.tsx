@@ -1,15 +1,17 @@
-'use client';
-
 import React, { useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 
 interface SelectMembersProps {
   id: string;
+  isSelected: boolean;
+  setIsSelected: (isSelected: boolean) => void;
 }
 
-export default function SelectMembers({ id }: SelectMembersProps) {
-  const [isSelected, setIsSelected] = useState(false);
-
+export default function SelectMembers({
+  id,
+  isSelected,
+  setIsSelected,
+}: SelectMembersProps) {
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSelected(e.target.checked);
   };
