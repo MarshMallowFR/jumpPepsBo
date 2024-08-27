@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
-import { Button, ButtonColors } from '../common/buttons';
+import { Color } from '@/app/lib/types/color';
+import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
@@ -180,7 +181,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           </div>
           <div className="basis-1/2">
             <ToggleInput
-              color="orange"
+              color={Color.ORANGE}
               defaultValue={isMediaCompliant}
               idFor="isMediaCompliant"
               icon={
@@ -236,7 +237,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           </div>
         )}
         <div className="mt-6 flex justify-center">
-          <Button type="submit" color={ButtonColors.ORANGE}>
+          <Button type="submit" color={Color.ORANGE}>
             ENVOYER
           </Button>
         </div>
