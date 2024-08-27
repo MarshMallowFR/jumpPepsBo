@@ -3,15 +3,12 @@ import ToastContextProvider from '@/app/lib/contexts/toastContext';
 import { Member } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';
-import SelectMembers from './select-members';
 import Status from './status';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 
 export default function Table({ members }: { members: Member[] }) {
-  const [allSelected, setAllSelected] = useState(false);
-
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -22,17 +19,12 @@ export default function Table({ members }: { members: Member[] }) {
     ),
   );
 
-  useEffect(() => {
-    const allSelectedCheck = Object.values(selectedStates).every(
-      (isSelected) => isSelected,
-    );
-    setAllSelected(allSelectedCheck);
-  }, [selectedStates]);
+  const allSelected = Object.values(selectedStates).every(
+    (isSelected) => isSelected,
+  );
 
   const handleSelectAll = () => {
     const newSelectedState = !allSelected;
-    setAllSelected(newSelectedState);
-
     setSelectedStates((prevState) =>
       Object.keys(prevState).reduce(
         (acc, id) => {
@@ -44,11 +36,19 @@ export default function Table({ members }: { members: Member[] }) {
     );
   };
 
-  const handleSelectMember = (id: string, isSelected: boolean) => {
-    setSelectedStates((prevState) => ({
-      ...prevState,
-      [id]: isSelected,
-    }));
+  const handleSelectMember = (id: string) => {
+    setSelectedStates((prevState) => {
+      const newStates = {
+        ...prevState,
+        [id]: !prevState[id],
+      };
+      if (!newStates[id] && allSelected) {
+        return newStates;
+      } else if (Object.values(newStates).every((isSelected) => isSelected)) {
+        return newStates;
+      }
+      return newStates;
+    });
   };
 
   return (
@@ -83,12 +83,10 @@ export default function Table({ members }: { members: Member[] }) {
             className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
           >
             <td>
-              <SelectMembers
-                id={member.id}
-                isSelected={selectedStates[member.id]}
-                setIsSelected={(isSelected) =>
-                  handleSelectMember(member.id, isSelected)
-                }
+              <Checkbox
+                defaultValue={selectedStates[member.id]}
+                handleChange={() => handleSelectMember(member.id)}
+                idFor={member.id}
               />
             </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
