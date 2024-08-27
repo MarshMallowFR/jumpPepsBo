@@ -1,24 +1,21 @@
-export enum CheckboxColors {
-  ORANGE = 'orange',
-  BLUE = 'blue',
-}
+import { Color } from '@/app/lib/types/color';
 
 interface CheckboxProps {
-  color?: CheckboxColors;
+  color?: Color;
   defaultValue?: boolean;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   idFor: string;
 }
 
 export const Checkbox = ({
-  color = CheckboxColors.BLUE,
+  color = Color.BLUE,
   defaultValue,
   handleChange,
   idFor,
 }: CheckboxProps) => {
   const colorClasses = {
-    [CheckboxColors.ORANGE]: 'peer-checked:bg-orange-medium',
-    [CheckboxColors.BLUE]: 'peer-checked:bg-blue-500',
+    [Color.ORANGE]: 'peer-checked:bg-orange-medium',
+    [Color.BLUE]: 'peer-checked:bg-blue-500',
   };
 
   return (

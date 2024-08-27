@@ -34,7 +34,6 @@ export async function fetchClimbPages() {
   noStore();
   try {
     const { rows } = await sql`SELECT id FROM sections WHERE name = 'climbing'`;
-    console.log(rows);
     const count = await sql`SELECT COUNT(member_id) AS total_members
     FROM member_section_season
     WHERE season_id = '40c21821-8d67-4f3e-a8a4-e005a4e8078e' AND section_id = ${rows[0].id};

@@ -1,28 +1,22 @@
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import clsx from 'clsx';
-
-// Bouton général (avec texte)
-export enum ButtonColors {
-  ORANGE = 'orange',
-  BLUE = 'blue',
-}
+import { Color } from '@/app/lib/types/color';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  color?: ButtonColors;
+  color?: Color;
 }
 
 export function Button({
   children,
-  color = ButtonColors.BLUE,
+  color = Color.BLUE,
   className,
   ...rest
 }: ButtonProps) {
   const colorClasses = {
-    [ButtonColors.ORANGE]:
-      'bg-orange-medium hover:bg-orange-light active:bg-gray',
-    [ButtonColors.BLUE]: 'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
+    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light active:bg-gray',
+    [Color.BLUE]: 'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
   };
   return (
     <button
