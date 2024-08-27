@@ -1,6 +1,6 @@
 import Pagination from '@/app/ui/common/pagination';
 import Search from '@/app/ui/common/search';
-import Table from '@/app/ui/climbing/table';
+import Table from '@/app/ui/climbing/climbing-table';
 import { CreateBtn } from '@/app/ui/common/buttons';
 import { ClimbingTableSkeleton } from '@/app/ui/common/skeletons';
 import { Suspense } from 'react';
