@@ -5,7 +5,7 @@ import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';
 import Status from './status';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 
 export default function Table({ members }: { members: Member[] }) {
@@ -19,9 +19,9 @@ export default function Table({ members }: { members: Member[] }) {
     ),
   );
 
-  const allSelected = Object.values(selectedStates).every(
-    (isSelected) => isSelected,
-  );
+  const allSelected = useMemo(() => {
+    return Object.values(selectedStates).every((isSelected) => isSelected);
+  }, [selectedStates]);
 
   const handleSelectAll = () => {
     const newSelectedState = !allSelected;
@@ -37,18 +37,10 @@ export default function Table({ members }: { members: Member[] }) {
   };
 
   const handleSelectMember = (id: string) => {
-    setSelectedStates((prevState) => {
-      const newStates = {
-        ...prevState,
-        [id]: !prevState[id],
-      };
-      if (!newStates[id] && allSelected) {
-        return newStates;
-      } else if (Object.values(newStates).every((isSelected) => isSelected)) {
-        return newStates;
-      }
-      return newStates;
-    });
+    setSelectedStates((prevState) => ({
+      ...prevState,
+      [id]: !prevState[id],
+    }));
   };
 
   return (
