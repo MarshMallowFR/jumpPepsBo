@@ -5,6 +5,7 @@ import { CreateBtn } from '@/app/ui/common/buttons';
 import { ClimbingTableSkeleton } from '@/app/ui/common/skeletons';
 import { Suspense } from 'react';
 import { fetchClimbPages } from '@/app/lib/data';
+import Dropdown from '@/app/ui/common/dropdown';
 
 export default async function Page({
   searchParams,
@@ -18,6 +19,10 @@ export default async function Page({
   const currentPage = Number(searchParams?.page) || 1;
 
   const totalPages = await fetchClimbPages();
+
+  const handleSelect = (value: string) => {
+    console.log('Selected:', value);
+  };
 
   return (
     <div className="w-full">
