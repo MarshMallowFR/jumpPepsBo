@@ -33,9 +33,8 @@ export default function Dropdown({
     setIsOpen(!isOpen);
   };
 
-  const handleOptionClick = (value: string) => {
+  const handleOptionClick = (value: any) => {
     onSelect(value);
-    setIsOpen(false);
   };
 
   const colorClass = colorClasses[color];
@@ -65,7 +64,7 @@ export default function Dropdown({
       </button>
 
       {isOpen && (
-        <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white">
+        <div className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50">
           <div className="py-1">
             {options.map((option) => (
               <button

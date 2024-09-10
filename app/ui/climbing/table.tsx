@@ -5,11 +5,17 @@ import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';
 import Status from './status';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
-import Dropdown from '../common/dropdown';
+import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 
-export default function Table({ members }: { members: Member[] }) {
+interface TableProps {
+  members: Member[];
+}
+
+export default function Table({ members }: TableProps) {
+  const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
+    useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -44,49 +50,22 @@ export default function Table({ members }: { members: Member[] }) {
     }));
   };
 
-  // Filtrer les membres sélectionnés (selectedStates est un objet pas un tableau)
-  const filterSelection = (
-    obj: Record<string, boolean>,
-    valueToFilter: boolean = true,
-  ) => {
-    return Object.entries(obj)
-      .filter(([key, value]) => value === valueToFilter)
-      .reduce(
-        (acc, [key, value]) => {
-          acc[key] = value;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      );
+  const getSelectedMemberIds = () => {
+    return Object.keys(selectedStates).filter((id) => selectedStates[id]);
   };
 
-  const fileredSelection = filterSelection(selectedStates);
-  // Afficher un nouveau bouton si le résultat n'est pas un objet vide => true
-  const nonEmptySelection = (obj: object): boolean => {
-    return Object.keys(obj).length > 0;
-  };
-
-  //test dropdown juste pour voir le style:
-  const handleSelect = (value: string) => {
-    console.log('Selected:', value);
-  };
+  useEffect(() => {
+    const selectedMemberIds = getSelectedMemberIds();
+    setSelectedIds(selectedMemberIds);
+    if (selectedMemberIds.length > 0) {
+      setIsVisibleDropdown(true);
+    } else {
+      setIsVisibleDropdown(false);
+    }
+  }, [selectedStates]);
 
   return (
     <table className="hidden min-w-full text-gray-900 md:table">
-      {nonEmptySelection(fileredSelection) && (
-        <Dropdown
-          label="Actions"
-          options={[
-            {
-              label: 'Exporter au format Excel',
-              value: 'Exporter au format Excel',
-            },
-            { label: 'Suppression multiple', value: 'Suppression multiple' },
-          ]}
-          onSelect={handleSelect}
-        />
-      )}
-
       <thead className="rounded-lg text-left text-sm font-normal">
         <tr>
           <th>
