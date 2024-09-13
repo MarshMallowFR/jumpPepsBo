@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { downloadExcel } from '@/app/lib/excel/excel';
 
 interface DropdownContextProps {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
@@ -26,17 +27,27 @@ const DropdownContextProvider = ({
   actions: {
     label: string;
     value: string;
-    action?: (ids: string[]) => void;
+    action?: string | ((ids: string[]) => void);
   }[];
   children: React.ReactNode;
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const handleSelect = (value: string) => {
+  const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
     if (action) {
-      action(selectedIds);
+      if (typeof action === 'function') {
+        action(selectedIds);
+      }
+
+      switch (action) {
+        case 'export-pdf':
+          downloadExcel(selectedIds);
+          break;
+        default:
+          break;
+      }
     }
   };
 

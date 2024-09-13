@@ -1,7 +1,6 @@
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
 import Table from './table';
 import DropdownContextProvider from '@/app/lib/contexts/dropdownmenuContext';
-import { exportMembersToExcel } from '@/app/lib/actions/climbing/actions';
 
 export default async function ClimbingTable({
   query,
@@ -11,12 +10,11 @@ export default async function ClimbingTable({
   currentPage: number;
 }) {
   const members = await fetchFilteredClimbingMembers(query, currentPage);
-
   const actions = [
     {
       label: 'Exporter au format Excel',
       value: 'export',
-      action: exportMembersToExcel,
+      action: 'export-pdf',
     },
     { label: 'Suppression multiple', value: 'delete' },
   ];

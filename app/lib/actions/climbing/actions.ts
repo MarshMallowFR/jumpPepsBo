@@ -9,8 +9,6 @@ import {
   getCloudinaryPicture,
   deleteCloudinaryImage,
 } from '../../cloudinary/cloudinary';
-import { generateExcel } from '../../excel/excel';
-import { NextResponse } from 'next/server';
 
 // Configuration de l'image pour gestion des erreurs avec zod
 const MAX_FILE_SIZE = 500000;
@@ -345,38 +343,5 @@ export async function deleteMember(
     return { message: 'Erreur lors de la suppression du membre.' };
   } finally {
     revalidatePath('/dashboard/climbing');
-  }
-}
-
-// Fonction pour exporter les données des membres dans un tableur excel
-export async function exportMembersToExcel(ids: string[]): Promise<any> {
-  try {
-    if (ids.length === 0) {
-      return NextResponse.json({
-        message: `Aucun membre sélectionné pour l'export vers le fichier Excel.`,
-      });
-    }
-    const queryText = `
-      SELECT * FROM members
-      WHERE id = ANY($1::uuid[])
-    `;
-
-    const result = await sql.query(queryText, [ids]);
-    console.log(result.rows);
-    const excelBuffer = await generateExcel(result.rows);
-
-    return new Response(excelBuffer, {
-      headers: {
-        'Content-Disposition': 'attachment; filename=membres.xlsx',
-        'Content-Type':
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Length': excelBuffer.byteLength.toString(), // Utilisez byteLength pour les buffers
-      },
-    });
-  } catch (error) {
-    console.error(`Erreur lors de l'export des membres vers Excel:`, error);
-    return NextResponse.json({
-      message: `Erreur lors de l'export des membres vers le fichier Excel.`,
-    });
   }
 }
