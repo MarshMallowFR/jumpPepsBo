@@ -76,7 +76,7 @@ export default function Table({ members }: TableProps) {
             />
           </th>
           <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-            Nom et prénom
+            Nom et Prénom
           </th>
           <th scope="col" className="px-3 py-5 font-medium">
             Email
@@ -112,7 +112,7 @@ export default function Table({ members }: TableProps) {
                   alt={`${member.firstName} ${member.lastName}'s profile picture`}
                 />
                 <p>
-                  {member.firstName} {member.lastName}
+                  {member.lastName} {member.firstName}
                 </p>
               </div>
             </td>

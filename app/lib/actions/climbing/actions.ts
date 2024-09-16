@@ -122,8 +122,8 @@ export async function createClimbingMember(
   isRegistration: boolean,
 ) {
   const validatedFields = CreateClimbingMember.safeParse({
-    firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
+    firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
     email: formData.get('email'),
     phoneNumber: formData.get('phoneNumber'),
@@ -156,8 +156,8 @@ export async function createClimbingMember(
     );
 
     const {
-      firstName,
       lastName,
+      firstName,
       birthDate,
       email,
       phoneNumber,
@@ -173,8 +173,8 @@ export async function createClimbingMember(
 
     let legalContactId;
     if (
-      legalContactFirstName &&
       legalContactLastName &&
+      legalContactFirstName &&
       legalContactPhoneNumber
     ) {
       legalContactId = randomUUID();
@@ -203,8 +203,8 @@ export async function createClimbingMember(
       )
       VALUES (
         ${randomUUID()},
-        ${firstName},
         ${lastName},
+        ${firstName},
         ${birthDate},
         ${email},
         ${phoneNumber},
@@ -240,8 +240,8 @@ export async function updateClimbingMember(
   formData: FormData,
 ) {
   const validationStatus = UpdateClimbingMember.safeParse({
-    firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
+    firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
     email: formData.get('email'),
     phoneNumber: formData.get('phoneNumber'),
@@ -273,8 +273,8 @@ export async function updateClimbingMember(
   }
 
   const {
-    firstName,
     lastName,
+    firstName,
     birthDate,
     email,
     phoneNumber,
