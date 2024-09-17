@@ -1,6 +1,6 @@
 export async function downloadExcel(ids: string[]) {
   const query = ids.join(',');
-  const response = await fetch(`/api/export?ids=${query}`);
+  const response = await fetch(`/api/export-excel?ids=${query}`);
 
   if (response.ok) {
     const blob = await response.blob();

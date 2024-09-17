@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 
-export async function exportMembersExcel(request: Request) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const ids = searchParams.get('ids')?.split(',') || [];
@@ -96,8 +96,4 @@ export async function exportMembersExcel(request: Request) {
       { status: 500 },
     );
   }
-}
-
-export async function GET(request: Request) {
-  return exportMembersExcel(request);
 }
