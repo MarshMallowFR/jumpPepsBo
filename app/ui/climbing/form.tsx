@@ -124,7 +124,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
               label="Numéro de téléphone"
               idFor="phoneNumber"
               settingKey="phoneNumber"
-              error={state?.errors?.phoneNumber}
+              error={
+                state?.errors?.phoneNumber
+                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
+                  : []
+              }
             />
             <TextInput
               className="ml-2 flex-1"
