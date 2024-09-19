@@ -33,6 +33,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const [isMediaCompliant, setIsMediaCompliant] = useState(
     member?.isMediaCompliant ?? false,
   );
+
   const [picture, setPicture] = useState<File | string | null>(
     member?.picture || null,
   );
@@ -65,7 +66,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
     if (picture) {
       formData.set('picture', picture);
     }
-
     await dispatch(formData);
     setDisplayToast(true);
   };
@@ -257,6 +257,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   }
                 }}
               />
+              {state?.errors && (
+                <p className="mt-2 text-sm text-red-500">
+                  {state?.errors.picture}
+                </p>
+              )}
             </div>
           ) : (
             <PictureUpload

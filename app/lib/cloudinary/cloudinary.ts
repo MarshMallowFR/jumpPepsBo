@@ -64,3 +64,46 @@ export async function deleteCloudinaryImage(
 //     console.log('Images supprimées avec succès :', result);
 //   }
 // });
+
+//A TESTER POUR COMPRESSER LES IMAGES (après avoir fait yarn add sharp):
+// import { v2 as cloudinary } from 'cloudinary';
+// import sharp from 'sharp';
+
+// // Configuration de Cloudinary
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
+
+// export async function getCloudinaryPicture(picture: File): Promise<string> {
+//   let imageUrl = '';
+//   if (picture) {
+//     const arrayBuffer = await picture.arrayBuffer();
+//     const buffer = new Uint8Array(arrayBuffer);
+
+//     // Convertir l'image en WebP avec sharp
+//     const webpBuffer = await sharp(buffer)
+//       .webp({ quality: 80 }) // Vous pouvez ajuster la qualité ici
+//       .toBuffer();
+
+//     // Envoyer l'image convertie à Cloudinary
+//     const result = await new Promise<any>((resolve, reject) => {
+//       cloudinary.uploader
+//         .upload_stream(
+//           { tags: ['nextjs-server-actions-upload-sneakers'] },
+//           (error, result) => {
+//             if (error) {
+//               reject(error);
+//               return;
+//             }
+//             resolve(result);
+//           },
+//         )
+//         .end(webpBuffer);
+//     });
+
+//     imageUrl = result.secure_url;
+//   }
+//   return imageUrl;
+// }
