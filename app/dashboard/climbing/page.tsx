@@ -19,10 +19,6 @@ export default async function Page({
 
   const totalPages = await fetchClimbPages();
 
-  const handleSelect = (value: string) => {
-    console.log('Selected:', value);
-  };
-
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
