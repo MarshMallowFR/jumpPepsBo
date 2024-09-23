@@ -15,8 +15,8 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const colorClasses = {
-    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light active:bg-gray',
-    [Color.BLUE]: 'bg-blue-500 hover:bg-blue-400 active:bg-blue-600',
+    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light',
+    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light',
   };
   return (
     <button
@@ -37,7 +37,7 @@ export function CreateBtn({ href, text }: { href: string; text: string }) {
   return (
     <Link
       href={href}
-      className="flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+      className="flex h-10 items-center rounded-lg bg-blue-medium px-4 text-sm font-medium text-white transition-colors hover:bg-blue-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-medium"
     >
       <span className="hidden md:block">{text}</span>
       <PlusIcon className="h-5 md:ml-4" />

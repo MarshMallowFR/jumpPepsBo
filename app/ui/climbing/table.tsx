@@ -5,10 +5,17 @@ import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';
 import Status from './status';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
+import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 
-export default function Table({ members }: { members: Member[] }) {
+interface TableProps {
+  members: Member[];
+}
+
+export default function Table({ members }: TableProps) {
+  const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
+    useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -43,6 +50,20 @@ export default function Table({ members }: { members: Member[] }) {
     }));
   };
 
+  const getSelectedMemberIds = () => {
+    return Object.keys(selectedStates).filter((id) => selectedStates[id]);
+  };
+
+  useEffect(() => {
+    const selectedMemberIds = getSelectedMemberIds();
+    setSelectedIds(selectedMemberIds);
+    if (selectedMemberIds.length > 0) {
+      setIsVisibleDropdown(true);
+    } else {
+      setIsVisibleDropdown(false);
+    }
+  }, [selectedStates]);
+
   return (
     <table className="hidden min-w-full text-gray-900 md:table">
       <thead className="rounded-lg text-left text-sm font-normal">
@@ -55,7 +76,7 @@ export default function Table({ members }: { members: Member[] }) {
             />
           </th>
           <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-            Nom et prénom
+            Nom et Prénom
           </th>
           <th scope="col" className="px-3 py-5 font-medium">
             Email
@@ -91,7 +112,7 @@ export default function Table({ members }: { members: Member[] }) {
                   alt={`${member.firstName} ${member.lastName}'s profile picture`}
                 />
                 <p>
-                  {member.firstName} {member.lastName}
+                  {member.lastName} {member.firstName}
                 </p>
               </div>
             </td>

@@ -19,6 +19,11 @@ const config: Config = {
           light: '#FFBC79',
           medium: '#FA8919',
         },
+        blue: {
+          extralight: '#E0F2FE',
+          light: '#BFDBFE',
+          medium: '#2563EB',
+        },
       },
       boxShadow: {
         'custom-shadow': '0 6px 20px rgba(0, 0, 0, 0.25)',
