@@ -354,7 +354,11 @@ export async function deleteSeveralMembers(
 ): Promise<{ message: string }> {
   try {
     // Supprimer les membres de la base de données
-    await sql`DELETE FROM members WHERE id = ANY(${ids})`;
+    if (ids.length > 0) {
+      for (const id of ids) {
+        await sql`DELETE FROM members WHERE id = ${id}`;
+      }
+    }
 
     // Extraire les identifiants d'images (publicId) depuis les URLs
     const publicIds = imagesUrl
