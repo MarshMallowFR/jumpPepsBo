@@ -15,7 +15,7 @@ export const Checkbox = ({
 }: CheckboxProps) => {
   const colorClasses = {
     [Color.ORANGE]: 'peer-checked:bg-orange-medium',
-    [Color.BLUE]: 'peer-checked:bg-blue-500',
+    [Color.BLUE]: 'peer-checked:bg-blue-medium',
   };
 
   return (

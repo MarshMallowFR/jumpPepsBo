@@ -19,6 +19,10 @@ export default async function Page({
 
   const totalPages = await fetchClimbPages();
 
+  const handleSelect = (value: string) => {
+    console.log('Selected:', value);
+  };
+
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
@@ -28,6 +32,7 @@ export default async function Page({
         <Search placeholder="Rechercher des membres..." />
         <CreateBtn href="/dashboard/climbing/create" text="Créer membre" />
       </div>
+
       <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}>
         <Table query={query} currentPage={currentPage} />
       </Suspense>

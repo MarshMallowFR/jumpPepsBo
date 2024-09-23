@@ -27,8 +27,8 @@ export const ToggleInput = ({
       ring: 'peer-checked:ring-orange-light',
     },
     [Color.BLUE]: {
-      bg: 'bg-blue-200 peer-checked:bg-blue-500',
-      ring: 'peer-checked:ring-blue-400',
+      bg: 'bg-blue-light peer-checked:bg-blue-medium',
+      ring: 'peer-checked:ring-blue-light',
     },
   };
   return (
