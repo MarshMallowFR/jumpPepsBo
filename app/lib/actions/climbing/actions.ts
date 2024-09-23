@@ -27,17 +27,14 @@ const ClimbingMemberSchema = z.object({
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthDate: z.string().min(1, `Veuillez indiquer la date de naissance.`),
   email: z.string().min(1, `Veuillez indiquer un email de contact.`),
-  phoneNumber: z.preprocess(
-    (value) => {
-      if (typeof value !== 'string') {
-        return value;
-      }
-      return value.trim().replace(/\s+/g, '');
-    },
-    z
-      .string()
-      .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
-  ),
+  phoneNumber: z
+    .string()
+    .min(1, 'Veuillez indiquer un numéro de téléphone.')
+    .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
+    .regex(
+      /^\d+$/,
+      'Le numéro de téléphone ne doit contenir que des chiffres.',
+    ),
   street: z.string().min(1, `Une adresse est requise.`),
   zipCode: z
     .string()
@@ -51,12 +48,12 @@ const ClimbingMemberSchema = z.object({
       z
         .instanceof(File)
         .refine(
-          (file) => file.size <= MAX_FILE_SIZE,
-          `La taille maximum de l'image est 5MB.`,
-        )
-        .refine(
           (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
           'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+        )
+        .refine(
+          (file) => file.size <= MAX_FILE_SIZE,
+          `La taille maximum de l'image est 5MB.`,
         ),
     ),
   isMediaCompliant: z.boolean().nullable(),
@@ -72,17 +69,14 @@ const ClimbingMemberSchema = z.object({
       .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`),
   ),
   legalContactPhoneNumber: z.optional(
-    z.preprocess(
-      (value) => {
-        if (typeof value !== 'string') {
-          return value;
-        }
-        return value.trim().replace(/\s+/g, '');
-      },
-      z
-        .string()
-        .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
-    ),
+    z
+      .string()
+      .min(1, 'Veuillez indiquer un numéro de téléphone.')
+      .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
+      .regex(
+        /^\d+$/,
+        'Le numéro de téléphone ne doit contenir que des chiffres.',
+      ),
   ),
   legalContactId: z.optional(z.string()),
 });
@@ -138,12 +132,7 @@ export async function createClimbingMember(
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
-    if (fieldErrors.picture) {
-      return {
-        errors: { picture: fieldErrors.picture },
-        isSuccess: false,
-      };
-    }
+
     return {
       errors: fieldErrors,
       message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
@@ -370,7 +359,7 @@ export async function deleteSeveralMembers(
       await deleteSeveralCloudinaryImages(publicIds as string[]);
     }
 
-    return { message: 'Membres et images supprimés.' };
+    return { message: 'Membres supprimés.' };
   } catch (error) {
     console.error('Erreur lors de la suppression', error);
     return {

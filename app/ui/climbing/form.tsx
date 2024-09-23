@@ -33,6 +33,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const [isMediaCompliant, setIsMediaCompliant] = useState(
     member?.isMediaCompliant ?? false,
   );
+
   const [picture, setPicture] = useState<File | string | null>(
     member?.picture || null,
   );
@@ -65,7 +66,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
     if (picture) {
       formData.set('picture', picture);
     }
-
     await dispatch(formData);
     setDisplayToast(true);
   };
@@ -124,7 +124,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
               label="Numéro de téléphone"
               idFor="phoneNumber"
               settingKey="phoneNumber"
-              error={state?.errors?.phoneNumber}
+              error={
+                state?.errors?.phoneNumber
+                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
+                  : []
+              }
             />
             <TextInput
               className="ml-2 flex-1"
@@ -227,7 +231,13 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 />
                 <TextInput
                   defaultValue={member?.legalContactPhoneNumber}
-                  error={state?.errors?.legalContactPhoneNumber}
+                  error={
+                    state?.errors?.legalContactPhoneNumber
+                      ? [
+                          'Le numéro de téléphone doit être composé de 10 chiffres.',
+                        ]
+                      : []
+                  }
                   idFor="legalContactPhoneNumber"
                   label="Numéro de téléphone du contact"
                   settingKey="legalContactPhoneNumber"
@@ -257,6 +267,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   }
                 }}
               />
+              {state?.errors && (
+                <p className="mt-2 text-sm text-red-500">
+                  {state?.errors.picture}
+                </p>
+              )}
             </div>
           ) : (
             <PictureUpload

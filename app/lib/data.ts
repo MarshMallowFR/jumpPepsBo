@@ -137,7 +137,6 @@ export async function fetchAdminsPages() {
   noStore();
   try {
     const count = await sql`SELECT COUNT(id) FROM admins`;
-    console.log(count);
 
     return Math.ceil(Number(count.rowCount) / ITEMS_PER_PAGE);
   } catch (error) {
@@ -186,8 +185,6 @@ export async function fetchAdminById(id: string) {
       FROM admins
       WHERE admins.id = ${id};
     `;
-
-    console.log({ rows });
 
     return rows.map((admin) => ({
       id: admin.id,

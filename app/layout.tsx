@@ -1,6 +1,5 @@
 import '@/app/ui/style/global.css';
 import { lusitana } from '@/app/ui/style/fonts';
-import dynamic from 'next/dynamic';
 
 export default function RootLayout({
   children,

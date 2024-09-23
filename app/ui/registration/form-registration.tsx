@@ -119,7 +119,11 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             label="Numéro de téléphone"
             idFor="phoneNumber"
             settingKey="phoneNumber"
-            error={state?.errors?.phoneNumber}
+            error={
+              state?.errors?.phoneNumber
+                ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
+                : []
+            }
           />
           <TextInput
             className="basis-1/2"
@@ -232,7 +236,11 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
               idFor="legalContactPhoneNumber"
               label="Numéro de téléphone"
               settingKey="legalContactPhoneNumber"
-              error={state?.errors?.legalContactPhoneNumber}
+              error={
+                state?.errors?.legalContactPhoneNumber
+                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
+                  : []
+              }
             />
           </div>
         )}
