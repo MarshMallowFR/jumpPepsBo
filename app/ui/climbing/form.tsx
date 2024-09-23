@@ -231,7 +231,13 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 />
                 <TextInput
                   defaultValue={member?.legalContactPhoneNumber}
-                  error={state?.errors?.legalContactPhoneNumber}
+                  error={
+                    state?.errors?.legalContactPhoneNumber
+                      ? [
+                          'Le numéro de téléphone doit être composé de 10 chiffres.',
+                        ]
+                      : []
+                  }
                   idFor="legalContactPhoneNumber"
                   label="Numéro de téléphone du contact"
                   settingKey="legalContactPhoneNumber"

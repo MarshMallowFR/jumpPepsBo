@@ -236,7 +236,11 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
               idFor="legalContactPhoneNumber"
               label="Numéro de téléphone"
               settingKey="legalContactPhoneNumber"
-              error={state?.errors?.legalContactPhoneNumber}
+              error={
+                state?.errors?.legalContactPhoneNumber
+                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
+                  : []
+              }
             />
           </div>
         )}
