@@ -8,10 +8,11 @@ import { randomUUID } from 'crypto';
 import {
   getCloudinaryPicture,
   deleteCloudinaryImage,
+  deleteSeveralCloudinaryImages,
 } from '../../cloudinary/cloudinary';
 
 // Configuration de l'image pour gestion des erreurs avec zod
-const MAX_FILE_SIZE = 500000;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -341,6 +342,36 @@ export async function deleteMember(
     return { message: 'Membre supprimé.' };
   } catch (error) {
     return { message: 'Erreur lors de la suppression du membre.' };
+  } finally {
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+// Fonction pour supprimer plusieurs membres de la base de données
+export async function deleteSeveralMembers(
+  ids: string[],
+  imagesUrl: string[],
+): Promise<{ message: string }> {
+  try {
+    // Supprimer les membres de la base de données
+    await sql`DELETE FROM members WHERE id = ANY(${ids})`;
+
+    // Extraire les identifiants d'images (publicId) depuis les URLs
+    const publicIds = imagesUrl
+      .map((imageUrl) => imageUrl.split('/').pop()?.split('.')[0])
+      .filter(Boolean);
+
+    // Appeler la fonction externe pour supprimer les images de Cloudinary
+    if (publicIds.length > 0) {
+      await deleteSeveralCloudinaryImages(publicIds as string[]);
+    }
+
+    return { message: 'Membres et images supprimés.' };
+  } catch (error) {
+    console.error('Erreur lors de la suppression', error);
+    return {
+      message: 'Erreur lors de la suppression.',
+    };
   } finally {
     revalidatePath('/dashboard/climbing');
   }
