@@ -104,13 +104,15 @@ export default function Table({ members }: TableProps) {
             </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex items-center gap-3">
-                <Image
-                  src={member.picture}
-                  className="rounded-full max-h-7"
-                  width={28}
-                  height={28}
-                  alt={`${member.firstName} ${member.lastName}'s profile picture`}
-                />
+                <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
+                  <Image
+                    src={member.picture}
+                    className="object-cover"
+                    width={28}
+                    height={28}
+                    alt={`${member.firstName} ${member.lastName}'s profile picture`}
+                  />
+                </div>
                 <p>
                   {member.lastName} {member.firstName}
                 </p>
