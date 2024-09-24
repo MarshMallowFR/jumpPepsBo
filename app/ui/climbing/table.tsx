@@ -8,7 +8,6 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
-import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 
 interface TableProps {
   members: Member[];
@@ -17,7 +16,7 @@ interface TableProps {
 export default function Table({ members }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
-  const { setIsVisible, setToastType, setToastMessage } = useToastContext();
+
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {

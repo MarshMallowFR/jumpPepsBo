@@ -29,11 +29,11 @@ export default async function ClimbingTable({
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          <DropdownContextProvider actions={actions} members={members}>
-            <ToastContextProvider>
+          <ToastContextProvider>
+            <DropdownContextProvider actions={actions} members={members}>
               <Table members={members} />
-            </ToastContextProvider>
-          </DropdownContextProvider>
+            </DropdownContextProvider>
+          </ToastContextProvider>
         </div>
       </div>
     </div>
