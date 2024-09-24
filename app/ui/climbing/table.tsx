@@ -109,9 +109,8 @@ export default function Table({ members }: TableProps) {
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image
                     src={member.picture}
-                    layout="fill"
-                    objectFit="cover"
-                    objectPosition="center"
+                    fill
+                    style={{ objectFit: 'cover' }}
                     alt={`${member.firstName} ${member.lastName}'s profile picture`}
                   />
                 </div>
