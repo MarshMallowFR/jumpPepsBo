@@ -10,11 +10,12 @@ import {
   useState,
 } from 'react';
 import { downloadExcel } from '@/app/lib/excel/excel';
+import { deleteSeveralMembers } from '../actions/climbing/actions';
+import { Member } from '@/app/lib/types/climbing';
 
 interface DropdownContextProps {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
   setSelectedIds: Dispatch<SetStateAction<string[]>>;
-  setSelectedImagesUrl: Dispatch<SetStateAction<string[]>>;
 }
 
 const DropdownContext = createContext<DropdownContextProps | undefined>(
@@ -23,30 +24,45 @@ const DropdownContext = createContext<DropdownContextProps | undefined>(
 
 const DropdownContextProvider = ({
   actions,
+  members,
   children,
 }: {
   actions: {
     label: string;
     value: string;
-    action?: string | ((args: { ids: string[]; imagesUrl: string[] }) => void);
+    action?: string | ((ids: string[]) => void);
   }[];
+  members: Member[];
   children: React.ReactNode;
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedImagesUrl, setSelectedImagesUrl] = useState<string[]>([]);
+
+  const handleDeleteMany = async (selectedIds: string[]) => {
+    const idsWithImages = selectedIds.map((id) => {
+      const member = members.find((member) => member.id === id);
+      return {
+        id,
+        imageUrl: member ? member.picture : '',
+      };
+    });
+
+    await deleteSeveralMembers(idsWithImages);
+  };
 
   const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
     if (action) {
-      const actionArgs = { ids: selectedIds, imagesUrl: selectedImagesUrl };
       if (typeof action === 'function') {
-        action(actionArgs);
+        action(selectedIds);
       }
 
       switch (action) {
-        case 'export-pdf':
+        case 'export-excel':
           downloadExcel(selectedIds);
+          break;
+        case 'delete-many':
+          handleDeleteMany(selectedIds);
           break;
         default:
           break;
@@ -58,9 +74,8 @@ const DropdownContextProvider = ({
     () => ({
       setIsVisible,
       setSelectedIds,
-      setSelectedImagesUrl,
     }),
-    [isVisible, setIsVisible, selectedIds, setSelectedImagesUrl],
+    [isVisible, setIsVisible, selectedIds],
   );
 
   return (

@@ -339,18 +339,18 @@ export async function deleteMember(
 export async function deleteSeveralMembers(
   ids: { id: string; imageUrl: string }[],
 ): Promise<{ message: string }> {
+  if (ids.length === 0) {
+    return { message: 'Aucun membre à supprimer.' };
+  }
+
   try {
-    if (ids.length > 0) {
-      for (const { id, imageUrl } of ids) {
-        await deleteMember(id, imageUrl);
-      }
-    }
+    await Promise.all(
+      ids.map(({ id, imageUrl }) => deleteMember(id, imageUrl)),
+    );
     return { message: 'Membres supprimés.' };
   } catch (error) {
     console.error('Erreur lors de la suppression des membres', error);
-    return {
-      message: 'Erreur lors de la suppression des membres.',
-    };
+    return { message: 'Erreur lors de la suppression des membres.' };
   } finally {
     revalidatePath('/dashboard/climbing');
   }
