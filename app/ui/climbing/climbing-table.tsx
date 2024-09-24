@@ -1,7 +1,6 @@
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
 import Table from './table';
 import DropdownContextProvider from '@/app/lib/contexts/dropdownmenuContext';
-import { deleteSeveralMembers } from '@/app/lib/actions/climbing/actions';
 
 export default async function ClimbingTable({
   query,
@@ -11,29 +10,13 @@ export default async function ClimbingTable({
   currentPage: number;
 }) {
   const members = await fetchFilteredClimbingMembers(query, currentPage);
-
-  const handleDeleteMany = async () => {
-    const selectedMembers = members
-      .filter((member) => selectedStates[member.id])
-      .map((member) => ({
-        id: member.id,
-        imageUrl: member.picture,
-      }));
-
-    await deleteSeveralMembers(selectedMembers);
-  };
-
   const actions = [
     {
       label: 'Exporter au format Excel',
       value: 'export',
       action: 'export-pdf',
     },
-    {
-      label: 'Suppression multiple',
-      value: 'delete',
-      action: handleDeleteMany,
-    },
+    { label: 'Suppression multiple', value: 'delete' },
   ];
 
   return (
