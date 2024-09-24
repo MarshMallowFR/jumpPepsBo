@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import {
   getCloudinaryPicture,
   deleteCloudinaryImage,
+  deleteCloudinaryImages,
 } from '../../cloudinary/cloudinary';
 
 // Configuration de l'image pour gestion des erreurs avec zod
@@ -337,20 +338,34 @@ export async function deleteMember(
 
 // Fonction pour supprimer plusieurs membres de la base de données
 export async function deleteMembers(
-  ids: { id: string; imageUrl: string }[],
+  ids: string[],
 ): Promise<{ message: string }> {
-  if (ids.length === 0) {
-    return { message: 'Aucun membre à supprimer.' };
-  }
-
   try {
-    await Promise.all(
-      ids.map(({ id, imageUrl }) => deleteMember(id, imageUrl)),
-    );
+    if (ids.length === 0) {
+      return { message: 'Aucun membre à supprimer.' };
+    }
+    const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
+
+    const imageQuery = `SELECT picture FROM members WHERE id IN (${placeholders})`;
+    const imageResults = await sql.query(imageQuery, ids);
+
+    const imageUrls = imageResults.rows
+      .map((row) => row.picture)
+      .filter(Boolean); //URLs valides
+
+    const deleteQuery = `DELETE FROM members WHERE id IN (${placeholders})`;
+    await sql.query(deleteQuery, ids);
+
+    if (imageUrls.length > 0) {
+      await deleteCloudinaryImages(imageUrls);
+    }
+
     return { message: 'Membres supprimés.' };
   } catch (error) {
-    console.error('Erreur lors de la suppression des membres', error);
-    return { message: 'Erreur lors de la suppression des membres.' };
+    console.error('Erreur lors de la suppression', error);
+    return {
+      message: 'Erreur lors de la suppression.',
+    };
   } finally {
     revalidatePath('/dashboard/climbing');
   }
