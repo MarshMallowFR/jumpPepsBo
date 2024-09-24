@@ -59,3 +59,42 @@ export async function deleteCloudinaryImage(
     };
   }
 }
+
+export async function deleteCloudinaryImages(
+  imageUrls: string[],
+): Promise<{ message: string }> {
+  const publicIds: string[] = imageUrls
+    .map((url) => {
+      const parts = url.split('/');
+      return parts.length > 0 ? parts.pop()?.split('.')[0] : undefined;
+    })
+    .filter((id): id is string => id !== undefined); // Filtrer les undefined
+
+  if (publicIds.length === 0) {
+    return { message: 'Aucune image à supprimer.' };
+  }
+
+  try {
+    const result = await cloudinary.api.delete_resources(publicIds, {
+      resource_type: 'image',
+    });
+
+    const errors = result.errors;
+    if (errors && errors.length > 0) {
+      console.error(
+        'Erreur lors de la suppression de certaines images:',
+        errors,
+      );
+      return {
+        message: `Des erreurs sont survenues lors de la suppression des images.`,
+      };
+    }
+
+    return { message: 'Les images ont été supprimées avec succès.' };
+  } catch (error) {
+    console.error('Cloudinary Error: Failed to delete images.', error);
+    return {
+      message: 'Erreur lors de la suppression des images dans Cloudinary.',
+    };
+  }
+}

@@ -12,7 +12,7 @@ import {
 import { downloadExcel } from '@/app/lib/excel/excel';
 import { Member } from '@/app/lib/types/climbing';
 import { useToastContext, ToastType } from './toastContext';
-import { handleDeleteMembers } from '../actions/dropdown/dropdownActions';
+//import { handleDeleteMembers } from '../actions/dropdown/dropdownActions';
 import { deleteMembers } from '../actions/climbing/actions';
 
 interface DropdownContextProps {
@@ -80,7 +80,7 @@ const DropdownContextProvider = ({
           break;
         case 'delete-many':
           try {
-            const result = await handleDeleteMembers(selectedIds, members);
+            const result = await deleteMembers(selectedIds);
             handleToast(true, ToastType.SUCCESS, result.message);
           } catch (error) {
             handleToast(
