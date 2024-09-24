@@ -1,10 +1,8 @@
 import { deleteMembers } from '../climbing/actions';
-import { ToastType } from '../../contexts/toastContext';
 
 export const handleDeleteMembers = async (
   selectedIds: string[],
   members: { id: string; picture: string }[],
-  { setToastVisible, setToastType, setToastMessage }: any,
 ) => {
   const idsWithImages = selectedIds.map((id) => {
     const member = members.find((member) => member.id === id);
@@ -16,15 +14,9 @@ export const handleDeleteMembers = async (
 
   try {
     const result = await deleteMembers(idsWithImages);
-    setToastVisible(true);
-    setToastType(ToastType.SUCCESS);
-    setToastMessage(result.message);
+    return result;
   } catch (error: unknown) {
     console.error('Failed to delete members:', error);
-    setToastVisible(true);
-    setToastType(ToastType.ERROR);
-    setToastMessage(
-      error instanceof Error ? error.message : 'Une erreur est survenue.',
-    );
+    return { message: 'Erreur lors de la suppression des membres.' };
   }
 };

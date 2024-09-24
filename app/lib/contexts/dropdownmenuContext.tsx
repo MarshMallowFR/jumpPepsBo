@@ -13,6 +13,7 @@ import { downloadExcel } from '@/app/lib/excel/excel';
 import { Member } from '@/app/lib/types/climbing';
 import { useToastContext, ToastType } from './toastContext';
 import { handleDeleteMembers } from '../actions/dropdown/dropdownActions';
+import { deleteMembers } from '../actions/climbing/actions';
 
 interface DropdownContextProps {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
@@ -44,6 +45,16 @@ const DropdownContextProvider = ({
     setToastMessage,
   } = useToastContext();
 
+  const handleToast = (
+    isVisible: boolean,
+    type: ToastType,
+    message: string,
+  ) => {
+    setToastVisible(isVisible);
+    setToastType(ToastType.SUCCESS);
+    setToastMessage(message);
+  };
+
   const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
     if (action) {
@@ -55,14 +66,12 @@ const DropdownContextProvider = ({
         case 'export-excel':
           try {
             const result = await downloadExcel(selectedIds);
-            setToastVisible(true);
-            setToastType(ToastType.SUCCESS);
-            setToastMessage(result.message);
+            handleToast(true, ToastType.SUCCESS, result.message);
           } catch (error) {
             console.error("Erreur lors de l'exportation:", error);
-            setToastVisible(true);
-            setToastType(ToastType.ERROR);
-            setToastMessage(
+            handleToast(
+              true,
+              ToastType.ERROR,
               error instanceof Error
                 ? error.message
                 : 'Une erreur est survenue.',
@@ -70,12 +79,18 @@ const DropdownContextProvider = ({
           }
           break;
         case 'delete-many':
-          await handleDeleteMembers(selectedIds, members, {
-            setIsVisible,
-            setToastVisible,
-            setToastType,
-            setToastMessage,
-          });
+          try {
+            const result = await handleDeleteMembers(selectedIds, members);
+            handleToast(true, ToastType.SUCCESS, result.message);
+          } catch (error) {
+            handleToast(
+              true,
+              ToastType.ERROR,
+              error instanceof Error
+                ? error.message
+                : 'Une erreur est survenue.',
+            );
+          }
           break;
         default:
           break;
