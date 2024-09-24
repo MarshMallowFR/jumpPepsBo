@@ -1,7 +1,7 @@
 import { fetchFilteredClimbingMembers } from '@/app/lib/data';
 import Table from './table';
 import DropdownContextProvider from '@/app/lib/contexts/dropdownmenuContext';
-import { deleteSeveralMembers } from '@/app/lib/actions/climbing/actions';
+import ToastContextProvider from '@/app/lib/contexts/toastContext';
 
 export default async function ClimbingTable({
   query,
@@ -30,7 +30,9 @@ export default async function ClimbingTable({
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           <DropdownContextProvider actions={actions} members={members}>
-            <Table members={members} />
+            <ToastContextProvider>
+              <Table members={members} />
+            </ToastContextProvider>
           </DropdownContextProvider>
         </div>
       </div>

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
+import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 
 interface TableProps {
   members: Member[];
@@ -16,6 +17,7 @@ interface TableProps {
 export default function Table({ members }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
+  const { setIsVisible, setToastType, setToastMessage } = useToastContext();
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -104,12 +106,12 @@ export default function Table({ members }: TableProps) {
             </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image
                     src={member.picture}
-                    className="object-cover"
-                    width={28}
-                    height={28}
+                    layout="fill"
+                    objectFit="cover"
+                    objectPosition="center"
                     alt={`${member.firstName} ${member.lastName}'s profile picture`}
                   />
                 </div>
@@ -125,9 +127,7 @@ export default function Table({ members }: TableProps) {
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex justify-end gap-3">
                 <UpdateBtn href={`/dashboard/climbing/${member.id}/edit`} />
-                <ToastContextProvider>
-                  <DeleteMember id={member.id} imageUrl={member.picture} />
-                </ToastContextProvider>
+                <DeleteMember id={member.id} imageUrl={member.picture} />
               </div>
             </td>
           </tr>

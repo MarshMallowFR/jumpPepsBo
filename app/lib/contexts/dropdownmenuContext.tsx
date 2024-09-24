@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { downloadExcel } from '@/app/lib/excel/excel';
-import { deleteSeveralMembers } from '../actions/climbing/actions';
+import { deleteMembers } from '../actions/climbing/actions';
 import { Member } from '@/app/lib/types/climbing';
 
 interface DropdownContextProps {
@@ -47,7 +47,7 @@ const DropdownContextProvider = ({
       };
     });
 
-    await deleteSeveralMembers(idsWithImages);
+    await deleteMembers(idsWithImages);
   };
 
   const handleSelect = async (value: string) => {

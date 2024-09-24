@@ -336,7 +336,7 @@ export async function deleteMember(
 }
 
 // Fonction pour supprimer plusieurs membres de la base de données
-export async function deleteSeveralMembers(
+export async function deleteMembers(
   ids: { id: string; imageUrl: string }[],
 ): Promise<{ message: string }> {
   if (ids.length === 0) {
