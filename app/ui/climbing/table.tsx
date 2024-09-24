@@ -14,8 +14,11 @@ interface TableProps {
 }
 
 export default function Table({ members }: TableProps) {
-  const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
-    useDropdownContext();
+  const {
+    setIsVisible: setIsVisibleDropdown,
+    setSelectedIds,
+    setSelectedImagesUrl,
+  } = useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -54,9 +57,17 @@ export default function Table({ members }: TableProps) {
     return Object.keys(selectedStates).filter((id) => selectedStates[id]);
   };
 
+  const getSelectedMemberImages = () => {
+    return members
+      .filter((member) => selectedStates[member.id])
+      .map((member) => member.picture);
+  };
+
   useEffect(() => {
     const selectedMemberIds = getSelectedMemberIds();
+    const selectedMemberImages = getSelectedMemberImages();
     setSelectedIds(selectedMemberIds);
+    setSelectedImagesUrl(selectedMemberImages);
     if (selectedMemberIds.length > 0) {
       setIsVisibleDropdown(true);
     } else {

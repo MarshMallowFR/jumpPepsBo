@@ -14,6 +14,7 @@ import { downloadExcel } from '@/app/lib/excel/excel';
 interface DropdownContextProps {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
   setSelectedIds: Dispatch<SetStateAction<string[]>>;
+  setSelectedImagesUrl: Dispatch<SetStateAction<string[]>>;
 }
 
 const DropdownContext = createContext<DropdownContextProps | undefined>(
@@ -27,18 +28,20 @@ const DropdownContextProvider = ({
   actions: {
     label: string;
     value: string;
-    action?: string | ((ids: string[]) => void);
+    action?: string | ((args: { ids: string[]; imagesUrl: string[] }) => void);
   }[];
   children: React.ReactNode;
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedImagesUrl, setSelectedImagesUrl] = useState<string[]>([]);
 
   const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
     if (action) {
+      const actionArgs = { ids: selectedIds, imagesUrl: selectedImagesUrl };
       if (typeof action === 'function') {
-        action(selectedIds);
+        action(actionArgs);
       }
 
       switch (action) {
@@ -55,8 +58,9 @@ const DropdownContextProvider = ({
     () => ({
       setIsVisible,
       setSelectedIds,
+      setSelectedImagesUrl,
     }),
-    [isVisible, setIsVisible, selectedIds],
+    [isVisible, setIsVisible, selectedIds, setSelectedImagesUrl],
   );
 
   return (

@@ -59,28 +59,3 @@ export async function deleteCloudinaryImage(
     };
   }
 }
-
-export async function deleteSeveralCloudinaryImages(
-  publicIds: string[],
-): Promise<{ message: string }> {
-  try {
-    const deletePromises = publicIds.map(async (publicId) => {
-      return deleteCloudinaryImage(publicId);
-    });
-
-    // Attendre que toutes les images soient supprimées
-    await Promise.all(deletePromises);
-
-    return {
-      message: 'Toutes les images ont été supprimées de Cloudinary.',
-    };
-  } catch (error) {
-    console.error(
-      'Erreur lors de la suppression de plusieurs images Cloudinary.',
-      error,
-    );
-    return {
-      message: 'Erreur lors de la suppression des images depuis Cloudinary.',
-    };
-  }
-}
