@@ -12,7 +12,6 @@ import {
 import { downloadExcel } from '@/app/lib/excel/excel';
 import { Member } from '@/app/lib/types/climbing';
 import { useToastContext, ToastType } from './toastContext';
-//import { handleDeleteMembers } from '../actions/dropdown/dropdownActions';
 import { deleteMembers } from '../actions/climbing/actions';
 
 interface DropdownContextProps {
