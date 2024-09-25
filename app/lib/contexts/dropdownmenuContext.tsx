@@ -50,7 +50,7 @@ const DropdownContextProvider = ({
     message: string,
   ) => {
     setToastVisible(isVisible);
-    setToastType(ToastType.SUCCESS);
+    setToastType(type);
     setToastMessage(message);
   };
 
@@ -82,6 +82,7 @@ const DropdownContextProvider = ({
             const result = await deleteMembers(selectedIds);
             handleToast(true, ToastType.SUCCESS, result.message);
           } catch (error) {
+            console.log('Erreur dans delete-many:', error);
             handleToast(
               true,
               ToastType.ERROR,
