@@ -28,6 +28,7 @@ interface FormProps {
 
 export default function Form({ state, dispatch, member }: FormProps) {
   const [displayToast, setDisplayToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMinor, setIsMinor] = useState(false);
   const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
   const [isMediaCompliant, setIsMediaCompliant] = useState(
@@ -60,14 +61,24 @@ export default function Form({ state, dispatch, member }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+
     formData.set('isMediaCompliant', isMediaCompliant.toString());
     formData.set('hasPaid', hasPaid.toString());
-    if (picture) {
-      formData.set('picture', picture);
+    if (picture) formData.set('picture', picture);
+
+    try {
+      await dispatch(formData);
+      setDisplayToast(true);
+    } catch (error) {
+      console.error('Erreur lors de l’envoi du formulaire', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    await dispatch(formData);
-    setDisplayToast(true);
   };
 
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
@@ -91,7 +102,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   return (
     <>
-      <form action={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="rounded-md p-4 md:p-6">
           <TextInput
             defaultValue={member?.firstName}
@@ -289,7 +300,13 @@ export default function Form({ state, dispatch, member }: FormProps) {
           >
             Annuler
           </Link>
-          <Button type="submit">{member ? 'Editer' : 'Créer'} membre</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? 'Traitement en cours...'
+              : member
+                ? 'Editer membre'
+                : 'Créer membre'}
+          </Button>
         </div>
       </form>
       <ToastContextProvider>
