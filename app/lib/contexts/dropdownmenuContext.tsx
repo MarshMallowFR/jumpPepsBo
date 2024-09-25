@@ -82,7 +82,6 @@ const DropdownContextProvider = ({
             const result = await deleteMembers(selectedIds);
             handleToast(true, ToastType.SUCCESS, result.message);
           } catch (error) {
-            console.log('Erreur dans delete-many:', error);
             handleToast(
               true,
               ToastType.ERROR,
