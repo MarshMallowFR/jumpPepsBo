@@ -16,6 +16,7 @@ interface TableProps {
 export default function Table({ members }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
+
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -104,13 +105,14 @@ export default function Table({ members }: TableProps) {
             </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex items-center gap-3">
-                <Image
-                  src={member.picture}
-                  className="rounded-full max-h-7"
-                  width={28}
-                  height={28}
-                  alt={`${member.firstName} ${member.lastName}'s profile picture`}
-                />
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                  <Image
+                    src={member.picture}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    alt={`${member.firstName} ${member.lastName}'s profile picture`}
+                  />
+                </div>
                 <p>
                   {member.lastName} {member.firstName}
                 </p>
@@ -123,9 +125,7 @@ export default function Table({ members }: TableProps) {
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex justify-end gap-3">
                 <UpdateBtn href={`/dashboard/climbing/${member.id}/edit`} />
-                <ToastContextProvider>
-                  <DeleteMember id={member.id} imageUrl={member.picture} />
-                </ToastContextProvider>
+                <DeleteMember id={member.id} imageUrl={member.picture} />
               </div>
             </td>
           </tr>

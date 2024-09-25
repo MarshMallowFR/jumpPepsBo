@@ -67,6 +67,7 @@ export const PictureUpload = ({
           type={type}
         />
       </label>
+
       {error ? (
         <div
           aria-live="polite"

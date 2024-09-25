@@ -212,11 +212,7 @@ export async function validateAdmin(
     newFormData.append('email', email);
     newFormData.append('password', password);
 
-    console.log('authenticate');
-
     await authenticate('', newFormData);
-
-    console.log('je redirige');
 
     revalidatePath('/dashboard/admins');
     redirect('/dashboard/admins');

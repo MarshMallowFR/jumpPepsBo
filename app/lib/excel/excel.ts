@@ -11,7 +11,9 @@ export async function downloadExcel(ids: string[]) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+
+    return { success: true, message: 'Exportation réussie !' };
   } else {
-    console.error('Erreur lors du téléchargement du fichier');
+    throw new Error('Erreur lors du téléchargement du fichier.');
   }
 }

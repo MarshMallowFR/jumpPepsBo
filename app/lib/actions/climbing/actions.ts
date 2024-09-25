@@ -8,10 +8,11 @@ import { randomUUID } from 'crypto';
 import {
   getCloudinaryPicture,
   deleteCloudinaryImage,
+  deleteCloudinaryImages,
 } from '../../cloudinary/cloudinary';
 
 // Configuration de l'image pour gestion des erreurs avec zod
-const MAX_FILE_SIZE = 500000;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -26,17 +27,14 @@ const ClimbingMemberSchema = z.object({
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthDate: z.string().min(1, `Veuillez indiquer la date de naissance.`),
   email: z.string().min(1, `Veuillez indiquer un email de contact.`),
-  phoneNumber: z.preprocess(
-    (value) => {
-      if (typeof value !== 'string') {
-        return value;
-      }
-      return value.trim().replace(/\s+/g, '');
-    },
-    z
-      .string()
-      .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
-  ),
+  phoneNumber: z
+    .string()
+    .min(1, 'Veuillez indiquer un numéro de téléphone.')
+    .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
+    .regex(
+      /^\d+$/,
+      'Le numéro de téléphone ne doit contenir que des chiffres.',
+    ),
   street: z.string().min(1, `Une adresse est requise.`),
   zipCode: z
     .string()
@@ -50,12 +48,12 @@ const ClimbingMemberSchema = z.object({
       z
         .instanceof(File)
         .refine(
-          (file) => file.size <= MAX_FILE_SIZE,
-          `La taille maximum de l'image est 5MB.`,
-        )
-        .refine(
           (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
           'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+        )
+        .refine(
+          (file) => file.size <= MAX_FILE_SIZE,
+          `La taille maximum de l'image est 5MB.`,
         ),
     ),
   isMediaCompliant: z.boolean().nullable(),
@@ -71,17 +69,14 @@ const ClimbingMemberSchema = z.object({
       .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`),
   ),
   legalContactPhoneNumber: z.optional(
-    z.preprocess(
-      (value) => {
-        if (typeof value !== 'string') {
-          return value;
-        }
-        return value.trim().replace(/\s+/g, '');
-      },
-      z
-        .string()
-        .length(10, `Le numéro de téléphone doit être composé de 10 chiffres.`),
-    ),
+    z
+      .string()
+      .min(1, 'Veuillez indiquer un numéro de téléphone.')
+      .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
+      .regex(
+        /^\d+$/,
+        'Le numéro de téléphone ne doit contenir que des chiffres.',
+      ),
   ),
   legalContactId: z.optional(z.string()),
 });
@@ -137,12 +132,7 @@ export async function createClimbingMember(
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
-    if (fieldErrors.picture) {
-      return {
-        errors: { picture: fieldErrors.picture },
-        isSuccess: false,
-      };
-    }
+
     return {
       errors: fieldErrors,
       message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
@@ -341,6 +331,41 @@ export async function deleteMember(
     return { message: 'Membre supprimé.' };
   } catch (error) {
     return { message: 'Erreur lors de la suppression du membre.' };
+  } finally {
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+// Fonction pour supprimer plusieurs membres de la base de données
+export async function deleteMembers(
+  ids: string[],
+): Promise<{ message: string }> {
+  try {
+    if (ids.length === 0) {
+      return { message: 'Aucun membre à supprimer.' };
+    }
+    const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
+
+    const imageQuery = `SELECT picture FROM members WHERE id IN (${placeholders})`;
+    const imageResults = await sql.query(imageQuery, ids);
+
+    const imageUrls = imageResults.rows
+      .map((row) => row.picture)
+      .filter(Boolean); //URLs valides
+
+    const deleteQuery = `DELETE FROM members WHERE id IN (${placeholders})`;
+    await sql.query(deleteQuery, ids);
+
+    if (imageUrls.length > 0) {
+      await deleteCloudinaryImages(imageUrls);
+    }
+
+    return { message: 'Membres supprimés.' };
+  } catch (error) {
+    console.error('Erreur lors de la suppression', error);
+    return {
+      message: 'Erreur lors de la suppression.',
+    };
   } finally {
     revalidatePath('/dashboard/climbing');
   }

@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
+import sharp from 'sharp';
 
-// Configuration de Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -12,6 +12,11 @@ export async function getCloudinaryPicture(picture: File): Promise<string> {
   if (picture) {
     const arrayBuffer = await picture.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
+
+    // Convertion de l'image en WebP pour limiter le poids du fichier
+    const webpBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
+
+    // Envoyer l'image convertie à Cloudinary
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
@@ -24,8 +29,9 @@ export async function getCloudinaryPicture(picture: File): Promise<string> {
             resolve(result);
           },
         )
-        .end(buffer);
+        .end(webpBuffer);
     });
+
     imageUrl = result.secure_url;
   }
   return imageUrl;
@@ -54,13 +60,41 @@ export async function deleteCloudinaryImage(
   }
 }
 
-// POUR PLUS TARD => SUPPRESSION GROUPEES D'IMAGES
-// const publicIds = ['image_id_1', 'image_id_2', 'image_id_3']; // Les IDs publics des images à supprimer
+export async function deleteCloudinaryImages(
+  imageUrls: string[],
+): Promise<{ message: string }> {
+  const publicIds: string[] = imageUrls
+    .map((url) => {
+      const parts = url.split('/');
+      return parts.length > 0 ? parts.pop()?.split('.')[0] : undefined;
+    })
+    .filter((id): id is string => id !== undefined); // Filtrer les undefined
 
-// cloudinary.api.delete_resources(publicIds, function (error, result) {
-//   if (error) {
-//     console.error('Erreur lors de la suppression des images :', error);
-//   } else {
-//     console.log('Images supprimées avec succès :', result);
-//   }
-// });
+  if (publicIds.length === 0) {
+    return { message: 'Aucune image à supprimer.' };
+  }
+
+  try {
+    const result = await cloudinary.api.delete_resources(publicIds, {
+      resource_type: 'image',
+    });
+
+    const errors = result.errors;
+    if (errors && errors.length > 0) {
+      console.error(
+        'Erreur lors de la suppression de certaines images:',
+        errors,
+      );
+      return {
+        message: `Des erreurs sont survenues lors de la suppression des images.`,
+      };
+    }
+
+    return { message: 'Les images ont été supprimées avec succès.' };
+  } catch (error) {
+    console.error('Cloudinary Error: Failed to delete images.', error);
+    return {
+      message: 'Erreur lors de la suppression des images dans Cloudinary.',
+    };
+  }
+}

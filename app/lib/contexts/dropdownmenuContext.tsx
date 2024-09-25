@@ -10,6 +10,10 @@ import {
   useState,
 } from 'react';
 import { downloadExcel } from '@/app/lib/excel/excel';
+import { Member } from '@/app/lib/types/climbing';
+import { useToastContext, ToastType } from './toastContext';
+//import { handleDeleteMembers } from '../actions/dropdown/dropdownActions';
+import { deleteMembers } from '../actions/climbing/actions';
 
 interface DropdownContextProps {
   setIsVisible: Dispatch<SetStateAction<boolean>>;
@@ -22,6 +26,7 @@ const DropdownContext = createContext<DropdownContextProps | undefined>(
 
 const DropdownContextProvider = ({
   actions,
+  members,
   children,
 }: {
   actions: {
@@ -29,10 +34,26 @@ const DropdownContextProvider = ({
     value: string;
     action?: string | ((ids: string[]) => void);
   }[];
+  members: Member[];
   children: React.ReactNode;
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const {
+    setIsVisible: setToastVisible,
+    setToastType,
+    setToastMessage,
+  } = useToastContext();
+
+  const handleToast = (
+    isVisible: boolean,
+    type: ToastType,
+    message: string,
+  ) => {
+    setToastVisible(isVisible);
+    setToastType(ToastType.SUCCESS);
+    setToastMessage(message);
+  };
 
   const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
@@ -42,8 +63,34 @@ const DropdownContextProvider = ({
       }
 
       switch (action) {
-        case 'export-pdf':
-          downloadExcel(selectedIds);
+        case 'export-excel':
+          try {
+            const result = await downloadExcel(selectedIds);
+            handleToast(true, ToastType.SUCCESS, result.message);
+          } catch (error) {
+            console.error("Erreur lors de l'exportation:", error);
+            handleToast(
+              true,
+              ToastType.ERROR,
+              error instanceof Error
+                ? error.message
+                : 'Une erreur est survenue.',
+            );
+          }
+          break;
+        case 'delete-many':
+          try {
+            const result = await deleteMembers(selectedIds);
+            handleToast(true, ToastType.SUCCESS, result.message);
+          } catch (error) {
+            handleToast(
+              true,
+              ToastType.ERROR,
+              error instanceof Error
+                ? error.message
+                : 'Une erreur est survenue.',
+            );
+          }
           break;
         default:
           break;
