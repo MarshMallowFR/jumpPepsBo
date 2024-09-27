@@ -18,6 +18,7 @@ interface FormProps {
 }
 
 export default function FormRegistration({ state, dispatch }: FormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMinor, setIsMinor] = useState(false);
   const [isMediaCompliant, setIsMediaCompliant] = useState(false);
   const [picture, setPicture] = useState<File | null>(null);
@@ -36,26 +37,33 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
     formData.set('isMediaCompliant', isMediaCompliant.toString());
 
     if (picture) {
       formData.set('picture', picture);
     }
-    await dispatch(formData);
-    setDisplayToast(true);
+    try {
+      await dispatch(formData);
+      setDisplayToast(true);
+    } catch (error) {
+      console.error('Erreur lors de l’envoi du formulaire', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Remise à zéro des champs du formulaire si tout est OK
   useEffect(() => {
     if (state?.isSuccess) {
-      // états locaux
       setIsMinor(false);
       setIsMediaCompliant(false);
       setPicture(null);
       setPictureUrl(null);
-
-      // valeurs des champs
       const form = document.querySelector('form');
       if (form) {
         form.reset();
@@ -63,7 +71,6 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
     }
   }, [state?.isSuccess]);
 
-  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
   useEffect(() => {
     return () => {
       if (pictureUrl) {
@@ -76,7 +83,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
   return (
     <>
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
         className="rounded-md shadow-custom-shadow bg-gray p-8 min-w-0 w-full md:w-1/2"
       >
         <h2 className="text-lg font-bold">Formulaire de pré-insciption</h2>
@@ -245,8 +252,8 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           </div>
         )}
         <div className="mt-6 flex justify-center">
-          <Button type="submit" color={Color.ORANGE}>
-            ENVOYER
+          <Button type="submit" color={Color.ORANGE} disabled={isSubmitting}>
+            {isSubmitting ? 'Traitement en cours...' : 'ENVOYER'}
           </Button>
         </div>
       </form>
