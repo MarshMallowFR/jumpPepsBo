@@ -50,7 +50,7 @@ const DropdownContextProvider = ({
     message: string,
   ) => {
     setToastVisible(isVisible);
-    setToastType(ToastType.SUCCESS);
+    setToastType(type);
     setToastMessage(message);
   };
 

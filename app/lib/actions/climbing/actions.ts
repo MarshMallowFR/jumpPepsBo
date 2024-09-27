@@ -330,7 +330,7 @@ export async function deleteMember(
     }
     return { message: 'Membre supprimé.' };
   } catch (error) {
-    return { message: 'Erreur lors de la suppression du membre.' };
+    throw new Error('Erreur lors de la suppression du membre.');
   } finally {
     revalidatePath('/dashboard/climbing');
   }
@@ -363,9 +363,7 @@ export async function deleteMembers(
     return { message: 'Membres supprimés.' };
   } catch (error) {
     console.error('Erreur lors de la suppression', error);
-    return {
-      message: 'Erreur lors de la suppression.',
-    };
+    throw new Error('Erreur lors de la suppression des membres.');
   } finally {
     revalidatePath('/dashboard/climbing');
   }
