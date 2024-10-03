@@ -94,7 +94,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
         <div className=" flex mt-6 space-x-3">
           <TextInput
             className="basis-1/2"
-            color="orange"
+            color={Color.ORANGE}
             label="Prénom"
             idFor="firstName"
             settingKey="firstName"
@@ -102,7 +102,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           />
           <TextInput
             className="basis-1/2"
-            color="orange"
+            color={Color.ORANGE}
             idFor="lastName"
             label="Nom"
             settingKey="lastName"
@@ -110,7 +110,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           />
         </div>
         <TextInput
-          color="orange"
+          color={Color.ORANGE}
           type="email"
           label="Email"
           idFor="email"
@@ -121,20 +121,16 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
         <div className="flex mt-3 space-x-3">
           <TextInput
             className="basis-1/2"
-            color="orange"
+            color={Color.ORANGE}
             type="tel"
             label="Numéro de téléphone"
             idFor="phoneNumber"
             settingKey="phoneNumber"
-            error={
-              state?.errors?.phoneNumber
-                ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
-                : []
-            }
+            error={state?.errors?.phoneNumber}
           />
           <TextInput
             className="basis-1/2"
-            color="orange"
+            color={Color.ORANGE}
             type="date"
             handleChange={handleBirthDate(setIsMinor)}
             label="Date de naissance"
@@ -146,7 +142,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
         </div>
         <div className="mt-3">
           <TextInput
-            color="orange"
+            color={Color.ORANGE}
             label="Rue"
             idFor="street"
             settingKey="street"
@@ -155,7 +151,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
           <div className="flex space-x-3">
             <TextInput
               className="basis-1/3"
-              color="orange"
+              color={Color.ORANGE}
               type="number"
               label="Code postal"
               idFor="zipCode"
@@ -164,7 +160,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             />
             <TextInput
               className="basis-2/3"
-              color="orange"
+              color={Color.ORANGE}
               label="Ville"
               idFor="city"
               settingKey="city"
@@ -222,7 +218,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             <div className="flex space-x-3">
               <TextInput
                 className="basis-1/2"
-                color="orange"
+                color={Color.ORANGE}
                 idFor="legalContactFirstName"
                 label="Prénom"
                 settingKey="legalContactFirstName"
@@ -230,7 +226,7 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
               />
               <TextInput
                 className="basis-1/2"
-                color="orange"
+                color={Color.ORANGE}
                 idFor="legalContactLastName"
                 label="Nom"
                 settingKey="legalContactLastName"
@@ -239,15 +235,11 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
             </div>
             <TextInput
               className="w-1/2"
-              color="orange"
+              color={Color.ORANGE}
               idFor="legalContactPhoneNumber"
               label="Numéro de téléphone"
               settingKey="legalContactPhoneNumber"
-              error={
-                state?.errors?.legalContactPhoneNumber
-                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
-                  : []
-              }
+              error={state?.errors?.legalContactPhoneNumber}
             />
           </div>
         )}

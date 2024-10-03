@@ -1,36 +1,26 @@
 export interface MemberDB {
   id: string;
-  first_name: string;
+  picture: string;
   last_name: string;
+  first_name: string;
   birth_date: string;
-  email: string;
-  phone_number: string;
+  gender: string;
+  nationality: string;
   street: string;
+  additional_address_information: string;
   zip_code: string;
   city: string;
-  picture: string;
-  is_media_compliant: boolean;
-  has_paid: boolean;
-  legal_contact_id?: string;
-}
-
-export interface Member {
-  id: string;
-  firstName: string;
-  lastName: string;
-  birthDate: string;
+  country: string;
   email: string;
-  phoneNumber: string;
-  street: string;
-  zipCode: string;
-  city: string;
-  picture: string;
-  isMediaCompliant: boolean;
-  hasPaid: boolean;
-  legalContactId?: string;
-  legalContactFirstName?: string;
-  legalContactLastName?: string;
-  legalContactPhoneNumber?: string;
+  phone_number: string;
+  phone_number2: string;
+  birth_town: string;
+  birth_departement: string;
+  contact_link: string;
+  contact_last_name: string;
+  contact_first_name: string;
+  contact_phone_number: string;
+  legal_contact_id?: string;
 }
 
 export interface LegalContactDB {
@@ -38,4 +28,70 @@ export interface LegalContactDB {
   first_name: string;
   last_name: string;
   phone_number: string;
+  email: string;
+}
+
+export interface SeasonDB {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  registration_open: boolean;
+}
+
+export interface Member_Section_SeasonDB {
+  section_id: string;
+  season_id: string;
+  member_id: string;
+  license: string;
+  license_type: string;
+  insurance: string;
+  supplemental_insurance: string;
+  assault_protection_option: boolean;
+  ski_option: boolean;
+  slackline_option: boolean;
+  trail_running_option: boolean;
+  mountain_biking_option: boolean;
+  is_media_compliant: boolean;
+  has_paid: boolean;
+}
+
+export interface Member {
+  id: string;
+  picture: string;
+  lastName: string;
+  firstName: string;
+  birthDate: string;
+  gender: string;
+  nationality: string;
+  street: string;
+  additionalAddressInformation: string;
+  zipCode: string;
+  city: string;
+  country: string;
+  email: string;
+  phoneNumber: string;
+  phoneNumber2: string;
+  birthTown: string;
+  birthDepartement: string;
+  contactLink: string;
+  contactLastName: string;
+  contactFirstName: string;
+  contactPhoneNumber: string;
+  legalContactId?: string;
+  legalContactFirstName?: string;
+  legalContactLastName?: string;
+  legalContactPhoneNumber?: string;
+  legalContactEmail?: string;
+  license: string;
+  licenseType: string;
+  insurance: string;
+  supplementalInsurance: string;
+  assaultProtectionOption: boolean;
+  skiOption: boolean;
+  slacklineOption: boolean;
+  trailRunningOption: boolean;
+  mountainBikingOption: boolean;
+  isMediaCompliant: boolean;
+  hasPaid: boolean;
 }

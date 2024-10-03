@@ -1,5 +1,4 @@
 'use client';
-import ToastContextProvider from '@/app/lib/contexts/toastContext';
 import { Member } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';

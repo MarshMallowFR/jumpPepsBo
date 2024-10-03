@@ -10,8 +10,8 @@ import {
   deleteCloudinaryImage,
   deleteCloudinaryImages,
 } from '../../cloudinary/cloudinary';
+import { getSeasonIdByName, getSectionIdByName } from '../../getdata';
 
-// Configuration de l'image pour gestion des erreurs avec zod
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
@@ -20,27 +20,8 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp',
 ];
 
-// Schéma BBD pour un membre
 const ClimbingMemberSchema = z.object({
   id: z.string(),
-  firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
-  lastName: z.string().min(1, `Veuillez indiquer le nom.`),
-  birthDate: z.string().min(1, `Veuillez indiquer la date de naissance.`),
-  email: z.string().min(1, `Veuillez indiquer un email de contact.`),
-  phoneNumber: z
-    .string()
-    .min(1, 'Veuillez indiquer un numéro de téléphone.')
-    .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
-    .regex(
-      /^\d+$/,
-      'Le numéro de téléphone ne doit contenir que des chiffres.',
-    ),
-  street: z.string().min(1, `Une adresse est requise.`),
-  zipCode: z
-    .string()
-    .trim()
-    .length(5, 'Le code postal doit contenir 5 chiffres.'),
-  city: z.string().min(1, `La ville est requise`),
   picture: z
     .string()
     .url('Veuillez fournir une URL valide.')
@@ -56,48 +37,137 @@ const ClimbingMemberSchema = z.object({
           `La taille maximum de l'image est 5MB.`,
         ),
     ),
-  isMediaCompliant: z.boolean().nullable(),
-  hasPaid: z.boolean().nullable(),
-  legalContactFirstName: z.optional(
-    z
-      .string()
-      .min(1, `Veuillez indiquer le prénom du.de la représentant.e légal.e.`),
+  lastName: z.string().min(1, `Veuillez indiquer le nom.`),
+  birthName: z.optional(z.string().optional().nullable()),
+  firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
+  birthDate: z.string().min(1, `Veuillez indiquer la date de naissance.`),
+  gender: z.enum(['F', 'M']),
+  nationality: z.optional(
+    z.string().min(1, `Veuillez indiquer la nationalité.`),
   ),
-  legalContactLastName: z.optional(
-    z
-      .string()
-      .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`),
+  street: z.string().min(1, `Une adresse est requise.`),
+  additionalAddressInformation: z.string().optional(),
+  zipCode: z
+    .string()
+    .trim()
+    .length(5, 'Le code postal doit contenir 5 chiffres.'),
+  city: z.string().min(1, `La ville est requise`),
+  country: z.string().refine((val) => !val || val.length === 2, {
+    message: `Veuillez indiquer le code pays (2 caractères).`,
+  }),
+  email: z.string().refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+    message: 'Veuillez entrer une adresse email valide.',
+  }),
+  phoneNumber: z
+    .string()
+    .refine((val) => val.length === 10 && /^\d+$/.test(val), {
+      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
+    }),
+  phoneNumber2: z
+    .string()
+    .optional()
+    .refine((val) => !val || (val.length === 10 && /^\d+$/.test(val)), {
+      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
+    }),
+  birthTown: z.optional(
+    z.string().min(1, `La commune de naissance est requise`),
   ),
-  legalContactPhoneNumber: z.optional(
-    z
-      .string()
-      .min(1, 'Veuillez indiquer un numéro de téléphone.')
-      .length(10, 'Le numéro de téléphone doit être composé de 10 chiffres.')
-      .regex(
-        /^\d+$/,
-        'Le numéro de téléphone ne doit contenir que des chiffres.',
-      ),
+  birthDepartement: z.optional(
+    z.string().min(1, `Le département de naissance est requis`),
   ),
+  // licenseType: z.optional(z.enum(['J', 'A', 'F'])),
+  // insurance: z.optional(z.enum(['RC', 'B', 'B+', 'B++'])),
+  // supplementalInsurance: z.optional(z.enum(['IJ1', 'IJ2', 'IJ3', 'NON'])),
+  license: z.string().optional().nullable(),
+  licenseType: z.string().optional().nullable(),
+  insurance: z.string().optional().nullable(),
+  supplementalInsurance: z.string().optional().nullable(),
+  assaultProtectionOption: z.boolean().optional().nullable(),
+  skiOption: z.boolean().optional().nullable(),
+  slacklineOption: z.boolean().optional().nullable(),
+  trailRunningOption: z.boolean().optional().nullable(),
+  mountainBikingOption: z.boolean().optional().nullable(),
+  isMediaCompliant: z.boolean(), //.nullable()
+  hasPaid: z.boolean(), //.nullable()
   legalContactId: z.optional(z.string()),
+  legalContactLastName: z
+    .string()
+    .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`)
+    .nullable()
+    .optional(),
+  legalContactFirstName: z
+    .string()
+    .min(1, `Veuillez indiquer le prénom du.de la représentant.e légal.e.`)
+    .nullable()
+    .optional(),
+  legalContactPhoneNumber: z
+    .string()
+    .refine((val) => val.length === 10 && /^\d+$/.test(val), {
+      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
+    })
+    .nullable()
+    .optional(),
+  legalContactEmail: z
+    .string()
+    .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Veuillez entrer une adresse email valide.',
+    })
+    .nullable()
+    .optional(),
+  contactLink: z
+    .string()
+    .min(1, `Veuillez indiquer le lien de parenté avec l'adhérent.e.`),
+  contactLastName: z
+    .string()
+    .min(1, `Veuillez indiquer le nom de la personne à contacter.`),
+  contactFirstName: z
+    .string()
+    .min(1, `Veuillez indiquer le prénom de la personne à contacter.`),
+  contactPhoneNumber: z
+    .string()
+    .refine((val) => val.length === 10 && /^\d+$/.test(val), {
+      message:
+        'Le numéro de téléphone du contact doit être composé de 10 chiffres.',
+    }),
 });
 
 export type ClimbingState = {
   isSuccess?: boolean;
   errors?: {
-    firstName?: string[];
+    picture?: string[];
     lastName?: string[];
+    firstName?: string[];
     birthDate?: string[];
-    email?: string[];
-    phoneNumber?: string[];
+    gender?: string[];
+    nationality?: string[];
     street?: string[];
+    additionalAddressInformation?: string[];
     zipCode?: string[];
     city?: string[];
-    picture?: any[];
+    country?: string[];
+    email?: string[];
+    phoneNumber?: string[];
+    phoneNumber2?: string[];
+    birthTown?: string[];
+    birthDepartement?: string[];
+    licenseType?: string[];
+    insurance?: string[];
+    supplementalInsurance?: string[];
+    assaultProtectionOption?: string[];
+    skiOption?: string[];
+    slacklineOption?: string[];
+    trailRunningOption?: string[];
+    mountainBikingOption?: string[];
     isMediaCompliant?: string[];
     hasPaid?: string[];
     legalContactFirstName?: string[];
     legalContactLastName?: string[];
     legalContactPhoneNumber?: string[];
+    legalContactEmail?: string[];
+    contactLink?: string[];
+    contactLastName?: string[];
+    contactFirstName?: string[];
+    contactPhoneNumber?: string[];
   };
   message?: string | null;
 };
@@ -110,29 +180,79 @@ const UpdateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
 });
 
-// Création d'un nouveau membre (admin and client side)
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
   isRegistration: boolean,
 ) {
+  const sectionResult = await getSectionIdByName('climbing');
+  const sectionId = sectionResult?.rows?.[0]?.id;
+
+  const seasonResult = await getSeasonIdByName('2024-2025');
+  const seasonId = seasonResult?.rows?.[0]?.id;
+
+  if (!sectionId || !seasonId) {
+    throw new Error('Section or season ID not found.');
+  }
+
+  const hasPaid = isRegistration ? false : formData.get('hasPaid') === 'true';
+  const isMediaCompliant = formData.get('isMediaCompliant') === 'true';
+  const license = formData.get('license') as string | null;
+  const licenseType = formData.get('licenseType') as string | null;
+  const insurance = (formData.get('insurance') as string) || 'RC';
+  const supplementalInsurance =
+    (formData.get('supplementalInsurance') as string) || 'NON';
+  const assaultProtectionOption =
+    formData.get('assaultProtectionOption') === 'true' ? true : false;
+  const skiOption = formData.get('skiOption') === 'true' ? true : false;
+  const slacklineOption =
+    formData.get('slacklineOption') === 'true' ? true : false;
+  const trailRunningOption =
+    formData.get('trailRunningOption') === 'true' ? true : false;
+  const mountainBikingOption =
+    formData.get('mountainBikingOption') === 'true' ? true : false;
+
   const validatedFields = CreateClimbingMember.safeParse({
+    picture: formData.get('picture'),
     lastName: formData.get('lastName'),
     firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
-    email: formData.get('email'),
-    phoneNumber: formData.get('phoneNumber'),
+    gender: formData.get('gender'),
+    nationality: formData.get('nationality'),
     street: formData.get('street'),
+    additionalAddressInformation: formData.get('additionalAddressInformation'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    picture: formData.get('picture'),
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
-    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'true',
+    country: formData.get('country') || 'FR',
+    email: formData.get('email'),
+    phoneNumber: formData.get('phoneNumber'),
+    phoneNumber2: formData.get('phoneNumber2'),
+    birthTown: formData.get('birthTown'),
+    birthDepartement: formData.get('birthDepartement'),
+    contactLink: formData.get('contactLink'),
+    contactLastName: formData.get('contactLastName'),
+    contactFirstName: formData.get('contactFirstName'),
+    contactPhoneNumber: formData.get('contactPhoneNumber'),
+    legalContactLastName: formData.get('legalContactLastName'),
+    legalContactFirstName: formData.get('legalContactFirstName'),
+    legalContactPhoneNumber: formData.get('legalContactPhoneNumber'),
+    legalContactEmail: formData.get('legalContactEmail'),
+    license,
+    licenseType,
+    insurance,
+    supplementalInsurance,
+    assaultProtectionOption,
+    skiOption,
+    slacklineOption,
+    trailRunningOption,
+    mountainBikingOption,
+    hasPaid,
+    isMediaCompliant,
   });
 
   if (!validatedFields.success) {
+    console.error('Validation error:', validatedFields.error);
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
-
     return {
       errors: fieldErrors,
       message: `Veuillez compléter les champs manquants avant de finaliser l'inscription.`,
@@ -141,6 +261,8 @@ export async function createClimbingMember(
   }
 
   try {
+    await sql`BEGIN`;
+
     const imageUrl = await getCloudinaryPicture(
       formData.get('picture') as File,
     );
@@ -149,81 +271,156 @@ export async function createClimbingMember(
       lastName,
       firstName,
       birthDate,
-      email,
-      phoneNumber,
+      gender,
+      nationality,
       street,
+      additionalAddressInformation,
       zipCode,
       city,
-      isMediaCompliant,
-      hasPaid,
-      legalContactFirstName,
+      country,
+      email,
+      phoneNumber,
+      phoneNumber2,
+      birthTown,
+      birthDepartement,
+      contactLink,
+      contactLastName,
+      contactFirstName,
+      contactPhoneNumber,
       legalContactLastName,
+      legalContactFirstName,
       legalContactPhoneNumber,
+      legalContactEmail,
+      license,
+      licenseType,
+      insurance,
+      supplementalInsurance,
+      assaultProtectionOption,
+      skiOption,
+      slacklineOption,
+      trailRunningOption,
+      mountainBikingOption,
+      hasPaid,
+      isMediaCompliant,
     } = validatedFields.data;
 
     let legalContactId;
     if (
       legalContactLastName &&
       legalContactFirstName &&
-      legalContactPhoneNumber
+      legalContactPhoneNumber &&
+      legalContactEmail
     ) {
       legalContactId = randomUUID();
 
       await sql`
-        INSERT INTO legal_contacts (id, last_name, first_name, phone_number)
-        VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber})
+        INSERT INTO legal_contacts (id, last_name, first_name, phone_number, email)
+        VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber}, ${legalContactEmail})
       `;
     }
-
+    const memberId = randomUUID();
     await sql`
       INSERT INTO members (
         id,
+        picture,
         last_name,
         first_name,
         birth_date,
-        email,
-        phone_number,
+        gender,
+        nationality,
         street,
+        additional_address_information,
         zip_code,
         city,
-        picture,
-        is_media_compliant,
-        has_paid,
+        country,
+        email,
+        phone_number,
+        phone_number2,
+        birth_town,
+        birth_departement,
+        contact_link,
+        contact_last_name,
+        contact_first_name,
+        contact_phone_number,
         legal_contact_id
       )
       VALUES (
-        ${randomUUID()},
+        ${memberId},
+        ${imageUrl},
         ${lastName},
         ${firstName},
         ${birthDate},
-        ${email},
-        ${phoneNumber},
+        ${gender},
+        ${nationality},
         ${street},
+        ${additionalAddressInformation},
         ${zipCode},
         ${city},
-        ${imageUrl},
-        ${isMediaCompliant},
-        ${isRegistration ? false : hasPaid},
+        ${country},
+        ${email},
+        ${phoneNumber},
+        ${phoneNumber2},
+        ${birthTown},
+        ${birthDepartement},
+        ${contactLink},
+        ${contactLastName},
+        ${contactFirstName},
+        ${contactPhoneNumber},
         ${legalContactId}
       )
-      
     `;
 
+    await sql`
+      INSERT INTO member_section_season (
+        section_id,
+        member_id,
+        season_id,
+        license,
+        license_type,
+        insurance,
+        supplemental_insurance,
+        assault_protection_option,
+        ski_option,
+        slackline_option,
+        trail_running_option,
+        mountain_biking_option,
+        is_media_compliant,
+        has_paid
+      )
+      VALUES (
+        ${sectionId},
+        ${memberId},
+        ${seasonId},
+        ${license ?? null},
+        ${licenseType ?? null},
+        ${insurance},
+        ${supplementalInsurance},
+       ${assaultProtectionOption},
+    ${skiOption},
+    ${slacklineOption},
+    ${trailRunningOption},
+    ${mountainBikingOption},
+    ${isMediaCompliant},
+        ${hasPaid}
+      )
+    `;
+
+    await sql`COMMIT`;
     return {
       isSuccess: true,
-      message: 'Membre créé avec succès.',
+      message: `Membre créé avec succès.`,
     };
   } catch (error) {
+    await sql`ROLLBACK`;
     console.error('Database Error: Failed to create a member.', error);
     return {
       error,
-      message: 'Erreur lors de la création du membre.',
       isSuccess: false,
+      message: 'Erreur lors de la création du membre.',
     };
   }
 }
 
-// Fonction de mise à jour d'um membre (admin side)
 export async function updateClimbingMember(
   id: string,
   _prevState: ClimbingState,
@@ -315,7 +512,6 @@ export async function updateClimbingMember(
   redirect('/dashboard/climbing');
 }
 
-// Fonction pour supprimer un membre de la base de données
 export async function deleteMember(
   id: string,
   imageUrl: string,
@@ -336,7 +532,6 @@ export async function deleteMember(
   }
 }
 
-// Fonction pour supprimer plusieurs membres de la base de données
 export async function deleteMembers(
   ids: string[],
 ): Promise<{ message: string }> {
