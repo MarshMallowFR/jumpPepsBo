@@ -195,22 +195,22 @@ export async function createClimbingMember(
     throw new Error('Section or season ID not found.');
   }
 
-  const hasPaid = isRegistration ? false : formData.get('hasPaid') === 'true';
-  const isMediaCompliant = formData.get('isMediaCompliant') === 'true';
-  const license = formData.get('license') as string | null;
-  const licenseType = formData.get('licenseType') as string | null;
-  const insurance = (formData.get('insurance') as string) || 'RC';
-  const supplementalInsurance =
-    (formData.get('supplementalInsurance') as string) || 'NON';
-  const assaultProtectionOption =
-    formData.get('assaultProtectionOption') === 'true' ? true : false;
-  const skiOption = formData.get('skiOption') === 'true' ? true : false;
-  const slacklineOption =
-    formData.get('slacklineOption') === 'true' ? true : false;
-  const trailRunningOption =
-    formData.get('trailRunningOption') === 'true' ? true : false;
-  const mountainBikingOption =
-    formData.get('mountainBikingOption') === 'true' ? true : false;
+  // const hasPaid = isRegistration ? false : formData.get('hasPaid') === 'true';
+  // const isMediaCompliant = formData.get('isMediaCompliant') === 'true';
+  // const license = formData.get('license') as string | null;
+  // const licenseType = formData.get('licenseType') as string | null;
+  // const insurance = (formData.get('insurance') as string) || 'RC';
+  // const supplementalInsurance =
+  //   (formData.get('supplementalInsurance') as string) || 'NON';
+  // const assaultProtectionOption =
+  //   formData.get('assaultProtectionOption') === 'true' ? true : false;
+  // const skiOption = formData.get('skiOption') === 'true' ? true : false;
+  // const slacklineOption =
+  //   formData.get('slacklineOption') === 'true' ? true : false;
+  // const trailRunningOption =
+  //   formData.get('trailRunningOption') === 'true' ? true : false;
+  // const mountainBikingOption =
+  //   formData.get('mountainBikingOption') === 'true' ? true : false;
 
   const validatedFields = CreateClimbingMember.safeParse({
     picture: formData.get('picture'),
@@ -237,17 +237,18 @@ export async function createClimbingMember(
     legalContactFirstName: formData.get('legalContactFirstName'),
     legalContactPhoneNumber: formData.get('legalContactPhoneNumber'),
     legalContactEmail: formData.get('legalContactEmail'),
-    license,
-    licenseType,
-    insurance,
-    supplementalInsurance,
-    assaultProtectionOption,
-    skiOption,
-    slacklineOption,
-    trailRunningOption,
-    mountainBikingOption,
-    hasPaid,
-    isMediaCompliant,
+    license: formData.get('license') as string | null,
+    licenseType: formData.get('licenseType') as string | null,
+    insurance: (formData.get('insurance') as string) || 'RC',
+    supplementalInsurance:
+      (formData.get('supplementalInsurance') as string) || 'NON',
+    assaultProtectionOption: formData.get('assaultProtectionOption') === 'true',
+    skiOption: formData.get('skiOption') === 'true',
+    slacklineOption: formData.get('slacklineOption') === 'true',
+    trailRunningOption: formData.get('trailRunningOption') === 'true',
+    mountainBikingOption: formData.get('mountainBikingOption') === 'true',
+    hasPaid: isRegistration ? false : formData.get('hasPaid') === 'true',
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
   });
 
   if (!validatedFields.success) {
