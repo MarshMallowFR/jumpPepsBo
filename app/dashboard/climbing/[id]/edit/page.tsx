@@ -1,12 +1,13 @@
 import Form from '@/app/ui/climbing/edit-form';
 import Breadcrumbs from '@/app/ui/common/breadcrumbs';
-import { fetchClimbingMemberById } from '@/app/lib/data';
+import { fetchMemberById } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberWithSeason } from '@/app/lib/types/climbing';
 
 export default async function Page({ params }: { params: { id: string } }) {
   const id = params.id;
-  const member: Member | undefined = await fetchClimbingMemberById(id);
+  const member: MemberWithSeason | undefined = await fetchMemberById(id);
+  //const member = await fetchMemberById(id);
 
   if (!member) {
     notFound();

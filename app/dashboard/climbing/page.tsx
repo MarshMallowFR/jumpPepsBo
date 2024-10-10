@@ -1,6 +1,7 @@
 import Pagination from '@/app/ui/common/pagination';
 import Search from '@/app/ui/common/search';
 import Table from '@/app/ui/climbing/climbing-table';
+import ClimbingTable from '@/app/ui/climbing/climbing-table';
 import { CreateBtn } from '@/app/ui/common/buttons';
 import { ClimbingTableSkeleton } from '@/app/ui/common/skeletons';
 import { Suspense } from 'react';
@@ -30,7 +31,8 @@ export default async function Page({
       </div>
 
       <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}>
-        <Table query={query} currentPage={currentPage} />
+        <ClimbingTable query={query} currentPage={currentPage} />
+        {/* <Table query={query} currentPage={currentPage} /> */}
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />

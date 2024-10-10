@@ -1,5 +1,5 @@
 'use client';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
 import DeleteMember from './delete-member';
 import Status from './status';
@@ -7,9 +7,10 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
+import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
 
 interface TableProps {
-  members: Member[];
+  members: MemberWithSeason[];
 }
 
 export default function Table({ members }: TableProps) {

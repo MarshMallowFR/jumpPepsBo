@@ -10,7 +10,7 @@ import {
   deleteCloudinaryImage,
   deleteCloudinaryImages,
 } from '../../cloudinary/cloudinary';
-import { getSeasonIdByName, getSectionIdByName } from '../../getdata';
+import { getSeasonIdByName, getSectionIdByName } from '../../data';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -52,9 +52,11 @@ const ClimbingMemberSchema = z.object({
     .trim()
     .length(5, 'Le code postal doit contenir 5 chiffres.'),
   city: z.string().min(1, `La ville est requise`),
-  country: z.string().refine((val) => !val || val.length === 2, {
-    message: `Veuillez indiquer le code pays (2 caractères).`,
-  }),
+  country: z
+    .string()
+    .trim()
+    .length(2, 'Le code pays doit contenir 2 caractères.')
+    .optional(),
   email: z.string().refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
     message: 'Veuillez entrer une adresse email valide.',
   }),
@@ -66,18 +68,19 @@ const ClimbingMemberSchema = z.object({
   phoneNumber2: z
     .string()
     .optional()
-    .refine((val) => !val || (val.length === 10 && /^\d+$/.test(val)), {
-      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
-    }),
+    .refine(
+      (val) =>
+        !val || val.trim() === '' || (val.length === 10 && /^\d+$/.test(val)),
+      {
+        message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
+      },
+    ),
   birthTown: z.optional(
     z.string().min(1, `La commune de naissance est requise`),
   ),
   birthDepartement: z.optional(
     z.string().min(1, `Le département de naissance est requis`),
   ),
-  // licenseType: z.optional(z.enum(['J', 'A', 'F'])),
-  // insurance: z.optional(z.enum(['RC', 'B', 'B+', 'B++'])),
-  // supplementalInsurance: z.optional(z.enum(['IJ1', 'IJ2', 'IJ3', 'NON'])),
   license: z.string().optional().nullable(),
   licenseType: z.string().optional().nullable(),
   insurance: z.string().optional().nullable(),
@@ -87,33 +90,9 @@ const ClimbingMemberSchema = z.object({
   slacklineOption: z.boolean().optional().nullable(),
   trailRunningOption: z.boolean().optional().nullable(),
   mountainBikingOption: z.boolean().optional().nullable(),
-  isMediaCompliant: z.boolean(), //.nullable()
-  hasPaid: z.boolean(), //.nullable()
-  legalContactId: z.optional(z.string()),
-  legalContactLastName: z
-    .string()
-    .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`)
-    .nullable()
-    .optional(),
-  legalContactFirstName: z
-    .string()
-    .min(1, `Veuillez indiquer le prénom du.de la représentant.e légal.e.`)
-    .nullable()
-    .optional(),
-  legalContactPhoneNumber: z
-    .string()
-    .refine((val) => val.length === 10 && /^\d+$/.test(val), {
-      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
-    })
-    .nullable()
-    .optional(),
-  legalContactEmail: z
-    .string()
-    .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-      message: 'Veuillez entrer une adresse email valide.',
-    })
-    .nullable()
-    .optional(),
+  isMediaCompliant: z.boolean(),
+  hasPaid: z.boolean(),
+
   contactLink: z
     .string()
     .min(1, `Veuillez indiquer le lien de parenté avec l'adhérent.e.`),
@@ -129,6 +108,43 @@ const ClimbingMemberSchema = z.object({
       message:
         'Le numéro de téléphone du contact doit être composé de 10 chiffres.',
     }),
+  contactEmail: z
+    .string()
+    .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Veuillez entrer une adresse email valide.',
+    })
+    .nullable()
+    .optional(),
+  contact2Id: z.optional(z.string()),
+  contact2Link: z
+    .string()
+    .min(1, `Veuillez indiquer le lien de parenté avec l'adhérent.e.`)
+    .nullable()
+    .optional(),
+  contact2LastName: z
+    .string()
+    .min(1, `Veuillez indiquer le nom du.de la représentant.e légal.e.`)
+    .nullable()
+    .optional(),
+  contact2FirstName: z
+    .string()
+    .min(1, `Veuillez indiquer le prénom du.de la représentant.e légal.e.`)
+    .nullable()
+    .optional(),
+  contact2PhoneNumber: z
+    .string()
+    .refine((val) => val.length === 10 && /^\d+$/.test(val), {
+      message: 'Le numéro de téléphone doit être composé de 10 chiffres.',
+    })
+    .nullable()
+    .optional(),
+  contact2Email: z
+    .string()
+    .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Veuillez entrer une adresse email valide.',
+    })
+    .nullable()
+    .optional(),
 });
 
 export type ClimbingState = {
@@ -160,14 +176,16 @@ export type ClimbingState = {
     mountainBikingOption?: string[];
     isMediaCompliant?: string[];
     hasPaid?: string[];
-    legalContactFirstName?: string[];
-    legalContactLastName?: string[];
-    legalContactPhoneNumber?: string[];
-    legalContactEmail?: string[];
     contactLink?: string[];
     contactLastName?: string[];
     contactFirstName?: string[];
     contactPhoneNumber?: string[];
+    contactEmail?: string[];
+    contact2Link?: string[];
+    contact2FirstName?: string[];
+    contact2LastName?: string[];
+    contact2PhoneNumber?: string[];
+    contact2Email?: string[];
   };
   message?: string | null;
 };
@@ -185,32 +203,15 @@ export async function createClimbingMember(
   formData: FormData,
   isRegistration: boolean,
 ) {
-  const sectionResult = await getSectionIdByName('climbing');
-  const sectionId = sectionResult?.rows?.[0]?.id;
+  const sectionRow = await getSectionIdByName('climbing');
+  const sectionId = sectionRow;
 
-  const seasonResult = await getSeasonIdByName('2024-2025');
-  const seasonId = seasonResult?.rows?.[0]?.id;
+  const seasonRow = await getSeasonIdByName('2024-2025');
+  const seasonId = seasonRow;
 
   if (!sectionId || !seasonId) {
     throw new Error('Section or season ID not found.');
   }
-
-  // const hasPaid = isRegistration ? false : formData.get('hasPaid') === 'true';
-  // const isMediaCompliant = formData.get('isMediaCompliant') === 'true';
-  // const license = formData.get('license') as string | null;
-  // const licenseType = formData.get('licenseType') as string | null;
-  // const insurance = (formData.get('insurance') as string) || 'RC';
-  // const supplementalInsurance =
-  //   (formData.get('supplementalInsurance') as string) || 'NON';
-  // const assaultProtectionOption =
-  //   formData.get('assaultProtectionOption') === 'true' ? true : false;
-  // const skiOption = formData.get('skiOption') === 'true' ? true : false;
-  // const slacklineOption =
-  //   formData.get('slacklineOption') === 'true' ? true : false;
-  // const trailRunningOption =
-  //   formData.get('trailRunningOption') === 'true' ? true : false;
-  // const mountainBikingOption =
-  //   formData.get('mountainBikingOption') === 'true' ? true : false;
 
   const validatedFields = CreateClimbingMember.safeParse({
     picture: formData.get('picture'),
@@ -233,12 +234,14 @@ export async function createClimbingMember(
     contactLastName: formData.get('contactLastName'),
     contactFirstName: formData.get('contactFirstName'),
     contactPhoneNumber: formData.get('contactPhoneNumber'),
-    legalContactLastName: formData.get('legalContactLastName'),
-    legalContactFirstName: formData.get('legalContactFirstName'),
-    legalContactPhoneNumber: formData.get('legalContactPhoneNumber'),
-    legalContactEmail: formData.get('legalContactEmail'),
+    contactEmail: formData.get('contactEmail'),
+    contact2Link: formData.get('contact2Link'),
+    contact2LastName: formData.get('contact2LastName'),
+    contact2FirstName: formData.get('contact2FirstName'),
+    contact2PhoneNumber: formData.get('contact2PhoneNumber'),
+    contact2Email: formData.get('contact2Email'),
     license: formData.get('license') as string | null,
-    licenseType: formData.get('licenseType') as string | null,
+    licenseType: formData.get('licenseType'),
     insurance: (formData.get('insurance') as string) || 'RC',
     supplementalInsurance:
       (formData.get('supplementalInsurance') as string) || 'NON',
@@ -260,9 +263,9 @@ export async function createClimbingMember(
       isSuccess: false,
     };
   }
-
+  const client = await sql.connect();
   try {
-    await sql`BEGIN`;
+    await client.query('BEGIN');
 
     const imageUrl = await getCloudinaryPicture(
       formData.get('picture') as File,
@@ -288,10 +291,12 @@ export async function createClimbingMember(
       contactLastName,
       contactFirstName,
       contactPhoneNumber,
-      legalContactLastName,
-      legalContactFirstName,
-      legalContactPhoneNumber,
-      legalContactEmail,
+      contactEmail,
+      contact2Link,
+      contact2LastName,
+      contact2FirstName,
+      contact2PhoneNumber,
+      contact2Email,
       license,
       licenseType,
       insurance,
@@ -305,120 +310,130 @@ export async function createClimbingMember(
       isMediaCompliant,
     } = validatedFields.data;
 
-    let legalContactId;
-    if (
-      legalContactLastName &&
-      legalContactFirstName &&
-      legalContactPhoneNumber &&
-      legalContactEmail
-    ) {
-      legalContactId = randomUUID();
-
-      await sql`
-        INSERT INTO legal_contacts (id, last_name, first_name, phone_number, email)
-        VALUES (${legalContactId}, ${legalContactLastName}, ${legalContactFirstName}, ${legalContactPhoneNumber}, ${legalContactEmail})
-      `;
-    }
     const memberId = randomUUID();
-    await sql`
-      INSERT INTO members (
-        id,
-        picture,
-        last_name,
-        first_name,
-        birth_date,
+    const contactId = randomUUID();
+    await client.query(
+      `INSERT INTO members (
+        id, picture, last_name, first_name, birth_date, gender, nationality, street,
+        additional_address_information, zip_code, city, country, email, phone_number,
+        phone_number2, birth_town, birth_departement
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+        $15, $16, $17)`,
+      [
+        memberId,
+        imageUrl,
+        lastName,
+        firstName,
+        birthDate,
         gender,
         nationality,
         street,
-        additional_address_information,
-        zip_code,
+        additionalAddressInformation,
+        zipCode,
         city,
         country,
         email,
-        phone_number,
-        phone_number2,
-        birth_town,
-        birth_departement,
-        contact_link,
-        contact_last_name,
-        contact_first_name,
-        contact_phone_number,
-        legal_contact_id
+        phoneNumber,
+        phoneNumber2,
+        birthTown,
+        birthDepartement,
+      ],
+    );
+
+    await client.query(
+      `INSERT INTO contacts (id, link, last_name, first_name, phone_number, email)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        contactId,
+        contactLink,
+        contactLastName,
+        contactFirstName,
+        contactPhoneNumber,
+        contactEmail,
+      ],
+    );
+
+    let contact2Id;
+
+    if (
+      contact2Link &&
+      contact2LastName &&
+      contact2FirstName &&
+      contact2PhoneNumber &&
+      contact2Email
+    ) {
+      contact2Id = randomUUID();
+      console.log('Contact 2 Data:', {
+        contact2Link,
+        contact2LastName,
+        contact2FirstName,
+        contact2PhoneNumber,
+        contact2Email,
+      });
+      await client.query(
+        `INSERT INTO contacts (id, link, last_name, first_name, phone_number, email)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          contact2Id,
+          contact2Link,
+          contact2LastName,
+          contact2FirstName,
+          contact2PhoneNumber,
+          contact2Email,
+        ],
+      );
+    }
+
+    await client.query(
+      `INSERT INTO member_contact (member_id, first_contact_id, second_contact_id)
+    VALUES ($1, $2, $3)`,
+      [memberId, contactId, contact2Id ?? null],
+    );
+
+    await client.query(
+      `INSERT INTO member_section_season (
+        section_id, member_id, season_id, license, license_type, insurance,
+        supplemental_insurance, assault_protection_option, ski_option,
+        slackline_option, trail_running_option, mountain_biking_option,
+        is_media_compliant, has_paid
       )
       VALUES (
-        ${memberId},
-        ${imageUrl},
-        ${lastName},
-        ${firstName},
-        ${birthDate},
-        ${gender},
-        ${nationality},
-        ${street},
-        ${additionalAddressInformation},
-        ${zipCode},
-        ${city},
-        ${country},
-        ${email},
-        ${phoneNumber},
-        ${phoneNumber2},
-        ${birthTown},
-        ${birthDepartement},
-        ${contactLink},
-        ${contactLastName},
-        ${contactFirstName},
-        ${contactPhoneNumber},
-        ${legalContactId}
-      )
-    `;
-
-    await sql`
-      INSERT INTO member_section_season (
-        section_id,
-        member_id,
-        season_id,
-        license,
-        license_type,
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+      )`,
+      [
+        sectionId,
+        memberId,
+        seasonId,
+        license ?? null,
+        licenseType,
         insurance,
-        supplemental_insurance,
-        assault_protection_option,
-        ski_option,
-        slackline_option,
-        trail_running_option,
-        mountain_biking_option,
-        is_media_compliant,
-        has_paid
-      )
-      VALUES (
-        ${sectionId},
-        ${memberId},
-        ${seasonId},
-        ${license ?? null},
-        ${licenseType ?? null},
-        ${insurance},
-        ${supplementalInsurance},
-       ${assaultProtectionOption},
-    ${skiOption},
-    ${slacklineOption},
-    ${trailRunningOption},
-    ${mountainBikingOption},
-    ${isMediaCompliant},
-        ${hasPaid}
-      )
-    `;
-
-    await sql`COMMIT`;
+        supplementalInsurance,
+        assaultProtectionOption,
+        skiOption,
+        slacklineOption,
+        trailRunningOption,
+        mountainBikingOption,
+        isMediaCompliant,
+        hasPaid,
+      ],
+    );
+    await client.query('COMMIT');
     return {
       isSuccess: true,
       message: `Membre créé avec succès.`,
     };
   } catch (error) {
-    await sql`ROLLBACK`;
-    console.error('Database Error: Failed to create a member.', error);
+    console.error('Erreur détectée :', error);
+    await client.query('ROLLBACK');
     return {
       error,
       isSuccess: false,
       message: 'Erreur lors de la création du membre.',
     };
+  } finally {
+    client.release();
   }
 }
 
@@ -428,17 +443,43 @@ export async function updateClimbingMember(
   formData: FormData,
 ) {
   const validationStatus = UpdateClimbingMember.safeParse({
+    picture: formData.get('picture'),
     lastName: formData.get('lastName'),
     firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
-    email: formData.get('email'),
-    phoneNumber: formData.get('phoneNumber'),
+    gender: formData.get('gender'),
+    nationality: formData.get('nationality'),
     street: formData.get('street'),
+    additionalAddressInformation: formData.get('additionalAddressInformation'),
     zipCode: formData.get('zipCode'),
     city: formData.get('city'),
-    picture: formData.get('picture'),
-    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
+    country: formData.get('country'),
+    email: formData.get('email'),
+    phoneNumber: formData.get('phoneNumber'),
+    phoneNumber2: formData.get('phoneNumber2'),
+    birthTown: formData.get('birthTown'),
+    birthDepartement: formData.get('birthDepartement'),
+    contactLink: formData.get('contactLink'),
+    contactLastName: formData.get('contactLastName'),
+    contactFirstName: formData.get('contactFirstName'),
+    contactPhoneNumber: formData.get('contactPhoneNumber'),
+    contactEmail: formData.get('contactEmail'),
+    contact2Link: formData.get('legalContactLink'),
+    contact2LastName: formData.get('legalContactLastName'),
+    contact2FirstName: formData.get('legalContactFirstName'),
+    contact2PhoneNumber: formData.get('legalContactPhoneNumber'),
+    contact2Email: formData.get('legalContactEmail'),
+    license: formData.get('license') as string | null,
+    licenseType: formData.get('licenseType'),
+    insurance: formData.get('insurance'),
+    supplementalInsurance: formData.get('supplementalInsurance'),
+    assaultProtectionOption: formData.get('assaultProtectionOption') === 'true',
+    skiOption: formData.get('skiOption') === 'true',
+    slacklineOption: formData.get('slacklineOption') === 'true',
+    trailRunningOption: formData.get('trailRunningOption') === 'true',
+    mountainBikingOption: formData.get('mountainBikingOption') === 'true',
     hasPaid: formData.get('hasPaid') === 'true',
+    isMediaCompliant: formData.get('isMediaCompliant') === 'true',
   });
 
   if (!validationStatus.success) {
@@ -464,50 +505,170 @@ export async function updateClimbingMember(
     lastName,
     firstName,
     birthDate,
-    email,
-    phoneNumber,
+    gender,
+    nationality,
     street,
+    additionalAddressInformation,
     zipCode,
     city,
-    isMediaCompliant,
+    country,
+    email,
+    phoneNumber,
+    phoneNumber2,
+    birthTown,
+    birthDepartement,
+    contactLink,
+    contactLastName,
+    contactFirstName,
+    contactPhoneNumber,
+    contactEmail,
+    contact2Link,
+    contact2LastName,
+    contact2FirstName,
+    contact2PhoneNumber,
+    contact2Email,
+    license,
+    licenseType,
+    insurance,
+    supplementalInsurance,
+    assaultProtectionOption,
+    skiOption,
+    slacklineOption,
+    trailRunningOption,
+    mountainBikingOption,
     hasPaid,
-    legalContactFirstName,
-    legalContactLastName,
-    legalContactPhoneNumber,
-    legalContactId,
+    isMediaCompliant,
   } = validationStatus.data;
 
+  const client = await sql.connect();
   try {
-    const updateMember = await sql`
+    await client.query('BEGIN');
+
+    const updateMemberQuery = `
       UPDATE members
-      SET last_name = ${lastName},
-        first_name = ${firstName},
-        birth_date = ${birthDate},
-        email =   ${email},
-        phone_number = ${phoneNumber},
-        street= ${street},
-        zip_code= ${zipCode},
-        city= ${city},
-        picture = ${imageUrl},
-        is_media_compliant= ${!!isMediaCompliant},
-        has_paid= ${!!hasPaid},
-        legal_contact_id= ${legalContactId}
-      WHERE id = ${id}
-    `;
-    const updateLegalContact = await sql`
-      UPDATE legal_contacts
-      SET last_name = ${legalContactLastName},
-        first_name = ${legalContactFirstName},
-        phone_number = ${legalContactPhoneNumber}
-      WHERE id = ${legalContactId}
+      SET picture = $1,
+          last_name = $2,
+          first_name = $3,
+          email = $4,
+          street = $5,
+          additional_address_information = $6,
+          zip_code = $7,
+          city = $8,
+          country = $9,
+          phone_number = $10,
+          phone_number2 = $11
+      WHERE id = $12
     `;
 
-    await Promise.all([updateMember, updateLegalContact]);
+    await client.query(updateMemberQuery, [
+      imageUrl,
+      lastName,
+      firstName,
+      email,
+      street,
+      additionalAddressInformation,
+      zipCode,
+      city,
+      country,
+      phoneNumber,
+      phoneNumber2,
+      id,
+    ]);
+
+    const updateContactQuery = `
+      UPDATE contacts
+      SET link = $1,
+          last_name = $2,
+          first_name = $3,
+          phone_number = $4,
+          email = $5
+      WHERE id = (
+          SELECT first_contact_id
+          FROM member_contact
+          WHERE member_id = $6
+      )
+    `;
+
+    await client.query(updateContactQuery, [
+      contactLink,
+      contactLastName,
+      contactFirstName,
+      contactPhoneNumber,
+      contactEmail,
+      id,
+    ]);
+
+    const contact2Query = `
+      SELECT second_contact_id FROM member_contact
+      WHERE member_id = $1
+    `;
+
+    const contact2Result = await client.query(contact2Query, [id]);
+
+    if (contact2Result.rowCount > 0) {
+      const contact2Id = contact2Result.rows[0].contact2_id;
+
+      if (contact2Id) {
+        await client.query(
+          `UPDATE contacts
+           SET link = $1,
+               last_name = $2,
+               first_name = $3,
+               phone_number = $4,
+               email = $5
+           WHERE id = $6`,
+          [
+            contact2Link,
+            contact2LastName,
+            contact2FirstName,
+            contact2PhoneNumber,
+            contact2Email,
+            contact2Id,
+          ],
+        );
+      }
+    }
+
+    const updateSectionSeasonQuery = `
+      UPDATE member_section_season
+      SET license = $1,
+          license_type = $2,
+          insurance = $3,
+          supplemental_insurance = $4,
+          assault_protection_option = $5,
+          ski_option = $6,
+          slackline_option = $7,
+          trail_running_option = $8,
+          mountain_biking_option = $9,
+          is_media_compliant= $10,
+          has_paid= $11
+      WHERE member_id = $12
+    `;
+
+    await client.query(updateSectionSeasonQuery, [
+      license ? license : null,
+      licenseType,
+      insurance,
+      supplementalInsurance,
+      assaultProtectionOption,
+      skiOption,
+      slacklineOption,
+      trailRunningOption,
+      mountainBikingOption,
+      isMediaCompliant,
+      hasPaid,
+      id,
+    ]);
+
+    await client.query('COMMIT');
   } catch (error) {
     console.error('Database Error: Failed to update the member.', error);
+    await client.query('ROLLBACK');
     return {
       message: 'Erreur lors de la mise à jour du membre.',
     };
+  } finally {
+    client.release();
   }
   revalidatePath('/dashboard/climbing');
   redirect('/dashboard/climbing');

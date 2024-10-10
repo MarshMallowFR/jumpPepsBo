@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
@@ -25,7 +25,7 @@ import { SelectInput } from '../common/selectInput';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
-  member?: Member;
+  member?: MemberWithSeason;
   state: ClimbingState;
 }
 
@@ -54,7 +54,12 @@ export default function Form({ state, dispatch, member }: FormProps) {
     member?.isMediaCompliant ?? false,
   );
 
-  const [licenseType, setLicenseType] = useState(member?.licenseType ?? '');
+  const [licenseType, setLicenseType] = useState(() => {
+    if (member?.licenseType) {
+      return member.licenseType;
+    }
+    return isMinor ? 'J' : 'A';
+  });
   const [selectedOptions, setSelectedOptions] = useState<{
     [key: string]: boolean;
   }>({});
@@ -71,6 +76,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
     const url = URL.createObjectURL(file);
     setPictureUrl(url);
   };
+
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
@@ -82,6 +88,10 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const handleLicenseType = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLicenseType(event.target.value);
   };
+
+  useEffect(() => {
+    setLicenseType(member?.licenseType ?? (isMinor ? 'J' : 'A'));
+  }, [member, isMinor]);
 
   const handleOptionsChange = (values: { [key: string]: boolean }) => {
     setSelectedOptions(values);
@@ -315,9 +325,15 @@ export default function Form({ state, dispatch, member }: FormProps) {
             />
           </div>
           <div className="mb-4">
-            <p className="text-xl mb-4 text-blue-medium">
-              Personne à contacter en cas d'urgence
-            </p>
+            {!isMinor ? (
+              <p className="text-xl mb-4 text-blue-medium">
+                Personne à contacter en cas d'urgence
+              </p>
+            ) : (
+              <p className="text-xl mb-4 text-blue-medium">
+                Coordonnées du représentant légal 1
+              </p>
+            )}
             <TextInput
               defaultValue={member?.contactLink}
               idFor="contactLink"
@@ -346,39 +362,55 @@ export default function Form({ state, dispatch, member }: FormProps) {
               settingKey="contactPhoneNumber"
               error={state?.errors?.contactPhoneNumber}
             />
+            {!isMinor ? null : (
+              <TextInput
+                defaultValue={member?.contactEmail}
+                label="Email"
+                idFor="contactEmail"
+                settingKey="contactEmail"
+                error={state?.errors?.contactEmail}
+              />
+            )}
           </div>
           {!isMinor ? null : (
             <div className="mb-4">
               <p className="text-xl mb-4 text-blue-medium">
-                Coordonnées du représentant légal
+                Coordonnées du représentant légal 2
               </p>
               <TextInput
-                defaultValue={member?.legalContactLastName}
-                error={state?.errors?.legalContactLastName}
-                idFor="legalContactLastName"
+                defaultValue={member?.contact2Link}
+                idFor="contact2Link"
+                label="Lien de parenté"
+                settingKey="contact2Link"
+                error={state?.errors?.contact2Link}
+              />
+              <TextInput
+                defaultValue={member?.contact2LastName}
+                error={state?.errors?.contact2LastName}
+                idFor="contact2LastName"
                 label="Nom"
-                settingKey="legalContactLastName"
+                settingKey="contact2LastName"
               />
               <TextInput
-                defaultValue={member?.legalContactFirstName}
-                error={state.errors?.legalContactFirstName}
-                idFor="legalContactFirstName"
+                defaultValue={member?.contact2FirstName}
+                error={state.errors?.contact2FirstName}
+                idFor="contact2FirstName"
                 label="Prénom"
-                settingKey="legalContactFirstName"
+                settingKey="contact2FirstName"
               />
               <TextInput
-                defaultValue={member?.legalContactPhoneNumber}
-                error={state?.errors?.legalContactPhoneNumber}
-                idFor="legalContactPhoneNumber"
+                defaultValue={member?.contact2PhoneNumber}
+                error={state?.errors?.contact2PhoneNumber}
+                idFor="contact2PhoneNumber"
                 label="Numéro de téléphone"
-                settingKey="legalContactPhoneNumber"
+                settingKey="contact2PhoneNumber"
               />
               <TextInput
-                defaultValue={member?.legalContactEmail}
-                error={state?.errors?.legalContactEmail}
-                idFor="legalContactEmail"
+                defaultValue={member?.contact2Email}
+                error={state?.errors?.contact2Email}
+                idFor="contact2Email"
                 label="Email"
-                settingKey="legalContactEmail"
+                settingKey="contact2Email"
               />
             </div>
           )}
@@ -404,7 +436,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   { label: 'Adulte', value: 'A' },
                   { label: 'Famille', value: 'F' },
                 ]}
-                defaultValue={!isMinor ? 'A' : 'J'}
                 value={licenseType}
                 onChange={handleLicenseType}
               />
