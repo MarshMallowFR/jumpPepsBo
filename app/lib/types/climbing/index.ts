@@ -18,52 +18,6 @@ export interface MemberDB {
   birth_departement: string;
 }
 
-export interface ContactDB {
-  id: string;
-  link: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  email: string;
-}
-
-export interface Member_Section_SeasonDB {
-  section_id: string;
-  season_id: string;
-  member_id: string;
-  license: string;
-  license_type: string;
-  insurance: string;
-  supplemental_insurance: string;
-  assault_protection_option: boolean;
-  ski_option: boolean;
-  slackline_option: boolean;
-  trail_running_option: boolean;
-  mountain_biking_option: boolean;
-  is_media_compliant: boolean;
-  has_paid: boolean;
-}
-
-export interface Member_ContactDB {
-  member_id: string;
-  first_contact_id: string;
-  second_contact_id: string;
-}
-
-export interface MemberSeasonDB extends MemberDB {
-  license: string;
-  license_type: string;
-  insurance: string;
-  supplemental_insurance: string;
-  assault_protection_option: boolean;
-  ski_option: boolean;
-  slackline_option: boolean;
-  trail_running_option: boolean;
-  mountain_biking_option: boolean;
-  is_media_compliant: boolean;
-  has_paid: boolean;
-}
-
 export interface MemberWithContactsDB extends MemberDB {
   first_contact_id: string;
   contact_link: string;
@@ -79,36 +33,7 @@ export interface MemberWithContactsDB extends MemberDB {
   contact2_email?: string;
 }
 
-// export interface MemberWithContactsAndSeasonBD extends MemberDB {
-//   // Season informations
-//   license: string;
-//   license_type: string;
-//   insurance: string;
-//   supplemental_insurance: string;
-//   assault_protection_option: boolean;
-//   ski_option: boolean;
-//   slackline_option: boolean;
-//   trail_running_option: boolean;
-//   mountain_biking_option: boolean;
-//   is_media_compliant: boolean;
-//   has_paid: boolean;
-//   // Contacts informations
-//   first_contact_id: string;
-//   contact_link: string;
-//   contact_first_name: string;
-//   contact_last_name: string;
-//   contact_phone_number: string;
-//   contact_email: string;
-//   second_contact_id?: string;
-//   contact2_link?: string;
-//   contact2_first_name?: string;
-//   contact2_last_name?: string;
-//   contact2_phone_number?: string;
-//   contact2_email?: string;
-// }
-
 export interface MemberWithContactsAndSeasonBD extends MemberWithContactsDB {
-  // Season informations
   license: string;
   license_type: string;
   insurance: string;

@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  fetchMembersBySeason,
-  fetchMembersWithContactsBySeason,
-} from '@/app/lib/data';
+import { fetchMembersWithContactsBySeason } from '@/app/lib/data';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

@@ -2,9 +2,6 @@ import { sql } from '@vercel/postgres';
 import { unstable_noStore as noStore } from 'next/cache';
 
 import {
-  MemberDB,
-  MemberWithSeason,
-  MemberSeasonDB,
   MemberWithContactsDB,
   MemberWithContactsAndSeasonBD,
 } from './types/climbing';
@@ -96,50 +93,6 @@ export async function fetchAllSeasons() {
     throw new Error('Failed to fetch seasons');
   }
 }
-// export async function fetchAllClimbingMembers(
-//   query: string,
-//   currentPage: number,
-// ) {
-//   noStore();
-
-//   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
-//   try {
-//     const members = await sql<MemberDB>`
-//       SELECT
-//         members.*
-//       FROM members
-//       WHERE
-//         members.first_name ILIKE ${`%${query}%`} OR
-//         members.last_name ILIKE ${`%${query}%`}
-//       ORDER BY members.last_name ASC
-//       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-//     `;
-
-//     return members.rows.map((member) => ({
-//       id: member.id,
-//       picture: member.picture,
-//       lastName: member.last_name,
-//       firstName: member.first_name,
-//       birthDate: member.birth_date,
-//       gender: member.gender,
-//       nationality: member.nationality,
-//       street: member.street,
-//       additionalAddressInformation: member.additional_address_information,
-//       zipCode: member.zip_code,
-//       city: member.city,
-//       country: member.country,
-//       email: member.email,
-//       phoneNumber: member.phone_number,
-//       phoneNumber2: member.phone_number2,
-//       birthTown: member.birth_town,
-//       birthDepartement: member.birth_departement,
-//     }));
-//   } catch (error) {
-//     console.error('Database Error:', error);
-//     throw new Error('Failed to fetch members.');
-//   }
-// }
 
 export async function fetchAllClimbingMembers(
   query: string,
@@ -401,121 +354,6 @@ export async function fetchMembersWithContactsBySeason(seasonId: string) {
   }
 }
 
-export async function fetchMembersBySeason(seasonId: string) {
-  try {
-    const members = await sql<MemberSeasonDB>`
-      SELECT
-        members.id,
-        members.picture,
-        members.last_name,
-        members.first_name,
-        members.birth_date,
-        members.gender,
-        members.nationality,
-        members.street,
-        members.additional_address_information,
-        members.zip_code,
-        members.city,
-        members.country,
-        members.email,
-        members.phone_number,
-        members.phone_number2,
-        members.birth_town,
-        members.birth_departement,
-        mss.license,
-        mss.license_type,
-        mss.insurance,
-        mss.supplemental_insurance,
-        mss.assault_protection_option,
-        mss.ski_option,
-        mss.slackline_option,
-        mss.trail_running_option,
-        mss.mountain_biking_option,
-        mss.is_media_compliant,
-        mss.has_paid
-      FROM members
-      JOIN member_section_season mss ON mss.member_id = members.id
-      WHERE mss.season_id = ${seasonId}
-    `;
-
-    if (members.rows.length === 0) {
-      throw new Error(`No members found for season ID: ${seasonId}`);
-    }
-
-    return members.rows.map((row) => {
-      const {
-        id,
-        picture,
-        last_name,
-        first_name,
-        birth_date,
-        gender,
-        nationality,
-        street,
-        additional_address_information,
-        zip_code,
-        city,
-        country,
-        email,
-        phone_number,
-        phone_number2,
-        birth_town,
-        birth_departement,
-        license,
-        license_type,
-        insurance,
-        supplemental_insurance,
-        assault_protection_option,
-        ski_option,
-        slackline_option,
-        trail_running_option,
-        mountain_biking_option,
-        is_media_compliant,
-        has_paid,
-      } = row;
-
-      return {
-        id,
-        picture,
-        lastName: last_name,
-        firstName: first_name,
-        birthDate: birth_date,
-        gender,
-        nationality,
-        street,
-        additionalAddressInformation: additional_address_information,
-        zipCode: zip_code,
-        city,
-        country,
-        email,
-        phoneNumber: phone_number,
-        phoneNumber2: phone_number2,
-        birthTown: birth_town,
-        birthDepartement: birth_departement,
-        // About season
-        license,
-        licenseType: license_type,
-        insurance,
-        supplementalInsurance: supplemental_insurance,
-        assaultProtectionOption: assault_protection_option,
-        skiOption: ski_option,
-        slacklineOption: slackline_option,
-        trailRunningOption: trail_running_option,
-        mountainBikingOption: mountain_biking_option,
-        isMediaCompliant: is_media_compliant,
-        hasPaid: has_paid,
-      };
-    });
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error(
-      `Failed to fetch members for the given season. Details: ${error}`,
-    );
-  }
-}
-//0278ebd1-d7bc-4098-ab3a-2c359a028603 // Paloma
-//0fe72af5-f2db-4565-b750-e4a7371728d0 // Charlie
-// 849a1c71-5ebe-46b4-8b89-e1ee22cface2 // Este (avec les 2 contact bien enregistrés dans la table)
 export async function fetchMemberById(memberId: string) {
   try {
     const result = await sql<MemberWithContactsDB>`
