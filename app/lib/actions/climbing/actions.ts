@@ -10,7 +10,8 @@ import {
   deleteCloudinaryImage,
   deleteCloudinaryImages,
 } from '../../cloudinary/cloudinary';
-import { getSeasonIdByName, getSectionIdByName } from '../../data';
+import { getSectionIdByName } from '../../data';
+import { getSeasons } from '../season/actions';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -192,11 +193,22 @@ export type ClimbingState = {
 
 const CreateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
-  legalContactId: true,
 });
 const UpdateClimbingMember = ClimbingMemberSchema.omit({
   id: true,
 });
+
+async function isMemberAlreadyExists(
+  firstName: string,
+  lastName: string,
+  birthDate: string,
+) {
+  const query = `
+    SELECT id FROM members WHERE first_name = $1 AND last_name = $2 AND birth_date = $3
+  `;
+  const result = await sql.query(query, [firstName, lastName, birthDate]);
+  return result.rows.length > 0 ? result.rows[0].id : null;
+}
 
 export async function createClimbingMember(
   _prevState: ClimbingState,
@@ -206,8 +218,15 @@ export async function createClimbingMember(
   const sectionRow = await getSectionIdByName('climbing');
   const sectionId = sectionRow;
 
-  const seasonRow = await getSeasonIdByName('2024-2025');
-  const seasonId = seasonRow;
+  // Récupérer la saison actuelle + inscription ouverte
+  const { currentSeason } = await getSeasons();
+  if (!currentSeason || !currentSeason.registrationOpen) {
+    return {
+      isSuccess: false,
+      message: 'Les inscriptions ne sont pas ouvertes pour la saison actuelle.',
+    };
+  }
+  const seasonId = currentSeason.id;
 
   if (!sectionId || !seasonId) {
     throw new Error('Section or season ID not found.');
@@ -310,6 +329,17 @@ export async function createClimbingMember(
       isMediaCompliant,
     } = validatedFields.data;
 
+    // Pas de doublon de membre
+    const existingMemberId = await isMemberAlreadyExists(
+      firstName,
+      lastName,
+      birthDate,
+    );
+
+    if (existingMemberId) {
+      return await updateClimbingMember(existingMemberId, _prevState, formData);
+    }
+
     const memberId = randomUUID();
     const contactId = randomUUID();
     await client.query(
@@ -365,13 +395,6 @@ export async function createClimbingMember(
       contact2Email
     ) {
       contact2Id = randomUUID();
-      console.log('Contact 2 Data:', {
-        contact2Link,
-        contact2LastName,
-        contact2FirstName,
-        contact2PhoneNumber,
-        contact2Email,
-      });
       await client.query(
         `INSERT INTO contacts (id, link, last_name, first_name, phone_number, email)
          VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -608,7 +631,7 @@ export async function updateClimbingMember(
     if (contact2Result.rowCount > 0) {
       const contact2Id = contact2Result.rows[0].contact2_id;
 
-      if (contact2Id) {
+      if (contact2Id && contact2Id !== null) {
         await client.query(
           `UPDATE contacts
            SET link = $1,
@@ -722,6 +745,268 @@ export async function deleteMembers(
     console.error('Erreur lors de la suppression', error);
     throw new Error('Erreur lors de la suppression des membres.');
   } finally {
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+export async function deleteMemberCompletely(
+  id: string,
+  imageUrl: string,
+): Promise<{ message: string }> {
+  const client = await sql.connect();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Delete the member's entries from the member_section_season table
+    await client.query(
+      `
+      DELETE FROM member_section_season 
+      WHERE member_id = $1
+    `,
+      [id],
+    );
+
+    // 2. Get the contact IDs from the member_contact table
+    const contactsResult = await client.query(
+      `
+      SELECT first_contact_id, second_contact_id 
+      FROM member_contact 
+      WHERE member_id = $1
+    `,
+      [id],
+    );
+
+    const firstContactId = contactsResult.rows[0]?.first_contact_id;
+    const secondContactId = contactsResult.rows[0]?.second_contact_id;
+
+    // 3. Delete the member's entry from the member_contact table
+    await client.query(
+      `
+      DELETE FROM member_contact 
+      WHERE member_id = $1
+    `,
+      [id],
+    );
+
+    // 4. Delete the contacts from the contacts table (if they exist)
+    if (firstContactId) {
+      await client.query(
+        `
+        DELETE FROM contacts 
+        WHERE id = $1
+      `,
+        [firstContactId],
+      );
+    }
+
+    if (secondContactId) {
+      await client.query(
+        `
+        DELETE FROM contacts 
+        WHERE id = $1
+      `,
+        [secondContactId],
+      );
+    }
+
+    // 5. Delete the member from the members table
+    await client.query(
+      `
+      DELETE FROM members 
+      WHERE id = $1
+    `,
+      [id],
+    );
+
+    await client.query('COMMIT');
+
+    // Handle the image deletion
+    const imageId = imageUrl.split('/').pop()?.split('.')[0];
+    if (imageId) {
+      await deleteCloudinaryImage(imageId);
+    } else {
+      console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+    }
+
+    return { message: 'Membre supprimé.' };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error during member deletion:', error);
+    throw new Error('Erreur lors de la suppression du membre.');
+  } finally {
+    client.release();
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+export async function deleteMembersCompletely(
+  ids: string[],
+): Promise<{ message: string }> {
+  const client = await sql.connect();
+  try {
+    if (ids.length === 0) {
+      return { message: 'Aucun membre à supprimer.' };
+    }
+
+    await client.query('BEGIN');
+    const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
+
+    const contactsQuery = `
+      SELECT mc.first_contact_id, mc.second_contact_id 
+      FROM member_contact mc 
+      WHERE mc.member_id IN (${placeholders})
+    `;
+
+    const contactsResult = await client.query(contactsQuery, ids);
+    const firstContactIds = contactsResult.rows.map(
+      (row) => row.first_contact_id,
+    );
+    const secondContactIds = contactsResult.rows
+      .map((row) => row.second_contact_id)
+      .filter(Boolean);
+
+    const imageQuery = `SELECT picture FROM members WHERE id IN (${placeholders})`;
+    const imageResults = await client.query(imageQuery, ids);
+    const imageUrls = imageResults.rows
+      .map((row) => row.picture)
+      .filter(Boolean); // Filter valid image URLs
+
+    const firstContactPlaceholders = firstContactIds
+      .map((_, index) => `$${index + 1}`)
+      .join(', ');
+    await client.query(
+      `DELETE FROM contacts WHERE id IN (${firstContactPlaceholders})`,
+      firstContactIds,
+    );
+
+    if (secondContactIds.length > 0) {
+      const secondContactPlaceholders = secondContactIds
+        .map((_, index) => `$${index + 1}`)
+        .join(', ');
+      await client.query(
+        `DELETE FROM contacts WHERE id IN (${secondContactPlaceholders})`,
+        secondContactIds,
+      );
+    }
+
+    const deleteMemberSeasonQuery = `
+      DELETE FROM member_section_season 
+      WHERE member_id IN (${placeholders})
+    `;
+    await client.query(deleteMemberSeasonQuery, ids);
+
+    const deleteQuery = `DELETE FROM members WHERE id IN (${placeholders})`;
+    await client.query(deleteQuery, ids);
+
+    if (imageUrls.length > 0) {
+      await deleteCloudinaryImages(imageUrls);
+    }
+
+    await client.query('COMMIT');
+    return { message: 'Membres supprimés.' };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Erreur lors de la suppression', error);
+    throw new Error('Erreur lors de la suppression des membres.');
+  } finally {
+    client.release();
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+export async function removeMemberFromSeason(
+  memberId: string,
+  seasonId: string,
+): Promise<{ message: string }> {
+  const client = await sql.connect();
+  try {
+    await client.query('BEGIN');
+
+    const checkMemberQuery = `
+      SELECT COUNT(*) AS season_count 
+      FROM member_section_season 
+      WHERE member_id = $1 AND season_id != $2
+    `;
+    const { rows } = await client.query(checkMemberQuery, [memberId, seasonId]);
+    const seasonCount = parseInt(rows[0].season_count, 10);
+
+    const deleteMemberSeasonQuery = `
+      DELETE FROM member_section_season 
+      WHERE member_id = $1 AND season_id = $2
+    `;
+    await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
+
+    if (seasonCount === 0) {
+      const imageQuery = `SELECT picture FROM members WHERE id = $1`;
+      const imageResult = await client.query(imageQuery, [memberId]);
+      const imageUrl = imageResult.rows[0]?.picture || '';
+      await deleteMemberCompletely(memberId, imageUrl);
+    }
+
+    await client.query('COMMIT');
+
+    return { message: 'Membre retiré de la saison.' };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(
+      'Erreur lors de la suppression du membre de la saison',
+      error,
+    );
+    throw new Error('Erreur lors de la suppression du membre de la saison.');
+  } finally {
+    client.release();
+    revalidatePath('/dashboard/climbing');
+  }
+}
+
+export async function removeMembersFromSeason(
+  memberIds: string[],
+  seasonId: string,
+): Promise<{ message: string }> {
+  const client = await sql.connect();
+  try {
+    await client.query('BEGIN');
+
+    for (const memberId of memberIds) {
+      // check for each member the action to accomplish
+      const checkMemberQuery = `
+        SELECT COUNT(*) AS season_count 
+        FROM member_section_season 
+        WHERE member_id = $1 AND season_id != $2
+      `;
+      const { rows } = await client.query(checkMemberQuery, [
+        memberId,
+        seasonId,
+      ]);
+      const seasonCount = parseInt(rows[0].season_count, 10);
+
+      const deleteMemberSeasonQuery = `
+        DELETE FROM member_section_season 
+        WHERE member_id = $1 AND season_id = $2
+      `;
+      await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
+
+      if (seasonCount === 0) {
+        const imageQuery = `SELECT picture FROM members WHERE id = $1`;
+        const imageResult = await client.query(imageQuery, [memberId]);
+        const imageUrl = imageResult.rows[0]?.picture || '';
+
+        await deleteMemberCompletely(memberId, imageUrl);
+      }
+    }
+
+    await client.query('COMMIT');
+
+    return { message: 'Membres retirés de la saison.' };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(
+      'Erreur lors de la suppression des membres de la saison',
+      error,
+    );
+    throw new Error('Erreur lors de la suppression des membres de la saison.');
+  } finally {
+    client.release();
     revalidatePath('/dashboard/climbing');
   }
 }

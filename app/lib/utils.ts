@@ -1,4 +1,8 @@
 export const generatePagination = (currentPage: number, totalPages: number) => {
+  // Validate the current page
+  if (currentPage < 1) currentPage = 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+
   // If the total number of pages is 7 or less,
   // display all pages without any ellipsis.
   if (totalPages <= 7) {

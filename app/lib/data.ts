@@ -5,11 +5,10 @@ import {
   MemberWithContactsDB,
   MemberWithContactsAndSeasonBD,
 } from './types/climbing';
-import { SeasonDB } from './types/season';
 import { Section } from './types/section';
 import { AdminDB } from './types/admins';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 15;
 
 export async function getSectionIdByName(name: string, row?: any) {
   try {
@@ -66,31 +65,12 @@ export async function fetchClimbPages() {
     FROM member_section_season
     WHERE section_id = ${sectionRow};
   `;
-
-    return Math.ceil(Number(count.rowCount) / ITEMS_PER_PAGE);
+    const totalMembers = parseInt(count.rows[0]?.total_members, 10) || 0;
+    const totalPages = Math.ceil(totalMembers / ITEMS_PER_PAGE);
+    return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch members');
-  }
-}
-
-export async function fetchAllSeasons() {
-  try {
-    const seasons = await sql<SeasonDB>`
-      SELECT * FROM seasons
-      ORDER BY start_date ASC;  
-    `;
-
-    return seasons.rows.map((season) => ({
-      id: season.id,
-      name: season.name,
-      startDate: season.start_date,
-      endDate: season.end_date,
-      registrationOpen: season.registration_open,
-    }));
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch seasons');
   }
 }
 
@@ -129,83 +109,81 @@ export async function fetchAllClimbingMembers(
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
 
-    if (members.rows.length === 0) {
-      throw new Error(`No members found`);
-    }
+    return members.rows.length > 0
+      ? members.rows.map((row) => {
+          const {
+            id,
+            picture,
+            last_name,
+            first_name,
+            birth_date,
+            gender,
+            nationality,
+            street,
+            additional_address_information,
+            zip_code,
+            city,
+            country,
+            email,
+            phone_number,
+            phone_number2,
+            birth_town,
+            birth_departement,
+            first_contact_id,
+            contact_link,
+            contact_first_name,
+            contact_last_name,
+            contact_phone_number,
+            contact_email,
+            second_contact_id,
+            contact2_link,
+            contact2_first_name,
+            contact2_last_name,
+            contact2_phone_number,
+            contact2_email,
+          } = row;
 
-    return members.rows.map((row) => {
-      const {
-        id,
-        picture,
-        last_name,
-        first_name,
-        birth_date,
-        gender,
-        nationality,
-        street,
-        additional_address_information,
-        zip_code,
-        city,
-        country,
-        email,
-        phone_number,
-        phone_number2,
-        birth_town,
-        birth_departement,
-        first_contact_id,
-        contact_link,
-        contact_first_name,
-        contact_last_name,
-        contact_phone_number,
-        contact_email,
-        second_contact_id,
-        contact2_link,
-        contact2_first_name,
-        contact2_last_name,
-        contact2_phone_number,
-        contact2_email,
-      } = row;
-
-      return {
-        id,
-        picture,
-        lastName: last_name,
-        firstName: first_name,
-        birthDate: birth_date,
-        gender,
-        nationality,
-        street,
-        additionalAddressInformation: additional_address_information,
-        zipCode: zip_code,
-        city,
-        country,
-        email,
-        phoneNumber: phone_number,
-        phoneNumber2: phone_number2,
-        birthTown: birth_town,
-        birthDepartement: birth_departement,
-        // Contact Information
-        contactId: first_contact_id,
-        contactLink: contact_link,
-        contactLastName: contact_last_name,
-        contactFirstName: contact_first_name,
-        contactPhoneNumber: contact_phone_number,
-        contactEmail: contact_email,
-        contact2Id: second_contact_id ?? undefined,
-        contact2Link: contact2_link ?? undefined,
-        contact2FirstName: contact2_first_name ?? undefined,
-        contact2LastName: contact2_last_name ?? undefined,
-        contact2PhoneNumber: contact2_phone_number ?? undefined,
-        contact2Email: contact2_email ?? undefined,
-      };
-    });
+          return {
+            id,
+            picture,
+            lastName: last_name,
+            firstName: first_name,
+            birthDate: birth_date,
+            gender,
+            nationality,
+            street,
+            additionalAddressInformation: additional_address_information,
+            zipCode: zip_code,
+            city,
+            country,
+            email,
+            phoneNumber: phone_number,
+            phoneNumber2: phone_number2,
+            birthTown: birth_town,
+            birthDepartement: birth_departement,
+            // Contacts Information
+            contactId: first_contact_id,
+            contactLink: contact_link,
+            contactLastName: contact_last_name,
+            contactFirstName: contact_first_name,
+            contactPhoneNumber: contact_phone_number,
+            contactEmail: contact_email,
+            contact2Id: second_contact_id ?? undefined,
+            contact2Link: contact2_link ?? undefined,
+            contact2FirstName: contact2_first_name ?? undefined,
+            contact2LastName: contact2_last_name ?? undefined,
+            contact2PhoneNumber: contact2_phone_number ?? undefined,
+            contact2Email: contact2_email ?? undefined,
+          };
+        })
+      : [];
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(`Failed to fetch members. ${error}`);
   }
 }
 
-export async function fetchMembersWithContactsBySeason(seasonId: string) {
+export async function fetchMembersBySeasonId(seasonId: string) {
   try {
     const members = await sql<MemberWithContactsAndSeasonBD>`
       SELECT
@@ -354,9 +332,12 @@ export async function fetchMembersWithContactsBySeason(seasonId: string) {
   }
 }
 
-export async function fetchMemberById(memberId: string) {
+export async function fetchMemberByIdAndSeasonId(
+  memberId: string,
+  seasonId: string,
+) {
   try {
-    const result = await sql<MemberWithContactsDB>`
+    const result = await sql<MemberWithContactsAndSeasonBD>`
       SELECT
         m.id,
         m.picture,
@@ -382,15 +363,29 @@ export async function fetchMemberById(memberId: string) {
         c1.phone_number AS contact_phone_number,
         c1.email AS contact_email,
         mc.second_contact_id,
-        c2.link AS contact_link,
+        c2.link AS contact2_link,
         c2.first_name AS contact2_first_name,
         c2.last_name AS contact2_last_name,
         c2.phone_number AS contact2_phone_number,
-        c2.email AS contact2_email
+        c2.email AS contact2_email,
+        mss.license,
+        mss.license_type,
+        mss.insurance,
+        mss.supplemental_insurance,
+        mss.assault_protection_option,
+        mss.ski_option,
+        mss.slackline_option,
+        mss.trail_running_option,
+        mss.mountain_biking_option,
+        mss.is_media_compliant,
+        mss.has_paid
       FROM members m
       LEFT JOIN member_contact mc ON m.id = mc.member_id
       LEFT JOIN contacts c1 ON mc.first_contact_id = c1.id
       LEFT JOIN contacts c2 ON mc.second_contact_id = c2.id
+      LEFT JOIN member_section_season mss 
+        ON m.id = mss.member_id 
+        AND mss.season_id = ${seasonId} 
       WHERE m.id = ${memberId}
     `;
 
@@ -430,6 +425,17 @@ export async function fetchMemberById(memberId: string) {
       contact2LastName: row.contact2_last_name,
       contact2PhoneNumber: row.contact2_phone_number,
       contact2Email: row.contact2_email,
+      license: row.license,
+      licenseType: row.license_type,
+      insurance: row.insurance,
+      supplementalInsurance: row.supplemental_insurance,
+      assaultProtectionOption: row.assault_protection_option,
+      skiOption: row.ski_option,
+      slacklineOption: row.slackline_option,
+      trailRunningOption: row.trail_running_option,
+      mountainBikingOption: row.mountain_biking_option,
+      isMediaCompliant: row.is_media_compliant,
+      hasPaid: row.has_paid,
     };
 
     return member;

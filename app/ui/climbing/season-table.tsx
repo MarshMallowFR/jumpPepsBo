@@ -8,15 +8,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
+import RemoveMemberFromSeason from './remove-member-season';
 
 interface TableProps {
   members: MemberWithSeason[];
+  seasonId: string;
 }
 
-export default function Table({ members }: TableProps) {
+export default function SeasonTable({ members, seasonId }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
-
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -124,8 +125,13 @@ export default function Table({ members }: TableProps) {
             </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex justify-end gap-3">
-                <UpdateBtn href={`/dashboard/climbing/${member.id}/edit`} />
-                <DeleteMember id={member.id} imageUrl={member.picture} />
+                <UpdateBtn
+                  href={`/dashboard/climbing/${member.id}/edit?seasonId=${seasonId}`}
+                />
+                <RemoveMemberFromSeason
+                  memberId={member.id}
+                  seasonId={seasonId}
+                />
               </div>
             </td>
           </tr>

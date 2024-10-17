@@ -1,86 +1,90 @@
-// Interface Season
-export interface Season {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  registrationOpen: boolean;
-}
+'use server';
 
-// Simuler une base de données des saisons existantes
-const seasons: Season[] = [
-  // Exemples de saisons déjà existantes
-  {
-    id: '1',
-    name: '2022-2023',
-    startDate: new Date('2022-09-01').toISOString(),
-    endDate: new Date('2023-06-30').toISOString(),
-    registrationOpen: false,
-  },
-  {
-    id: '2',
-    name: '2023-2024',
-    startDate: new Date('2023-09-01').toISOString(),
-    endDate: new Date('2024-06-30').toISOString(),
-    registrationOpen: true,
-  },
-];
+import { sql } from '@vercel/postgres';
+import { randomUUID } from 'crypto';
+import { Season } from '../../types/season';
 
-/**
- * Crée une nouvelle saison si elle n'existe pas déjà.
- * @returns {Season | null} - La saison nouvellement créée ou null si elle existe déjà.
- */
-function createSeasonIfNotExists(): Season | null {
+export async function createNewSeason(): Promise<void> {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const nextYear = currentYear + 1;
 
-  // Le nom de la nouvelle saison doit être au format "année courante - année suivante"
   const seasonName = `${currentYear}-${nextYear}`;
 
-  // Vérifier si une saison avec ce nom existe déjà
-  const existingSeason = seasons.find((season) => season.name === seasonName);
-  if (existingSeason) {
-    console.log(`Une saison avec le nom ${seasonName} existe déjà.`);
-    return null;
-  }
-
-  // Dates de la saison : de septembre année courante à juin année suivante
-  const startDate = new Date(`${currentYear}-09-01`);
-  const endDate = new Date(`${nextYear}-06-30`);
-
-  // Vérifier si les inscriptions sont ouvertes (de juin à novembre de l'année courante)
+  // registrations should be open between June to November
   const registrationOpen =
-    currentDate.getMonth() >= 5 && currentDate.getMonth() <= 10; // 5 = Juin, 10 = Novembre
+    currentDate.getMonth() >= 5 && currentDate.getMonth() <= 10;
 
-  const newSeason: Season = {
-    id: generateUniqueId(),
-    name: seasonName,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString(),
-    registrationOpen: registrationOpen,
-  };
+  try {
+    const existingSeason = await sql`
+      SELECT id FROM seasons WHERE name = ${seasonName}
+    `;
+    if (existingSeason.rows.length > 0) {
+      return;
+    }
 
-  // Ajouter la saison à la base de données (simulée)
-  seasons.push(newSeason);
+    const seasonId = randomUUID();
+    await sql`
+      INSERT INTO seasons (id, name, registration_open)
+      VALUES (${seasonId}, ${seasonName}, ${registrationOpen})
+    `;
 
-  console.log('Nouvelle saison créée :', newSeason);
-  return newSeason;
+    console.log('Nouvelle saison créée:', seasonName);
+  } catch (error) {
+    throw new Error('Erreur lors de la création de la saison.');
+  }
 }
 
-/**
- * Génère un ID unique pour la saison.
- * @returns {string} - Un ID unique.
- */
-function generateUniqueId(): string {
-  return Math.random().toString(36).substr(2, 9);
-}
+export async function getSeasons(): Promise<{
+  seasons: Season[];
+  currentSeason: Season | undefined;
+}> {
+  try {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
 
-// Simulation d'une connexion
-const newSeason = createSeasonIfNotExists();
+    const selectSeasonQuery = `SELECT * FROM seasons ORDER BY name ASC`;
+    const result = await sql.query(selectSeasonQuery);
 
-if (newSeason) {
-  console.log(`Saison créée avec succès : ${newSeason.name}`);
-} else {
-  console.log('Aucune nouvelle saison créée.');
+    const seasons: Season[] = result.rows.map(
+      ({ id, name, registration_open }) => ({
+        id,
+        name,
+        registrationOpen: registration_open,
+      }),
+    );
+
+    // registrations should be open between June to November
+    const shouldBeOpen = currentMonth >= 5 && currentMonth <= 10;
+
+    // Update registration_open status if needed
+    for (const season of seasons) {
+      const [startYear, endYear] = season.name.split('-');
+      const startDate = new Date(`${startYear}-09-01`);
+      const endDate = new Date(`${endYear}-07-30`);
+
+      const isCurrentSeason =
+        currentDate >= startDate && currentDate <= endDate;
+      if (isCurrentSeason && season.registrationOpen !== shouldBeOpen) {
+        await sql`
+          UPDATE seasons
+          SET registration_open = ${shouldBeOpen}
+          WHERE id = ${season.id}
+        `;
+        // Reflect the change locally in the seasons array
+        season.registrationOpen = shouldBeOpen;
+      }
+    }
+
+    const currentSeason = seasons.find((season) => {
+      const [startYear, endYear] = season.name.split('-');
+      const startDate = new Date(`${startYear}-09-01`);
+      const endDate = new Date(`${endYear}-07-30`);
+      return currentDate >= startDate && currentDate <= endDate;
+    });
+
+    return { seasons, currentSeason };
+  } catch (error) {
+    throw new Error('Erreur lors de la récupération des saisons.');
+  }
 }

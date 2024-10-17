@@ -46,6 +46,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const [gender, setGender] = useState(member?.gender ?? 'F');
   const [isMinor, setIsMinor] = useState(false);
+  const [birthDate, setBirthDate] = useState(member?.birthDate || '');
   const [assaultProtection, setAssaultProtection] = useState(
     member?.assaultProtectionOption ?? false,
   );
@@ -79,6 +80,21 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
+  };
+
+  useEffect(() => {
+    if (member?.birthDate) {
+      const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
+      const birthDateEvent = {
+        target: { value: formattedBirthDate },
+      };
+      handleBirthDate(setIsMinor)(birthDateEvent as any);
+    }
+  }, [member]);
+
+  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBirthDate(e.target.value);
+    handleBirthDate(setIsMinor)(e);
   };
 
   const handleGender = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,7 +220,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 <div className="w-full flex">
                   <TextInput
                     defaultValue={formatTimestamp(member?.birthDate)}
-                    handleChange={handleBirthDate(setIsMinor)}
+                    // handleChange={handleBirthDate(setIsMinor)}
+                    handleChange={handleBirthDateChange}
                     label="Date de naissance"
                     idFor="birthDate"
                     placeholder="JJ/MM/AAAA"

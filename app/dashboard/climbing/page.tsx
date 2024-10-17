@@ -1,11 +1,11 @@
 import Pagination from '@/app/ui/common/pagination';
 import Search from '@/app/ui/common/search';
-import Table from '@/app/ui/climbing/climbing-table';
 import ClimbingTable from '@/app/ui/climbing/climbing-table';
 import { CreateBtn } from '@/app/ui/common/buttons';
 import { ClimbingTableSkeleton } from '@/app/ui/common/skeletons';
 import { Suspense } from 'react';
-import { fetchClimbPages } from '@/app/lib/data';
+import { fetchAllClimbingMembers, fetchClimbPages } from '@/app/lib/data';
+import { Member } from '@/app/lib/types/climbing';
 
 export default async function Page({
   searchParams,
@@ -20,6 +20,14 @@ export default async function Page({
 
   const totalPages = await fetchClimbPages();
 
+  let allMembers: Member[];
+  try {
+    allMembers = await fetchAllClimbingMembers(query, currentPage);
+  } catch (error) {
+    console.error(error);
+    allMembers = [];
+  }
+
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between">
@@ -31,8 +39,9 @@ export default async function Page({
       </div>
 
       <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}>
-        <ClimbingTable query={query} currentPage={currentPage} />
-        {/* <Table query={query} currentPage={currentPage} /> */}
+        <div className="w-full">
+          <ClimbingTable allMembers={allMembers} />
+        </div>
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />

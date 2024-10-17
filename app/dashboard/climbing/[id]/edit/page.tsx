@@ -1,13 +1,15 @@
 import Form from '@/app/ui/climbing/edit-form';
 import Breadcrumbs from '@/app/ui/common/breadcrumbs';
-import { fetchMemberById } from '@/app/lib/data';
+import { fetchMemberByIdAndSeasonId } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
 
-export default async function Page({ params }: { params: { id: string } }) {
-  const id = params.id;
-  const member: MemberWithSeason | undefined = await fetchMemberById(id);
-  //const member = await fetchMemberById(id);
+export default async function Page({
+  params,
+}: {
+  params: { id: string; seasonId: string };
+}) {
+  const { id, seasonId } = params;
+  const member = await fetchMemberByIdAndSeasonId(id, seasonId);
 
   if (!member) {
     notFound();
@@ -20,7 +22,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           { label: 'Membres', href: '/dashboard/climbing' },
           {
             label: 'Editer un membre',
-            href: `/dashboard/climbing/${id}/edit`,
+            href: `/dashboard/climbing/${member.id}/edit?seasonId=${seasonId}`,
             active: true,
           },
         ]}

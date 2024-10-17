@@ -1,14 +1,11 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
 import { Season } from '../types/season';
 import SelectDropdown from '@/app/ui/common/selectDropdown';
-import { MemberWithSeason } from '../types/climbing';
 
 interface SeasonContextProps {
   selectedSeason: string | null;
-  members: MemberWithSeason[];
   setSelectedSeason: (seasonId: string | null) => void;
 }
 
@@ -21,56 +18,19 @@ const SeasonContextProvider = ({
   seasons: Season[];
   children: ReactNode;
 }) => {
-  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
-  const [members, setMembers] = useState<MemberWithSeason[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<string | null>('all');
 
-  // const handleSelectSeason = async (seasonId: string) => {
-  //   setSelectedSeason(seasonId);
-  //   try {
-  //     const response = await fetch(`/api/membersBySeason?seasonId=${seasonId}`);
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch members');
-  //     }
-  //     const membersData = await response.json();
-  //     setMembers(membersData);
-  //     console.log('seasonContext:', membersData);
-  //   } catch (error) {
-  //     console.error('Error fetching members:', error);
-  //   }
-  // };
-
-  //
-  const handleSelectSeason = async (seasonId: string | null) => {
+  const handleSelectSeason = (seasonId: string | null) => {
     setSelectedSeason(seasonId);
-    if (seasonId === null) {
-      setMembers([]);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/membersBySeason?seasonId=${seasonId}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 404) {
-          console.warn(errorData.error);
-          setMembers([]);
-          return;
-        }
-        throw new Error('Failed to fetch members');
-      }
-      const membersData = await response.json();
-      setMembers(membersData);
-
-      if (membersData.length === 0) {
-        console.warn(`Aucun membre trouvé pour la saison sélectionnée`);
-      }
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    }
   };
+
+  const options = [
+    { id: 'all', name: 'Voir tous les membres' },
+    ...seasons.map((season) => ({ id: season.id, name: season.name })),
+  ];
 
   const value = {
     selectedSeason,
-    members,
     setSelectedSeason,
   };
 
@@ -78,7 +38,7 @@ const SeasonContextProvider = ({
     <SeasonContext.Provider value={value}>
       <SelectDropdown
         label="Choisissez la saison"
-        options={seasons}
+        options={options}
         onSelect={handleSelectSeason}
       />
       {children}
@@ -93,7 +53,6 @@ export const useSeasonContext = () => {
       'useSeasonContext must be used within a SeasonContextProvider',
     );
   }
-
   return value;
 };
 
