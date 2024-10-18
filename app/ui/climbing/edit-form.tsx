@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { updateClimbingMember } from '@/app/lib/actions/climbing/actions';
 import Form from './form';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 
-export default function EditForm({ member }: { member: Member }) {
+export default function EditForm({ member }: { member: MemberWithSeason }) {
   const initialState: ClimbingState = { message: null, errors: {} };
   const [state, setState] = useState<ClimbingState>(initialState);
 

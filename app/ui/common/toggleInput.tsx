@@ -1,6 +1,7 @@
 import { Color } from '@/app/lib/types/color';
 
 interface ToggleInputProps {
+  className?: string;
   children: React.ReactNode;
   color?: Color;
   defaultValue?: boolean;
@@ -12,6 +13,7 @@ interface ToggleInputProps {
 }
 
 export const ToggleInput = ({
+  className,
   children,
   color = Color.BLUE,
   defaultValue,
@@ -33,7 +35,9 @@ export const ToggleInput = ({
   };
   return (
     <div>
-      <div className="mb-2 text-sm font-semibold flex items-center">
+      <div
+        className={`mb-2 text-sm font-semibold flex items-center ${className}`}
+      >
         <label>{label}</label>
         {icon}
       </div>
