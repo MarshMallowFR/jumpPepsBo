@@ -12,7 +12,7 @@ import {
 import { downloadExcel } from '@/app/lib/excel/excel';
 import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { useToastContext, ToastType } from './toastContext';
-import { deleteMembers } from '../actions/climbing/actions';
+import { removeMembersFromSeason } from '../actions/climbing/actions';
 import { useSeasonContext } from './seasonContext';
 
 interface DropdownContextProps {
@@ -39,6 +39,8 @@ const DropdownContextProvider = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const { selectedSeason } = useSeasonContext();
   const {
     setIsVisible: setToastVisible,
     setToastType,
@@ -79,17 +81,24 @@ const DropdownContextProvider = ({
           }
           break;
         case 'delete-many':
-          try {
-            const result = await deleteMembers(selectedIds);
-            handleToast(true, ToastType.SUCCESS, result.message);
-          } catch (error) {
-            handleToast(
-              true,
-              ToastType.ERROR,
-              error instanceof Error
-                ? error.message
-                : 'Une erreur est survenue.',
-            );
+          if (selectedSeason) {
+            try {
+              const result = await removeMembersFromSeason(
+                selectedIds,
+                selectedSeason,
+              );
+              handleToast(true, ToastType.SUCCESS, result.message);
+            } catch (error) {
+              handleToast(
+                true,
+                ToastType.ERROR,
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue.',
+              );
+            }
+          } else {
+            handleToast(true, ToastType.ERROR, 'Aucune saison sélectionnée.');
           }
           break;
         default:
