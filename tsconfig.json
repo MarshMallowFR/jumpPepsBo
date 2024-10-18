@@ -28,8 +28,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.js",
-    "scripts/seed.js",
-    "app/api/membersBySeason"
+    "scripts/seed.js"
   ],
   "exclude": ["node_modules"]
 }
