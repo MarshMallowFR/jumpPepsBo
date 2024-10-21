@@ -697,58 +697,6 @@ export async function updateClimbingMember(
   redirect('/dashboard/climbing');
 }
 
-export async function deleteMember(
-  id: string,
-  imageUrl: string,
-): Promise<{ message: string }> {
-  try {
-    await sql`DELETE FROM members WHERE id = ${id}`;
-    const imageId = imageUrl.split('/').pop()?.split('.')[0];
-    if (imageId) {
-      await deleteCloudinaryImage(imageId);
-    } else {
-      console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
-    }
-    return { message: 'Membre supprimé.' };
-  } catch (error) {
-    throw new Error('Erreur lors de la suppression du membre.');
-  } finally {
-    revalidatePath('/dashboard/climbing');
-  }
-}
-
-export async function deleteMembers(
-  ids: string[],
-): Promise<{ message: string }> {
-  try {
-    if (ids.length === 0) {
-      return { message: 'Aucun membre à supprimer.' };
-    }
-    const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
-
-    const imageQuery = `SELECT picture FROM members WHERE id IN (${placeholders})`;
-    const imageResults = await sql.query(imageQuery, ids);
-
-    const imageUrls = imageResults.rows
-      .map((row) => row.picture)
-      .filter(Boolean); //URLs valides
-
-    const deleteQuery = `DELETE FROM members WHERE id IN (${placeholders})`;
-    await sql.query(deleteQuery, ids);
-
-    if (imageUrls.length > 0) {
-      await deleteCloudinaryImages(imageUrls);
-    }
-
-    return { message: 'Membres supprimés.' };
-  } catch (error) {
-    console.error('Erreur lors de la suppression', error);
-    throw new Error('Erreur lors de la suppression des membres.');
-  } finally {
-    revalidatePath('/dashboard/climbing');
-  }
-}
-
 export async function deleteMemberCompletely(
   id: string,
   imageUrl: string,

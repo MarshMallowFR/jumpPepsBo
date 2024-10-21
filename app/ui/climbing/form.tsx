@@ -220,7 +220,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 <div className="w-full flex">
                   <TextInput
                     defaultValue={formatTimestamp(member?.birthDate)}
-                    // handleChange={handleBirthDate(setIsMinor)}
                     handleChange={handleBirthDateChange}
                     label="Date de naissance"
                     idFor="birthDate"

@@ -35,7 +35,7 @@ export const UploadPicture = ({
       </div>
       <label
         htmlFor={idFor}
-        className="flex items-center justify-center w-24 h-32 bg-orange-medium rounded-lg cursor-pointer"
+        className="flex items-center justify-center w-30 h-48 bg-orange-light rounded-lg cursor-pointer"
       >
         {imageUrl ? (
           <img
@@ -58,7 +58,7 @@ export const UploadPicture = ({
         <div
           aria-live="polite"
           id={`${idFor}-error`}
-          className="mt-2 text-sm text-red-500"
+          className="mt-2 text-sm text-red-500 w-30"
         >
           {error.map((error: string) => (
             <p key={error}>{error}</p>

@@ -8,7 +8,7 @@ interface ToggleInputProps {
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   icon?: React.ReactNode;
   idFor: string;
-  label: string;
+  label?: string;
   settingKey: string;
 }
 
@@ -35,12 +35,14 @@ export const ToggleInput = ({
   };
   return (
     <div>
-      <div
-        className={`mb-2 text-sm font-semibold flex items-center ${className}`}
-      >
-        <label>{label}</label>
-        {icon}
-      </div>
+      {label && (
+        <div
+          className={`mb-2 text-sm font-semibold flex items-center ${className}`}
+        >
+          <label>{label}</label>
+          {icon}
+        </div>
+      )}
       <div className="flex items-center">
         <label
           htmlFor={idFor}
