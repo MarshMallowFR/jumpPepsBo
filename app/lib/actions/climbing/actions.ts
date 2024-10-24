@@ -693,7 +693,8 @@ export async function updateClimbingMember(
   } finally {
     client.release();
   }
-  revalidatePath('/dashboard/climbing');
+  await revalidatePath('/dashboard/climbing');
+  await revalidatePath(`/dashboard/climbing/${id}/edit`);
   redirect('/dashboard/climbing');
 }
 

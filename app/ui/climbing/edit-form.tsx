@@ -9,7 +9,6 @@ import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 export default function EditForm({ member }: { member: MemberWithSeason }) {
   const initialState: ClimbingState = { message: null, errors: {} };
   const [state, setState] = useState<ClimbingState>(initialState);
-
   const dispatch = async (formData: FormData): Promise<ClimbingState> => {
     const newState = await updateClimbingMember(member.id, state, formData);
     setState(newState);

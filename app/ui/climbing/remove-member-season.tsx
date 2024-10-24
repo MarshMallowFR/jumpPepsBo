@@ -12,8 +12,9 @@ export default function RemoveMemberFromSeason({
   seasonId,
 }: RemoveMemberFromSeasonProps) {
   const { setIsVisible, setToastType, setToastMessage } = useToastContext();
-  const handleDelete = async () => {
+  const handleRemove = async () => {
     try {
+      console.log('RemoveMemberFromSeason needs to be reviewed');
       const result = await removeMemberFromSeason(memberId, seasonId);
       setIsVisible(true);
       setToastType(ToastType.SUCCESS);
@@ -30,5 +31,5 @@ export default function RemoveMemberFromSeason({
     }
   };
 
-  return <DeleteBtn id={memberId} handleDelete={handleDelete} />;
+  return <DeleteBtn id={memberId} handleDelete={handleRemove} />;
 }

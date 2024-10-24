@@ -1,13 +1,11 @@
 'use client';
 import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
-import DeleteMember from './delete-member';
 import Status from './status';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
-import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
 import RemoveMemberFromSeason from './remove-member-season';
 
 interface TableProps {
@@ -16,6 +14,7 @@ interface TableProps {
 }
 
 export default function SeasonTable({ members, seasonId }: TableProps) {
+  console.log('SeasonTable members:', members); // Info OK, bon format et à jour
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(

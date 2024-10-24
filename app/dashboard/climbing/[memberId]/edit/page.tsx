@@ -3,13 +3,18 @@ import Breadcrumbs from '@/app/ui/common/breadcrumbs';
 import { fetchMemberByIdAndSeasonId } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 
+export const revalidate = 0; // Disable caching for this page to get updated data
+
 export default async function Page({
   params,
+  searchParams,
 }: {
-  params: { id: string; seasonId: string };
+  params: { memberId: string };
+  searchParams: { seasonId: string };
 }) {
-  const { id, seasonId } = params;
-  const member = await fetchMemberByIdAndSeasonId(id, seasonId);
+  const { memberId } = params;
+  const { seasonId } = searchParams;
+  const member = await fetchMemberByIdAndSeasonId(memberId, seasonId);
 
   if (!member) {
     notFound();

@@ -388,7 +388,6 @@ export async function fetchMemberByIdAndSeasonId(
         AND mss.season_id = ${seasonId} 
       WHERE m.id = ${memberId}
     `;
-
     if (result.rows.length === 0) {
       return null;
     }
@@ -437,12 +436,11 @@ export async function fetchMemberByIdAndSeasonId(
       isMediaCompliant: row.is_media_compliant,
       hasPaid: row.has_paid,
     };
-
     return member;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(
-      `Failed to fetch member by ID: ${memberId}. Details: ${error}`,
+      `Failed to fetch member by ID and Season ID: ${memberId}. Details: ${error}`,
     );
   }
 }
