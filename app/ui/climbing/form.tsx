@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
@@ -22,10 +22,11 @@ import ToastWrapper from '../common/toastWrapper';
 import { RadioInput } from '../common/radioInput';
 import { ProfileImage } from '../common/profilImage';
 import { SelectInput } from '../common/selectInput';
+import { useSearchParams } from 'next/navigation';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
-  member?: MemberWithSeason;
+  member?: Member;
   state: ClimbingState;
 }
 
@@ -37,6 +38,9 @@ const optionsToSelect = [
 ];
 
 export default function Form({ state, dispatch, member }: FormProps) {
+  const searchParams = useSearchParams();
+  const seasonId = searchParams.get('seasonId');
+
   const [picture, setPicture] = useState<File | string | null>(
     member?.picture || null,
   );
@@ -170,7 +174,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   useEffect(() => {
     if (state?.isSuccess) {
       const timer = setTimeout(() => {
-        window.location.href = '/dashboard/climbing'; // Redirection côté client
+        window.location.href = `/dashboard/climbing?seasonId=${seasonId}`; // Redirection côté client
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -556,7 +560,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
         <div className="mt-6 flex justify-end gap-4">
           <Link
-            href="/dashboard/climbing"
+            href={`/dashboard/climbing?seasonId=${seasonId}`}
             className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             Annuler

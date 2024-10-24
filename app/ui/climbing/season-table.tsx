@@ -1,5 +1,5 @@
 'use client';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import { SeasonMemberList } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
 import Status from './status';
 import Image from 'next/image';
@@ -7,16 +7,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 import RemoveMemberFromSeason from './remove-member-season';
+import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
 
 interface TableProps {
-  members: MemberWithSeason[];
-  seasonId: string;
+  members: SeasonMemberList[];
 }
 
-export default function SeasonTable({ members, seasonId }: TableProps) {
-  console.log('SeasonTable members:', members); // Info OK, bon format et à jour
+export default function SeasonTable({ members }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
+  const { selectedSeason } = useSeasonContext();
+
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -125,11 +126,11 @@ export default function SeasonTable({ members, seasonId }: TableProps) {
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex justify-end gap-3">
                 <UpdateBtn
-                  href={`/dashboard/climbing/${member.id}/edit?seasonId=${seasonId}`}
+                  href={`/dashboard/climbing/${member.id}/edit?seasonId=${selectedSeason}`}
                 />
                 <RemoveMemberFromSeason
                   memberId={member.id}
-                  seasonId={seasonId}
+                  seasonId={selectedSeason}
                 />
               </div>
             </td>

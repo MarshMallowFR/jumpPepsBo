@@ -3,14 +3,19 @@
 import { useState } from 'react';
 import { updateClimbingMember } from '@/app/lib/actions/climbing/actions';
 import Form from './form';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import { Member } from '@/app/lib/types/climbing';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 
-export default function EditForm({ member }: { member: MemberWithSeason }) {
+export default function EditForm({ member }: { member: Member }) {
   const initialState: ClimbingState = { message: null, errors: {} };
   const [state, setState] = useState<ClimbingState>(initialState);
   const dispatch = async (formData: FormData): Promise<ClimbingState> => {
-    const newState = await updateClimbingMember(member.id, state, formData);
+    const newState = await updateClimbingMember(
+      member.id,
+      state,
+      formData,
+      false,
+    );
     setState(newState);
     return newState;
   };

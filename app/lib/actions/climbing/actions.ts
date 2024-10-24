@@ -337,7 +337,12 @@ export async function createClimbingMember(
     );
 
     if (existingMemberId) {
-      return await updateClimbingMember(existingMemberId, _prevState, formData);
+      return await updateClimbingMember(
+        existingMemberId,
+        _prevState,
+        formData,
+        isRegistration,
+      );
     }
 
     const memberId = randomUUID();
@@ -464,6 +469,7 @@ export async function updateClimbingMember(
   id: string,
   _prevState: ClimbingState,
   formData: FormData,
+  isRegistration: boolean,
 ) {
   const validationStatus = UpdateClimbingMember.safeParse({
     picture: formData.get('picture'),
@@ -684,18 +690,22 @@ export async function updateClimbingMember(
     ]);
 
     await client.query('COMMIT');
+    return {
+      isSuccess: true,
+      message: isRegistration
+        ? 'Formulaire envoyé'
+        : 'Membre mis à jour avec succès.',
+    };
   } catch (error) {
-    console.error('Database Error: Failed to update the member.', error);
     await client.query('ROLLBACK');
     return {
-      message: 'Erreur lors de la mise à jour du membre.',
+      message: isRegistration
+        ? "Erreur lors de l'envoi du formulaire."
+        : 'Erreur lors de la mise à jour du membre.',
     };
   } finally {
     client.release();
   }
-  await revalidatePath('/dashboard/climbing');
-  await revalidatePath(`/dashboard/climbing/${id}/edit`);
-  redirect('/dashboard/climbing');
 }
 
 export async function deleteMemberCompletely(

@@ -1,77 +1,33 @@
 'use client';
-import { useState, useEffect } from 'react';
-import AllMembers from './all-members';
+import { useEffect } from 'react';
 import SeasonMembers from './season-members';
 import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
-import { MemberWithSeason, Member } from '@/app/lib/types/climbing';
+import { MemberList, SeasonMemberList } from '@/app/lib/types/climbing';
+import AllMembersTable from './all-members-table';
+import { useSearchParams } from 'next/navigation';
 
 export default function MembersManager({
   allMembers,
 }: {
-  allMembers: Member[];
+  allMembers: MemberList[] | SeasonMemberList[];
 }) {
-  const { selectedSeason } = useSeasonContext();
-  const [members, setMembers] = useState<MemberWithSeason[]>([]);
+  const searchParams = useSearchParams();
+  const seasonId = searchParams.get('seasonId');
+
+  const { selectedSeason, setSelectedSeason } = useSeasonContext();
 
   useEffect(() => {
-    const fetchMembersBySeason = async () => {
-      if (selectedSeason === 'all') {
-        // convert allMembers to type MemberWithSeason[]
-        const allMembersWithSeason: MemberWithSeason[] = allMembers.map(
-          (member) => ({
-            ...member,
-            license: '',
-            licenseType: '',
-            insurance: '',
-            supplementalInsurance: '',
-            assaultProtectionOption: false,
-            skiOption: false,
-            slacklineOption: false,
-            trailRunningOption: false,
-            mountainBikingOption: false,
-            isMediaCompliant: false,
-            hasPaid: false,
-          }),
-        );
-
-        setMembers(allMembersWithSeason);
-      } else if (selectedSeason) {
-        try {
-          const response = await fetch(
-            `/api/membersBySeason?seasonId=${selectedSeason}`,
-          );
-          if (!response.ok) {
-            const errorData = await response.json();
-            if (response.status === 404) {
-              console.warn(errorData.error);
-              setMembers([]);
-              return;
-            }
-            throw new Error('Failed to fetch members');
-          }
-          const membersData: MemberWithSeason[] = await response.json();
-          setMembers(membersData);
-
-          if (membersData.length === 0) {
-            console.warn(`Aucun membre trouvé pour la saison sélectionnée`);
-          }
-        } catch (error) {
-          console.error('Error fetching members:', error);
-        }
-      }
-    };
-
-    fetchMembersBySeason();
-  }, [selectedSeason, allMembers]);
+    if (seasonId) {
+      setSelectedSeason(seasonId);
+    }
+  }, []);
 
   return (
     <>
       {selectedSeason === 'all' ? (
-        <AllMembers allMembers={members} />
+        <AllMembersTable members={allMembers} />
       ) : (
-        selectedSeason && (
-          <SeasonMembers members={members} seasonId={selectedSeason} />
-        )
+        <SeasonMembers members={allMembers as SeasonMemberList[]} />
       )}
     </>
   );

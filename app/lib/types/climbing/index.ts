@@ -76,9 +76,6 @@ export interface Member {
   contact2LastName?: string;
   contact2PhoneNumber?: string;
   contact2Email?: string;
-}
-
-export interface MemberWithSeason extends Member {
   license: string;
   licenseType: string;
   insurance: string;
@@ -91,3 +88,15 @@ export interface MemberWithSeason extends Member {
   isMediaCompliant: boolean;
   hasPaid: boolean;
 }
+
+export interface MemberList {
+  id: string;
+  picture: string;
+  lastName: string;
+  firstName: string;
+  email: string;
+}
+
+export type SeasonMemberList = {
+  hasPaid: boolean;
+} & MemberList;
