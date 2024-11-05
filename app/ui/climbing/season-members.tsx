@@ -11,7 +11,6 @@ export default function SeasonMembers({
   members: MemberWithSeason[];
   seasonId: string;
 }) {
-  //const { members } = useSeasonContext(); pourquoi on ne peut pas utiliser le context plutôt que des props?
   const actions = [
     {
       label: 'Exporter au format Excel',

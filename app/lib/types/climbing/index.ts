@@ -91,3 +91,46 @@ export interface MemberWithSeason extends Member {
   isMediaCompliant: boolean;
   hasPaid: boolean;
 }
+
+export interface MemberRegistrationForm {
+  contactFirstName: string | null;
+  contactLastName: string | null;
+  firstName: string | null;
+  gender: string | null;
+  isMediaCompliant: boolean;
+  lastName: string | null;
+  picture: File | string | null;
+  pictureUrl: string | null;
+}
+
+export interface MemberForm {
+  assaultProtection: boolean;
+  birthDate: string | null;
+  gender: string | null;
+  hasPaid: boolean;
+  insurance: string;
+  isMediaCompliant: boolean;
+  licenseType: string | null;
+  picture: File | string | null;
+  pictureUrl: string | null;
+  supplementalInsurance: string;
+  //Options to select
+  skiOption: boolean;
+  slacklineOption: boolean;
+  trailRunningOption: boolean;
+  mountainBikingOption: boolean;
+}
+
+// const initialState: MemberForm = {
+//   assaultProtection: member?.assaultProtectionOption ?? false,
+//   birthDate: member?.birthDate || '',
+//   gender: member?.gender ?? 'F',
+//   hasPaid: member?.hasPaid ?? false,
+//   insurance: member?.insurance ?? 'RC',
+//   isMediaCompliant: member?.isMediaCompliant ?? false,
+//   licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'), // A voir ensemble ce radioInput
+//   picture: member?.picture || null,
+//   pictureUrl: member?.picture || null,
+//   supplementalInsurance: member?.supplementalInsurance ?? 'NON',
+//   // selectedOptions: member?.selectedOptions || {},
+// };

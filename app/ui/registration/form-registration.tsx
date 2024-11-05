@@ -13,6 +13,7 @@ import ToastContextProvider, {
 import ToastWrapper from '../common/toastWrapper';
 import { RadioInput } from '../common/radioInput';
 import { Season } from '@/app/lib/types/season';
+import { MemberRegistrationForm } from '@/app/lib/types/climbing';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -25,15 +26,19 @@ export default function FormRegistration({
   dispatch,
   season,
 }: FormProps) {
-  const [memberFirstName, setMemberFirstName] = useState('');
-  const [memberLastName, setMemberLastName] = useState('');
-  const [contactFirstName, setContactFirstName] = useState('');
-  const [contactLastName, setContactLastName] = useState('');
-  const [gender, setGender] = useState('F');
+  const initialState: MemberRegistrationForm = {
+    contactFirstName: null,
+    contactLastName: null,
+    firstName: null,
+    gender: null,
+    isMediaCompliant: true,
+    lastName: null,
+    picture: null,
+    pictureUrl: null,
+  };
+
+  const [member, setMember] = useState<MemberRegistrationForm>(initialState);
   const [isMinor, setIsMinor] = useState(false);
-  const [isMediaCompliant, setIsMediaCompliant] = useState(false);
-  const [picture, setPicture] = useState<File | null>(null);
-  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
@@ -45,41 +50,30 @@ export default function FormRegistration({
     .toString()
     .padStart(2, '0')}-${currentDate.getFullYear()}`;
 
-  const handleMemberFirstName = (
-    event: React.ChangeEvent<HTMLInputElement>,
+  const handleMemberChange = (
+    value: string | boolean | null,
+    key: keyof MemberRegistrationForm,
   ) => {
-    setMemberFirstName(event.target.value);
-  };
-
-  const handleMemberLastName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMemberLastName(event.target.value);
-  };
-
-  const handleContactFirstName = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setContactFirstName(event.target.value);
-  };
-
-  const handleContactLastName = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setContactLastName(event.target.value);
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      [key]: value,
+    }));
   };
 
   const handleIsMediaCompliant = () => {
-    setIsMediaCompliant((prevState) => !prevState);
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      isMediaCompliant: !oldMemberValues.isMediaCompliant,
+    }));
   };
 
   const handlePictureChange = (file: File) => {
-    setPicture(file);
-    // url locale pour la prévisualisation en attendant l'envoie du formulaire
-    const url = URL.createObjectURL(file);
-    setPictureUrl(url);
-  };
-
-  const handleGender = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGender(event.target.value);
+    const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      picture: file,
+      pictureUrl: url,
+    }));
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
@@ -88,10 +82,10 @@ export default function FormRegistration({
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    formData.set('isMediaCompliant', isMediaCompliant.toString());
+    formData.set('isMediaCompliant', member.isMediaCompliant.toString());
 
-    if (picture) {
-      formData.set('picture', picture);
+    if (member.picture) {
+      formData.set('picture', member.picture);
     }
     try {
       await dispatch(formData);
@@ -106,11 +100,8 @@ export default function FormRegistration({
   // Remise à zéro des champs du formulaire si tout est OK
   useEffect(() => {
     if (state?.isSuccess) {
+      setMember(initialState);
       setIsMinor(false);
-      setIsMediaCompliant(false);
-      setPicture(null);
-      setPictureUrl(null);
-      setGender('F');
       const form = document.querySelector('form');
       if (form) {
         form.reset();
@@ -120,13 +111,12 @@ export default function FormRegistration({
 
   useEffect(() => {
     return () => {
-      if (pictureUrl) {
-        URL.revokeObjectURL(pictureUrl);
+      if (member.pictureUrl) {
+        URL.revokeObjectURL(member.pictureUrl);
       }
     };
-  }, [pictureUrl]);
+  }, [member.pictureUrl]);
 
-  // RETURN FINAL
   return (
     <>
       <form
@@ -154,7 +144,7 @@ export default function FormRegistration({
             handleChange={handlePictureChange}
             idFor="picture"
             settingKey="picture"
-            imageUrl={pictureUrl ?? undefined}
+            imageUrl={member.pictureUrl ?? undefined}
             error={state?.errors?.picture}
           />
           <div className="ml-6 flex-grow">
@@ -164,7 +154,9 @@ export default function FormRegistration({
               label="Nom"
               settingKey="lastName"
               error={state?.errors?.lastName}
-              handleChange={handleMemberLastName}
+              handleChange={(event) =>
+                handleMemberChange(event.target.value, 'lastName')
+              }
             />
             <TextInput
               color={Color.ORANGE}
@@ -172,7 +164,9 @@ export default function FormRegistration({
               idFor="firstName"
               settingKey="firstName"
               error={state?.errors?.firstName}
-              handleChange={handleMemberFirstName}
+              handleChange={(event) =>
+                handleMemberChange(event.target.value, 'firstName')
+              }
             />
             <div className="w-full flex">
               <TextInput
@@ -195,9 +189,10 @@ export default function FormRegistration({
                   { label: 'F', value: 'F' },
                   { label: 'H', value: 'M' },
                 ]}
-                defaultValue="F"
-                value={gender}
-                onChange={handleGender}
+                value={member.gender ?? 'F'}
+                onChange={(event) =>
+                  handleMemberChange(event.target.value, 'gender')
+                }
               />
             </div>
           </div>
@@ -313,7 +308,9 @@ export default function FormRegistration({
           label="Nom"
           settingKey="contactLastName"
           error={state?.errors?.contactLastName}
-          handleChange={handleContactLastName}
+          handleChange={(event) =>
+            handleMemberChange(event.target.value, 'contactLastName')
+          }
         />
         <TextInput
           color={Color.ORANGE}
@@ -321,7 +318,9 @@ export default function FormRegistration({
           idFor="contactFirstName"
           settingKey="contactFirstName"
           error={state?.errors?.contactFirstName}
-          handleChange={handleContactFirstName}
+          handleChange={(event) =>
+            handleMemberChange(event.target.value, 'contactFirstName')
+          }
         />
         <div className="flex">
           <TextInput
@@ -404,7 +403,7 @@ export default function FormRegistration({
           <p className="mb-4">
             Je soussigné(e){' '}
             <span className="font-semibold">
-              {memberFirstName} {memberLastName}
+              {member.firstName} {member.lastName}
             </span>{' '}
             autorise le club à prendre des photos et/ou à filmer à l'occasion
             des activités et compétitions sportives ou associatives auxquelles
@@ -416,11 +415,11 @@ export default function FormRegistration({
           <p className="mb-4">
             Je soussigné(e){' '}
             <span className="font-semibold">
-              {contactFirstName} {contactLastName}
+              {member.contactFirstName} {member.contactLastName}
             </span>{' '}
             responsable légal de l'enfant{' '}
             <span className="font-semibold">
-              {memberFirstName} {memberLastName}
+              {member.firstName} {member.lastName}
             </span>{' '}
             autorise le club à prendre des photos et/ou à filmer mon enfant à
             l'occasion des activités et compétitions sportives ou associatives
@@ -431,7 +430,7 @@ export default function FormRegistration({
         )}
         <ToggleInput
           color={Color.ORANGE}
-          defaultValue={isMediaCompliant}
+          defaultValue={member.isMediaCompliant}
           idFor="isMediaCompliant"
           handleChange={handleIsMediaCompliant}
           settingKey="isMediaCompliant"
@@ -440,7 +439,7 @@ export default function FormRegistration({
             htmlFor="isMediaCompliant"
             className="ml-4 mr flex items-center"
           >
-            {isMediaCompliant ? 'OUI' : 'NON'}
+            {member.isMediaCompliant ? 'OUI' : 'NON'}
           </label>
         </ToggleInput>
         {!isMinor ? (
@@ -448,7 +447,7 @@ export default function FormRegistration({
             {' '}
             Je soussigné(e){' '}
             <span className="font-semibold">
-              {memberFirstName} {memberLastName}
+              {member.firstName} {member.lastName}
             </span>{' '}
             atteste avoir pris connaissance du réglèment intérieur remis par
             email avec les documents d'inscription.
@@ -458,11 +457,11 @@ export default function FormRegistration({
             {' '}
             Je soussigné(e){' '}
             <span className="font-semibold">
-              {contactFirstName} {contactLastName}
+              {member.contactFirstName} {member.contactLastName}
             </span>{' '}
             responsable légal de l'enfant{' '}
             <span className="font-semibold">
-              {memberFirstName} {memberLastName}
+              {member.firstName} {member.lastName}
             </span>{' '}
             atteste avoir pris connaissance du réglèment intérieur remis par
             email avec les documents d'inscription.

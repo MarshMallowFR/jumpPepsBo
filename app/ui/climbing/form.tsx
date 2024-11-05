@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import { MemberForm, MemberWithSeason } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
@@ -37,100 +37,134 @@ const optionsToSelect = [
 ];
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  const [picture, setPicture] = useState<File | string | null>(
-    member?.picture || null,
-  );
-  const [pictureUrl, setPictureUrl] = useState<string | null>(
-    member?.picture || null,
-  );
-
-  const [gender, setGender] = useState(member?.gender ?? 'F');
   const [isMinor, setIsMinor] = useState(false);
-  const [birthDate, setBirthDate] = useState(member?.birthDate || '');
-  const [assaultProtection, setAssaultProtection] = useState(
-    member?.assaultProtectionOption ?? false,
-  );
-  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
-  const [isMediaCompliant, setIsMediaCompliant] = useState(
-    member?.isMediaCompliant ?? false,
-  );
+  // const initialState: MemberForm = {
+  //   assaultProtectionOption: member?.assaultProtectionOption ?? false,
+  //   birthDate: member?.birthDate || '',
+  //   gender: member?.gender ?? 'F',
+  //   hasPaid: member?.hasPaid ?? false,
+  //   insurance: member?.insurance ?? 'RC',
+  //   isMediaCompliant: member?.isMediaCompliant ?? false,
+  //   licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
+  //   picture: member?.picture || null,
+  //   pictureUrl: member?.picture || null,
+  //   supplementalInsurance: member?.supplementalInsurance ?? 'NON',
+  //   skiOption: member?.skiOption ?? false,
+  //   slacklineOption: member?.slacklineOption ?? false,
+  //   trailRunningOption: member?.trailRunningOption ?? false,
+  //   mountainBikingOption: member?.mountainBikingOption ?? false,
+  // };
 
-  const [licenseType, setLicenseType] = useState(() => {
-    if (member?.licenseType) {
-      return member.licenseType;
-    }
-    return isMinor ? 'J' : 'A';
-  });
-  const [selectedOptions, setSelectedOptions] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [insurance, setInsurance] = useState(member?.insurance ?? 'RC');
-  const [supplementalInsurance, setSupplementalInsurance] = useState(
-    member?.supplementalInsurance ?? 'NON',
-  );
+  const [memberInput, setMemberInput] = useState<
+    Partial<MemberWithSeason> | undefined
+  >(member);
+  // const [memberInput, setMemberInput] = useState<MemberForm>(initialState);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
-  const handlePictureChange = (file: File) => {
-    setPicture(file);
-    // url locale pour la prévisualisation en attendant l'envoie du formulaire
-    const url = URL.createObjectURL(file);
-    setPictureUrl(url);
-  };
+  const genderOptions = [
+    { label: 'F', value: 'F' },
+    { label: 'H', value: 'M' },
+  ];
 
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
 
   useEffect(() => {
-    if (member?.birthDate) {
-      const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
-      const birthDateEvent = {
-        target: { value: formattedBirthDate },
-      };
-      handleBirthDate(setIsMinor)(birthDateEvent as any);
+    if (member) {
+      setMemberInput((prev) => ({
+        ...prev,
+        ...member,
+      }));
     }
   }, [member]);
 
-  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBirthDate(e.target.value);
-    handleBirthDate(setIsMinor)(e);
+  const handleMemberChange = (
+    value: string | boolean | null,
+    key: keyof MemberWithSeason,
+  ) => {
+    console.log({ value, key });
+    setMemberInput((oldMemberValues) => ({
+      ...(oldMemberValues ? oldMemberValues : {}),
+      [key]: value,
+    }));
   };
 
-  const handleGender = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGender(event.target.value);
-  };
+  // useEffect(() => {
+  //   if (member?.birthDate) {
+  //     const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
+  //     const birthDateEvent = {
+  //       target: { value: formattedBirthDate },
+  //     };
+  //     handleBirthDate(setIsMinor)(birthDateEvent as any);
+  //   }
+  // }, [member]);
 
-  const handleLicenseType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLicenseType(event.target.value);
-  };
+  // const handleAssaultProtection = () => {
+  //   const newValue = memberInput?.assaultProtectionOption;
+  //   handleMemberChange(newValue, 'assaultProtectionOption');
+  // };
+
+  // const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newBirthDate = e.target.value;
+  //   setMemberInput((prev) => ({
+  //     ...prev,
+  //     birthDate: newBirthDate,
+  //   }));
+  //   handleBirthDate(setIsMinor)(e);
+  // };
 
   useEffect(() => {
-    setLicenseType(member?.licenseType ?? (isMinor ? 'J' : 'A'));
+    setMemberInput((prev) => ({
+      ...prev,
+      licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
+    }));
   }, [member, isMinor]);
 
   const handleOptionsChange = (values: { [key: string]: boolean }) => {
-    setSelectedOptions(values);
-  };
-  const handleInsurance = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInsurance(event.target.value);
-  };
-
-  const handleSupplementalInsurance = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setSupplementalInsurance(event.target.value);
-  };
-  const handleAssaultProtection = () => {
-    setAssaultProtection((prevState) => !prevState);
-  };
-  const handleHasPaid = () => {
-    setHasPaid((prevState) => !prevState);
+    setMemberInput((prevInput) => ({
+      ...prevInput,
+      ...values,
+    }));
   };
 
-  const handleIsMediaCompliant = () => {
-    setIsMediaCompliant((prevState) => !prevState);
-  };
+  // const handlePictureChange = (file: File) => {
+  //   const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
+  //   setMemberInput((oldMemberValues) => ({
+  //     ...oldMemberValues,
+  //     picture: file,
+  //     pictureUrl: url,
+  //   }));
+  // };
+
+  // const handleIsMediaCompliant = () => {
+  //   const newValue = !memberInput.isMediaCompliant;
+  //   handleMemberChange(newValue, 'isMediaCompliant');
+  // };
+
+  // const handleHasPaid = () => {
+  //   const newValue = !memberInput.hasPaid;
+  //   handleMemberChange(newValue, 'hasPaid');
+  // };
+
+  // const handleInsuranceChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   const selectedValue = event.target.value;
+  //   setMemberInput((prev) => ({ ...prev, insurance: selectedValue }));
+  // };
+
+  // const handleSupplementalInsuranceChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   const selectedValue = event.target.value;
+  //   setMemberInput((prev) => ({
+  //     ...prev,
+  //     supplementalInsurance: selectedValue,
+  //   }));
+  // };
 
   // Conversion valeurs du formulaire au bon format avant envoi
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -138,14 +172,33 @@ export default function Form({ state, dispatch, member }: FormProps) {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    if (picture) formData.set('picture', picture);
-
-    for (const [key, value] of Object.entries(selectedOptions)) {
-      formData.set(key, value.toString());
+    if (memberInput?.picture) {
+      formData.set('picture', memberInput.picture);
     }
-    formData.set('assaultProtectionOption', assaultProtection.toString());
-    formData.set('isMediaCompliant', isMediaCompliant.toString());
-    formData.set('hasPaid', hasPaid.toString());
+    formData.set(
+      'assaultProtectionOption',
+      memberInput?.assaultProtectionOption?.toString() || '',
+    );
+    formData.set('hasPaid', memberInput?.hasPaid?.toString() || '');
+    formData.set(
+      'isMediaCompliant',
+      memberInput?.isMediaCompliant?.toString() || '',
+    );
+    formData.set('skiOption', memberInput?.skiOption?.toString() || '');
+    formData.set(
+      'slacklineOption',
+      memberInput?.slacklineOption?.toString() || '',
+    );
+    formData.set(
+      'trailRunningOption',
+      memberInput?.trailRunningOption?.toString() || '',
+    );
+    formData.set(
+      'mountainBikingOption',
+      memberInput?.mountainBikingOption?.toString() || '',
+    );
+
+    console.log({ memberInput });
 
     try {
       await dispatch(formData);
@@ -158,13 +211,13 @@ export default function Form({ state, dispatch, member }: FormProps) {
   };
 
   // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
-  useEffect(() => {
-    return () => {
-      if (pictureUrl) {
-        URL.revokeObjectURL(pictureUrl);
-      }
-    };
-  }, [pictureUrl]);
+  // useEffect(() => {
+  //   return () => {
+  //     if (memberInput.pictureUrl) {
+  //       URL.revokeObjectURL(memberInput.pictureUrl);
+  //     }
+  //   };
+  // }, [memberInput.pictureUrl]);
 
   // Redirection vers dashboard après un délai en cas de succès
   useEffect(() => {
@@ -185,11 +238,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
               Informations sur l'adhérent.ee
             </p>
             <div className="flex items-start">
-              {pictureUrl ? (
+              {/* {memberInput.pictureUrl ? (
                 <ProfileImage
                   idFor="picture"
                   settingKey="picture"
-                  imageUrl={pictureUrl}
+                  imageUrl={memberInput.pictureUrl}
                   handlePictureChange={handlePictureChange}
                   error={state?.errors?.picture}
                   member={member}
@@ -201,7 +254,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   settingKey="picture"
                   error={state?.errors?.picture}
                 />
-              )}
+              )} */}
               <div className="ml-4 flex-grow">
                 <TextInput
                   defaultValue={member?.lastName}
@@ -220,7 +273,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 <div className="w-full flex">
                   <TextInput
                     defaultValue={formatTimestamp(member?.birthDate)}
-                    handleChange={handleBirthDateChange}
+                    handleChange={(e) =>
+                      handleMemberChange(e.target.value, 'birthDate')
+                    }
                     label="Date de naissance"
                     idFor="birthDate"
                     placeholder="JJ/MM/AAAA"
@@ -233,13 +288,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
                     label="Sexe"
                     idFor="gender"
                     settingKey="gender"
-                    options={[
-                      { label: 'F', value: 'F' },
-                      { label: 'H', value: 'M' },
-                    ]}
-                    defaultValue="F"
-                    value={gender}
-                    onChange={handleGender}
+                    options={genderOptions}
+                    value={memberInput?.gender || genderOptions[0].value}
+                    onChange={(event) =>
+                      handleMemberChange(event.target.value, 'gender')
+                    }
                   />
                 </div>
               </div>
@@ -452,8 +505,10 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   { label: 'Adulte', value: 'A' },
                   { label: 'Famille', value: 'F' },
                 ]}
-                value={licenseType}
-                onChange={handleLicenseType}
+                value={memberInput?.licenseType || ''}
+                onChange={(event) =>
+                  handleMemberChange(event.target.value, 'licenseType')
+                }
               />
             </div>
             <SelectInput
@@ -473,9 +528,10 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   { label: 'B+', value: 'B+' },
                   { label: 'B++', value: 'B++' },
                 ]}
-                defaultValue="RC"
-                value={insurance}
-                onChange={handleInsurance}
+                value={memberInput?.insurance}
+                onChange={(e) =>
+                  handleMemberChange(e.target.value, 'insurance')
+                }
               />
               <RadioInput
                 className="flex-1 mx-8"
@@ -488,14 +544,17 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   { label: 'IJ2', value: 'IJ2' },
                   { label: 'IJ3', value: 'IJ3' },
                 ]}
-                defaultValue="NON"
-                value={supplementalInsurance}
-                onChange={handleSupplementalInsurance}
+                value={memberInput?.supplementalInsurance}
+                onChange={(e) =>
+                  handleMemberChange(e.target.value, 'supplementalInsurance')
+                }
               />
               <ToggleInput
                 className="flex-1"
-                defaultValue={assaultProtection}
-                handleChange={handleAssaultProtection}
+                defaultValue={memberInput?.assaultProtectionOption}
+                handleChange={(e) =>
+                  handleMemberChange(e.target.value, 'assaultProtectionOption')
+                }
                 idFor="assaultProtectionOption"
                 label="Option protection agression"
                 settingKey="assaultProtectionOption"
@@ -504,7 +563,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   htmlFor="assaultProtectionOption"
                   className="ml-4 mr flex items-center"
                 >
-                  {assaultProtection ? 'Oui' : 'Non'}
+                  {memberInput?.assaultProtectionOption ? 'Oui' : 'Non'}
                 </label>
               </ToggleInput>
             </div>
@@ -516,8 +575,10 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   title="Autorise le club à utiliser l'image de l'adhérent à des fins non commerciales sur tout type de support"
                 />
               }
-              defaultValue={isMediaCompliant}
-              handleChange={handleIsMediaCompliant}
+              defaultValue={memberInput?.isMediaCompliant}
+              handleChange={(e) =>
+                handleMemberChange(e.target.value, 'isMediaCompliant')
+              }
               idFor="isMediaCompliant"
               label="Autorisation média"
               settingKey="isMediaCompliant"
@@ -526,8 +587,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 htmlFor="isMediaCompliant"
                 className="ml-4 mr flex items-center"
               >
-                {isMediaCompliant ? 'Accepte' : 'Refuse'}
-                {isMediaCompliant ? (
+                {memberInput?.isMediaCompliant ? 'Accepte' : 'Refuse'}
+                {memberInput?.isMediaCompliant ? (
                   <CheckIcon className="h-4 w-4 ml-2 text-green-600 font-bold" />
                 ) : (
                   <XMarkIcon className="h-4 w-4 ml-2 text-red-600" />
@@ -536,15 +597,17 @@ export default function Form({ state, dispatch, member }: FormProps) {
             </ToggleInput>
             <ToggleInput
               className="mt-8"
-              defaultValue={hasPaid}
-              handleChange={handleHasPaid}
+              defaultValue={memberInput?.hasPaid}
+              handleChange={(e) =>
+                handleMemberChange(e.target.value, 'hasPaid')
+              }
               idFor="hasPaid"
               label="Statut du paiement"
               settingKey="hasPaid"
             >
               <label className="ml-4 mr flex items-center">
                 Payé{' '}
-                {hasPaid ? (
+                {memberInput?.hasPaid ? (
                   <CheckIcon className="h-4 w-4 ml-2 text-green-600 font-bold" />
                 ) : (
                   <ClockIcon className="h-4 w-4 ml-2 text-red-600" />

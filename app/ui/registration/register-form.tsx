@@ -9,6 +9,7 @@ import FormRegistration from './form-registration';
 import { kanit } from '../style/fonts';
 import { Season } from '@/app/lib/types/season';
 import { getSeasons } from '@/app/lib/actions/season/actions';
+import { MemberWithSeason } from '@/app/lib/types/climbing';
 
 export default function RegisterForm() {
   const initialState: ClimbingState = {
@@ -20,6 +21,7 @@ export default function RegisterForm() {
   const [currentSeason, setCurrentSeason] = useState<Season | undefined>(
     undefined,
   );
+
   useEffect(() => {
     const fetchSeasons = async () => {
       try {

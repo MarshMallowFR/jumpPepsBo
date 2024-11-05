@@ -11,8 +11,6 @@ interface TableProps {
 }
 
 export default function SeasonTable({ members }: TableProps) {
-  //   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
-  //     useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -50,16 +48,6 @@ export default function SeasonTable({ members }: TableProps) {
   const getSelectedMemberIds = () => {
     return Object.keys(selectedStates).filter((id) => selectedStates[id]);
   };
-
-  //   useEffect(() => {
-  //     const selectedMemberIds = getSelectedMemberIds();
-  //     setSelectedIds(selectedMemberIds);
-  //     if (selectedMemberIds.length > 0) {
-  //       setIsVisibleDropdown(true);
-  //     } else {
-  //       setIsVisibleDropdown(false);
-  //     }
-  //   }, [selectedStates]);
 
   return (
     <table className="hidden min-w-full text-gray-900 md:table">

@@ -57,6 +57,17 @@ const DropdownContextProvider = ({
     setToastMessage(message);
   };
 
+  const handlePromise = async (promise: Promise<{ message: string } | Error>) =>
+    promise
+      .then(({ message }) => handleToast(true, ToastType.SUCCESS, message))
+      .catch((error) =>
+        handleToast(
+          true,
+          ToastType.ERROR,
+          error instanceof Error ? error.message : 'Une erreur est survenue.',
+        ),
+      );
+
   const handleSelect = async (value: string) => {
     const action = actions.find((action) => action.value === value)?.action;
     if (action) {
@@ -66,37 +77,13 @@ const DropdownContextProvider = ({
 
       switch (action) {
         case 'export-excel':
-          try {
-            const result = await downloadExcel(selectedIds);
-            handleToast(true, ToastType.SUCCESS, result.message);
-          } catch (error) {
-            console.error("Erreur lors de l'exportation:", error);
-            handleToast(
-              true,
-              ToastType.ERROR,
-              error instanceof Error
-                ? error.message
-                : 'Une erreur est survenue.',
-            );
-          }
+          await handlePromise(downloadExcel(selectedIds));
           break;
         case 'delete-many':
           if (selectedSeason) {
-            try {
-              const result = await removeMembersFromSeason(
-                selectedIds,
-                selectedSeason,
-              );
-              handleToast(true, ToastType.SUCCESS, result.message);
-            } catch (error) {
-              handleToast(
-                true,
-                ToastType.ERROR,
-                error instanceof Error
-                  ? error.message
-                  : 'Une erreur est survenue.',
-              );
-            }
+            await handlePromise(
+              removeMembersFromSeason(selectedIds, selectedSeason),
+            );
           } else {
             handleToast(true, ToastType.ERROR, 'Aucune saison sélectionnée.');
           }

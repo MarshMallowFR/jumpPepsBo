@@ -28,8 +28,6 @@ export async function createNewSeason(): Promise<void> {
       INSERT INTO seasons (id, name, registration_open)
       VALUES (${seasonId}, ${seasonName}, ${registrationOpen})
     `;
-
-    console.log('Nouvelle saison créée:', seasonName);
   } catch (error) {
     throw new Error('Erreur lors de la création de la saison.');
   }

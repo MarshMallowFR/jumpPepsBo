@@ -20,7 +20,6 @@ interface RadioInputProps {
 export const RadioInput = ({
   className,
   color = Color.BLUE,
-  defaultValue,
   label,
   idFor,
   settingKey,
