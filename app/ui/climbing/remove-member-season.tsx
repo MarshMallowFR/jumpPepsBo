@@ -4,7 +4,7 @@ import { DeleteBtn } from '../common/buttons';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 interface RemoveMemberFromSeasonProps {
   memberId: string;
-  seasonId: string;
+  seasonId: string | null;
 }
 
 export default function RemoveMemberFromSeason({
@@ -12,23 +12,27 @@ export default function RemoveMemberFromSeason({
   seasonId,
 }: RemoveMemberFromSeasonProps) {
   const { setIsVisible, setToastType, setToastMessage } = useToastContext();
-  const handleDelete = async () => {
-    try {
-      const result = await removeMemberFromSeason(memberId, seasonId);
-      setIsVisible(true);
-      setToastType(ToastType.SUCCESS);
-      setToastMessage(result.message);
-    } catch (error: unknown) {
-      console.error('Failed to delete member:', error);
-      setIsVisible(true);
-      setToastType(ToastType.ERROR);
-      if (error instanceof Error) {
-        setToastMessage(error.message);
-      } else {
-        setToastMessage('Une erreur est survenue.');
-      }
+  const handleRemove = async () => {
+    console.log('RemoveMemberFromSeason needs to be reviewed');
+    if (seasonId) {
+      await removeMemberFromSeason(memberId, seasonId)
+        .then((result) => {
+          setIsVisible(true);
+          setToastType(ToastType.SUCCESS);
+          setToastMessage(result.message);
+        })
+        .catch((error) => {
+          console.error('Failed to delete member:', error);
+          setIsVisible(true);
+          setToastType(ToastType.ERROR);
+          if (error instanceof Error) {
+            setToastMessage(error.message);
+          } else {
+            setToastMessage('Une erreur est survenue.');
+          }
+        });
     }
   };
 
-  return <DeleteBtn id={memberId} handleDelete={handleDelete} />;
+  return <DeleteBtn id={memberId} handleDelete={handleRemove} />;
 }

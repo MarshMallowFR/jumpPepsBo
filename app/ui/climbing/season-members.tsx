@@ -1,15 +1,12 @@
 import DropdownContextProvider from '@/app/lib/contexts/dropdownmenuContext';
-import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import { SeasonMemberList } from '@/app/lib/types/climbing';
 import SeasonTable from './season-table';
 import NotFoundMessage from '../common/notFoundMessage';
 
 export default function SeasonMembers({
   members,
-  seasonId,
 }: {
-  members: MemberWithSeason[];
-  seasonId: string;
+  members: SeasonMemberList[];
 }) {
   const actions = [
     {
@@ -24,15 +21,15 @@ export default function SeasonMembers({
     },
   ];
 
+  if (members.length === 0) {
+    return (
+      <NotFoundMessage message="Aucun membre existant pour cette saison" />
+    );
+  }
+
   return (
-    <div>
-      {members.length === 0 ? (
-        <NotFoundMessage message="Aucun membre existant pour cette saison" />
-      ) : (
-        <DropdownContextProvider actions={actions} members={members}>
-          <SeasonTable members={members} seasonId={seasonId} />
-        </DropdownContextProvider>
-      )}
-    </div>
+    <DropdownContextProvider actions={actions}>
+      <SeasonTable members={members} />
+    </DropdownContextProvider>
   );
 }

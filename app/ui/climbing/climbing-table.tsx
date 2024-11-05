@@ -2,13 +2,13 @@ import ToastContextProvider from '@/app/lib/contexts/toastContext';
 import SeasonContextProvider from '@/app/lib/contexts/seasonContext';
 import MembersManager from './member-management';
 import { getSeasons } from '@/app/lib/actions/season/actions';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberList, SeasonMemberList } from '@/app/lib/types/climbing';
 import NotFoundMessage from '../common/notFoundMessage';
 
 export default async function ClimbingTable({
   allMembers,
 }: {
-  allMembers: Member[];
+  allMembers: MemberList[] | SeasonMemberList[];
 }) {
   const allseasons = await getSeasons();
 

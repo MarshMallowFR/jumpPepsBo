@@ -7,11 +7,14 @@ import { notFound } from 'next/navigation';
 
 export default async function Page({
   params,
+  searchParams,
 }: {
-  params: { id: string; seasonId: string };
+  params: { memberId: string };
+  searchParams: { seasonId: string };
 }) {
-  const { id, seasonId } = params;
-  const member = await fetchMemberByIdAndSeasonId(id, seasonId);
+  const { memberId } = params;
+  const { seasonId } = searchParams;
+  const member = await fetchMemberByIdAndSeasonId(memberId, seasonId);
 
   if (!member) {
     notFound();

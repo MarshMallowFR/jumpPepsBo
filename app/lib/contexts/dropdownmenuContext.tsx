@@ -10,7 +10,6 @@ import {
   useState,
 } from 'react';
 import { downloadExcel } from '@/app/lib/excel/excel';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
 import { useToastContext, ToastType } from './toastContext';
 import { removeMembersFromSeason } from '../actions/climbing/actions';
 import { useSeasonContext } from './seasonContext';
@@ -26,7 +25,6 @@ const DropdownContext = createContext<DropdownContextProps | undefined>(
 
 const DropdownContextProvider = ({
   actions,
-  members,
   children,
 }: {
   actions: {
@@ -34,7 +32,6 @@ const DropdownContextProvider = ({
     value: string;
     action?: string | ((ids: string[]) => void);
   }[];
-  members: MemberWithSeason[];
   children: React.ReactNode;
 }) => {
   const [isVisible, setIsVisible] = useState(false);

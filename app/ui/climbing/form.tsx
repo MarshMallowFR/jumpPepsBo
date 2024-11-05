@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { MemberForm, MemberWithSeason } from '@/app/lib/types/climbing';
+import { Member } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
@@ -29,14 +29,26 @@ import ToastWrapper from '../common/toastWrapper';
 import { RadioInput } from '../common/radioInput';
 import { ProfileImage } from '../common/profilImage';
 import { SelectInput } from '../common/selectInput';
+import { useSearchParams } from 'next/navigation';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
-  member?: MemberWithSeason;
+  member?: Member;
   state: ClimbingState;
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
+  const searchParams = useSearchParams();
+  const seasonId = searchParams.get('seasonId');
+
+  const [picture, setPicture] = useState<File | string | null>(
+    member?.picture || null,
+  );
+  const [pictureUrl, setPictureUrl] = useState<string | null>(
+    member?.picture || null,
+  );
+
+  const [gender, setGender] = useState(member?.gender ?? 'F');
   const [isMinor, setIsMinor] = useState(false);
   // const initialState: MemberForm = {
   //   assaultProtectionOption: member?.assaultProtectionOption ?? false,
@@ -55,10 +67,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
   //   mountainBikingOption: member?.mountainBikingOption ?? false,
   // };
 
-  const [memberInput, setMemberInput] = useState<
-    Partial<MemberWithSeason> | undefined
-  >(member);
+  const [memberInput, setMemberInput] = useState<Partial<any> | undefined>(
+    member,
+  );
   // const [memberInput, setMemberInput] = useState<MemberForm>(initialState);
+  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
+  const [isMediaCompliant, setIsMediaCompliant] = useState(
+    member?.isMediaCompliant ?? false,
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
@@ -67,14 +83,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
 
-  useEffect(() => {
-    if (member) {
-      setMemberInput((prev) => ({
-        ...prev,
-        ...member,
-      }));
-    }
-  }, [member]);
+  // useEffect(() => {
+  //   if (member) {
+  //     setMemberInput((prev) => ({
+  //       ...prev,
+  //       ...member,
+  //     }));
+  //   }
+  // }, [member]);
 
   // useEffect(() => {
   //   if (member?.birthDate) {
@@ -95,7 +111,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const handleMemberChange = (
     value: string | boolean | null,
-    key: keyof MemberWithSeason,
+    key: keyof any,
   ) => {
     console.log({ value, key });
     setMemberInput((oldMemberValues) => ({
@@ -123,6 +139,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
       return () => clearTimeout(timer);
     }
   }, [state?.isSuccess]);
+
+  const handleHasPaid = () => {
+    setHasPaid((prevState) => !prevState);
+  };
+
+  const handleIsMediaCompliant = () => {
+    setIsMediaCompliant((prevState) => !prevState);
+  };
 
   // const handleAssaultProtection = () => {
   //   const newValue = memberInput?.assaultProtectionOption;
@@ -224,6 +248,25 @@ export default function Form({ state, dispatch, member }: FormProps) {
       setIsSubmitting(false);
     }
   };
+
+  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
+  useEffect(() => {
+    return () => {
+      if (pictureUrl) {
+        URL.revokeObjectURL(pictureUrl);
+      }
+    };
+  }, [pictureUrl]);
+
+  // Redirection vers dashboard après un délai en cas de succès
+  useEffect(() => {
+    if (state?.isSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/climbing?seasonId=${seasonId}`; // Redirection côté client
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [state?.isSuccess]);
 
   return (
     <>
@@ -604,7 +647,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
         <div className="mt-6 flex justify-end gap-4">
           <Link
-            href="/dashboard/climbing"
+            href={`/dashboard/climbing?seasonId=${seasonId}`}
             className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             Annuler
