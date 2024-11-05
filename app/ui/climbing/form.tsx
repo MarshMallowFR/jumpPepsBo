@@ -13,14 +13,14 @@ import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 
+import { handleBirthDate } from '../../utils/handleBirthday';
 import {
-  handleBirthDate,
   optionsToSelect,
   genderOptions,
   licenseTypeOptions,
   insuranceOptions,
   supplementalInsuranceOptions,
-} from '../../utils/handleBirthday';
+} from '../../utils/formOptions';
 import { PictureUpload } from '../common/pictureUpload';
 import ToastContextProvider, {
   ToastType,
@@ -67,7 +67,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   //   mountainBikingOption: member?.mountainBikingOption ?? false,
   // };
 
-  const [memberInput, setMemberInput] = useState<Partial<any> | undefined>(
+  const [memberInput, setMemberInput] = useState<Partial<Member> | undefined>(
     member,
   );
   // const [memberInput, setMemberInput] = useState<MemberForm>(initialState);
@@ -92,15 +92,15 @@ export default function Form({ state, dispatch, member }: FormProps) {
   //   }
   // }, [member]);
 
-  // useEffect(() => {
-  //   if (member?.birthDate) {
-  //     const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
-  //     const birthDateEvent = {
-  //       target: { value: formattedBirthDate },
-  //     };
-  //     handleBirthDate(setIsMinor)(birthDateEvent as any);
-  //   }
-  // }, [member]);
+  useEffect(() => {
+    if (member?.birthDate) {
+      const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
+      const birthDateEvent = {
+        target: { value: formattedBirthDate },
+      };
+      handleBirthDate(setIsMinor)(birthDateEvent as any);
+    }
+  }, [member]);
 
   useEffect(() => {
     setMemberInput((prev) => ({
@@ -111,7 +111,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const handleMemberChange = (
     value: string | boolean | null,
-    key: keyof any,
+    key: keyof Member,
   ) => {
     console.log({ value, key });
     setMemberInput((oldMemberValues) => ({

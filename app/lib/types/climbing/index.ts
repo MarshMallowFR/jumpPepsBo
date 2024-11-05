@@ -118,19 +118,6 @@ export interface MemberForm {
   mountainBikingOption: boolean;
 }
 
-// const initialState: MemberForm = {
-//   assaultProtection: member?.assaultProtectionOption ?? false,
-//   birthDate: member?.birthDate || '',
-//   gender: member?.gender ?? 'F',
-//   hasPaid: member?.hasPaid ?? false,
-//   insurance: member?.insurance ?? 'RC',
-//   isMediaCompliant: member?.isMediaCompliant ?? false,
-//   licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'), // A voir ensemble ce radioInput
-//   picture: member?.picture || null,
-//   pictureUrl: member?.picture || null,
-//   supplementalInsurance: member?.supplementalInsurance ?? 'NON',
-//   // selectedOptions: member?.selectedOptions || {},
-// };
 export interface MemberList {
   id: string;
   picture: string;
