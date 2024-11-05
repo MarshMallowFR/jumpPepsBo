@@ -1,16 +1,15 @@
 'use client';
-import { Member } from '@/app/lib/types/climbing';
+import { MemberList } from '@/app/lib/types/climbing';
 import DeleteMember from './delete-member';
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
-import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 
 interface TableProps {
-  members: Member[];
+  members: MemberList[];
 }
 
-export default function SeasonTable({ members }: TableProps) {
+export default function AllMembersTable({ members }: TableProps) {
   //   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
   //     useDropdownContext();
   const [selectedStates, setSelectedStates] = useState(

@@ -2,8 +2,10 @@ import { sql } from '@vercel/postgres';
 import { unstable_noStore as noStore } from 'next/cache';
 
 import {
-  MemberWithContactsDB,
   MemberWithContactsAndSeasonBD,
+  MemberList,
+  MemberDB,
+  SeasonMemberList,
 } from './types/climbing';
 import { Section } from './types/section';
 import { AdminDB } from './types/admins';
@@ -77,31 +79,15 @@ export async function fetchClimbPages() {
 export async function fetchAllClimbingMembers(
   query: string,
   currentPage: number,
-) {
+): Promise<MemberList[]> {
   noStore();
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const members = await sql<MemberWithContactsDB>`
-      SELECT
-        members.*,
-        mc.first_contact_id,
-        c1.link AS contact_link,
-        c1.first_name AS contact_first_name,
-        c1.last_name AS contact_last_name,
-        c1.phone_number AS contact_phone_number,
-        c1.email AS contact_email,
-        mc.second_contact_id,
-        c2.link AS contact2_link,
-        c2.first_name AS contact2_first_name,
-        c2.last_name AS contact2_last_name,
-        c2.phone_number AS contact2_phone_number,
-        c2.email AS contact2_email
+    const members = await sql<MemberDB>`
+      SELECT id, picture, last_name, first_name, email
       FROM members
-      LEFT JOIN member_contact mc ON mc.member_id = members.id
-      LEFT JOIN contacts c1 ON mc.first_contact_id = c1.id  
-      LEFT JOIN contacts c2 ON mc.second_contact_id = c2.id 
       WHERE
         members.first_name ILIKE ${`%${query}%`} OR
         members.last_name ILIKE ${`%${query}%`}
@@ -109,221 +95,44 @@ export async function fetchAllClimbingMembers(
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
 
-    return members.rows.length > 0
-      ? members.rows.map((row) => {
-          const {
-            id,
-            picture,
-            last_name,
-            first_name,
-            birth_date,
-            gender,
-            nationality,
-            street,
-            additional_address_information,
-            zip_code,
-            city,
-            country,
-            email,
-            phone_number,
-            phone_number2,
-            birth_town,
-            birth_departement,
-            first_contact_id,
-            contact_link,
-            contact_first_name,
-            contact_last_name,
-            contact_phone_number,
-            contact_email,
-            second_contact_id,
-            contact2_link,
-            contact2_first_name,
-            contact2_last_name,
-            contact2_phone_number,
-            contact2_email,
-          } = row;
-
-          return {
-            id,
-            picture,
-            lastName: last_name,
-            firstName: first_name,
-            birthDate: birth_date,
-            gender,
-            nationality,
-            street,
-            additionalAddressInformation: additional_address_information,
-            zipCode: zip_code,
-            city,
-            country,
-            email,
-            phoneNumber: phone_number,
-            phoneNumber2: phone_number2,
-            birthTown: birth_town,
-            birthDepartement: birth_departement,
-            // Contacts Information
-            contactId: first_contact_id,
-            contactLink: contact_link,
-            contactLastName: contact_last_name,
-            contactFirstName: contact_first_name,
-            contactPhoneNumber: contact_phone_number,
-            contactEmail: contact_email,
-            contact2Id: second_contact_id ?? undefined,
-            contact2Link: contact2_link ?? undefined,
-            contact2FirstName: contact2_first_name ?? undefined,
-            contact2LastName: contact2_last_name ?? undefined,
-            contact2PhoneNumber: contact2_phone_number ?? undefined,
-            contact2Email: contact2_email ?? undefined,
-          };
-        })
-      : [];
+    return members.rows.map((member) => ({
+      id: member.id,
+      picture: member.picture,
+      lastName: member.last_name,
+      firstName: member.first_name,
+      email: member.email,
+    }));
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(`Failed to fetch members. ${error}`);
   }
 }
 
-export async function fetchMembersBySeasonId(seasonId: string) {
+export async function fetchMembersBySeasonId(
+  seasonId: string,
+): Promise<SeasonMemberList[]> {
   try {
     const members = await sql<MemberWithContactsAndSeasonBD>`
-      SELECT
+      SELECT 
         members.id,
         members.picture,
         members.last_name,
         members.first_name,
-        members.birth_date,
-        members.gender,
-        members.nationality,
-        members.street,
-        members.additional_address_information,
-        members.zip_code,
-        members.city,
-        members.country,
         members.email,
-        members.phone_number,
-        members.phone_number2,
-        members.birth_town,
-        members.birth_departement,
-        mss.license,
-        mss.license_type,
-        mss.insurance,
-        mss.supplemental_insurance,
-        mss.assault_protection_option,
-        mss.ski_option,
-        mss.slackline_option,
-        mss.trail_running_option,
-        mss.mountain_biking_option,
-        mss.is_media_compliant,
-        mss.has_paid,
-        mc.first_contact_id,
-        c1.link AS contact_link,
-        c1.first_name AS contact_first_name,
-        c1.last_name AS contact_last_name,
-        c1.phone_number AS contact_phone_number,
-        c1.email AS contact_email,
-        mc.second_contact_id,
-        c2.link AS contact2_link,
-        c2.first_name AS contact2_first_name,
-        c2.last_name AS contact2_last_name,
-        c2.phone_number AS contact2_phone_number,
-        c2.email AS contact2_email
+        mss.has_paid 
       FROM members
       JOIN member_section_season mss ON mss.member_id = members.id
-      LEFT JOIN member_contact mc ON members.id = mc.member_id
-      LEFT JOIN contacts c1 ON mc.first_contact_id = c1.id
-      LEFT JOIN contacts c2 ON mc.second_contact_id = c2.id
       WHERE mss.season_id = ${seasonId}
     `;
 
-    return members.rows.map((row) => {
-      const {
-        id,
-        picture,
-        last_name,
-        first_name,
-        birth_date,
-        gender,
-        nationality,
-        street,
-        additional_address_information,
-        zip_code,
-        city,
-        country,
-        email,
-        phone_number,
-        phone_number2,
-        birth_town,
-        birth_departement,
-        license,
-        license_type,
-        insurance,
-        supplemental_insurance,
-        assault_protection_option,
-        ski_option,
-        slackline_option,
-        trail_running_option,
-        mountain_biking_option,
-        is_media_compliant,
-        has_paid,
-        first_contact_id,
-        contact_link,
-        contact_first_name,
-        contact_last_name,
-        contact_phone_number,
-        contact_email,
-        second_contact_id,
-        contact2_link,
-        contact2_first_name,
-        contact2_last_name,
-        contact2_phone_number,
-        contact2_email,
-      } = row;
-
-      return {
-        id,
-        picture,
-        lastName: last_name,
-        firstName: first_name,
-        birthDate: birth_date,
-        gender,
-        nationality,
-        street,
-        additionalAddressInformation: additional_address_information,
-        zipCode: zip_code,
-        city,
-        country,
-        email,
-        phoneNumber: phone_number,
-        phoneNumber2: phone_number2,
-        birthTown: birth_town,
-        birthDepartement: birth_departement,
-        // About season
-        license,
-        licenseType: license_type,
-        insurance,
-        supplementalInsurance: supplemental_insurance,
-        assaultProtectionOption: assault_protection_option,
-        skiOption: ski_option,
-        slacklineOption: slackline_option,
-        trailRunningOption: trail_running_option,
-        mountainBikingOption: mountain_biking_option,
-        isMediaCompliant: is_media_compliant,
-        hasPaid: has_paid,
-        // Contact Information
-        contactId: first_contact_id,
-        contactLink: contact_link,
-        contactLastName: contact_last_name,
-        contactFirstName: contact_first_name,
-        contactPhoneNumber: contact_phone_number,
-        contactEmail: contact_email,
-        contact2Id: second_contact_id,
-        contact2Link: contact2_link,
-        contact2FirstName: contact2_first_name,
-        contact2LastName: contact2_last_name,
-        contact2PhoneNumber: contact2_phone_number,
-        contact2Email: contact2_email,
-      };
-    });
+    return members.rows.map((member) => ({
+      id: member.id,
+      picture: member.picture,
+      lastName: member.last_name,
+      firstName: member.first_name,
+      email: member.email,
+      hasPaid: member.has_paid,
+    }));
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(
@@ -388,7 +197,6 @@ export async function fetchMemberByIdAndSeasonId(
         AND mss.season_id = ${seasonId} 
       WHERE m.id = ${memberId}
     `;
-
     if (result.rows.length === 0) {
       return null;
     }
@@ -437,12 +245,11 @@ export async function fetchMemberByIdAndSeasonId(
       isMediaCompliant: row.is_media_compliant,
       hasPaid: row.has_paid,
     };
-
     return member;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(
-      `Failed to fetch member by ID: ${memberId}. Details: ${error}`,
+      `Failed to fetch member by ID and Season ID: ${memberId}. Details: ${error}`,
     );
   }
 }
