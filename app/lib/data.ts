@@ -385,9 +385,11 @@ export async function fetchMemberByIdAndSeasonId(
       LEFT JOIN contacts c2 ON mc.second_contact_id = c2.id
       LEFT JOIN member_section_season mss 
         ON m.id = mss.member_id 
-        AND mss.season_id = ${seasonId} 
+        AND mss.season_id = ${seasonId}
       WHERE m.id = ${memberId}
     `;
+
+    console.log(result.rows);
 
     if (result.rows.length === 0) {
       return null;

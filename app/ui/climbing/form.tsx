@@ -13,7 +13,14 @@ import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
 
-import { handleBirthDate } from '../../utils/handleBirthday';
+import {
+  handleBirthDate,
+  optionsToSelect,
+  genderOptions,
+  licenseTypeOptions,
+  insuranceOptions,
+  supplementalInsuranceOptions,
+} from '../../utils/handleBirthday';
 import { PictureUpload } from '../common/pictureUpload';
 import ToastContextProvider, {
   ToastType,
@@ -28,13 +35,6 @@ interface FormProps {
   member?: MemberWithSeason;
   state: ClimbingState;
 }
-
-const optionsToSelect = [
-  { label: 'Ski', value: 'skiOption' },
-  { label: 'Slackline', value: 'slacklineOption' },
-  { label: 'Trail', value: 'trailRunningOption' },
-  { label: 'VTT', value: 'mountainBikingOption' },
-];
 
 export default function Form({ state, dispatch, member }: FormProps) {
   const [isMinor, setIsMinor] = useState(false);
@@ -63,11 +63,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
-  const genderOptions = [
-    { label: 'F', value: 'F' },
-    { label: 'H', value: 'M' },
-  ];
-
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
@@ -81,6 +76,23 @@ export default function Form({ state, dispatch, member }: FormProps) {
     }
   }, [member]);
 
+  // useEffect(() => {
+  //   if (member?.birthDate) {
+  //     const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
+  //     const birthDateEvent = {
+  //       target: { value: formattedBirthDate },
+  //     };
+  //     handleBirthDate(setIsMinor)(birthDateEvent as any);
+  //   }
+  // }, [member]);
+
+  useEffect(() => {
+    setMemberInput((prev) => ({
+      ...prev,
+      licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
+    }));
+  }, [member, isMinor]);
+
   const handleMemberChange = (
     value: string | boolean | null,
     key: keyof MemberWithSeason,
@@ -92,15 +104,25 @@ export default function Form({ state, dispatch, member }: FormProps) {
     }));
   };
 
+  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
   // useEffect(() => {
-  //   if (member?.birthDate) {
-  //     const formattedBirthDate = dayjs(member.birthDate).format('YYYY-MM-DD');
-  //     const birthDateEvent = {
-  //       target: { value: formattedBirthDate },
-  //     };
-  //     handleBirthDate(setIsMinor)(birthDateEvent as any);
-  //   }
-  // }, [member]);
+  //   return () => {
+  //     if (memberInput.pictureUrl) {
+  //       URL.revokeObjectURL(memberInput.pictureUrl);
+  //     }
+  //   };
+  // }, [memberInput.pictureUrl]);
+
+  // Redirection vers dashboard après un délai en cas de succès
+
+  useEffect(() => {
+    if (state?.isSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = '/dashboard/climbing'; // Redirection côté client
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [state?.isSuccess]);
 
   // const handleAssaultProtection = () => {
   //   const newValue = memberInput?.assaultProtectionOption;
@@ -115,13 +137,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
   //   }));
   //   handleBirthDate(setIsMinor)(e);
   // };
-
-  useEffect(() => {
-    setMemberInput((prev) => ({
-      ...prev,
-      licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
-    }));
-  }, [member, isMinor]);
 
   const handleOptionsChange = (values: { [key: string]: boolean }) => {
     setMemberInput((prevInput) => ({
@@ -209,25 +224,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
       setIsSubmitting(false);
     }
   };
-
-  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
-  // useEffect(() => {
-  //   return () => {
-  //     if (memberInput.pictureUrl) {
-  //       URL.revokeObjectURL(memberInput.pictureUrl);
-  //     }
-  //   };
-  // }, [memberInput.pictureUrl]);
-
-  // Redirection vers dashboard après un délai en cas de succès
-  useEffect(() => {
-    if (state?.isSuccess) {
-      const timer = setTimeout(() => {
-        window.location.href = '/dashboard/climbing'; // Redirection côté client
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [state?.isSuccess]);
 
   return (
     <>
@@ -500,12 +496,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 label="Type de licence"
                 idFor="licenseType"
                 settingKey="licenseType"
-                options={[
-                  { label: 'Jeune', value: 'J' },
-                  { label: 'Adulte', value: 'A' },
-                  { label: 'Famille', value: 'F' },
-                ]}
-                value={memberInput?.licenseType || ''}
+                options={licenseTypeOptions}
+                value={memberInput?.licenseType || (isMinor ? 'J' : 'A')}
                 onChange={(event) =>
                   handleMemberChange(event.target.value, 'licenseType')
                 }
@@ -522,13 +514,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 label="Assurance"
                 idFor="insurance"
                 settingKey="insurance"
-                options={[
-                  { label: 'RC', value: 'RC' },
-                  { label: 'B', value: 'B' },
-                  { label: 'B+', value: 'B+' },
-                  { label: 'B++', value: 'B++' },
-                ]}
-                value={memberInput?.insurance}
+                options={insuranceOptions}
+                value={memberInput?.insurance || insuranceOptions[0].value}
                 onChange={(e) =>
                   handleMemberChange(e.target.value, 'insurance')
                 }
@@ -538,13 +525,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 label="Assurance complémentaire"
                 idFor="supplementalInsurance"
                 settingKey="supplementalInsurance"
-                options={[
-                  { label: 'NON', value: 'NON' },
-                  { label: 'IJ1', value: 'IJ1' },
-                  { label: 'IJ2', value: 'IJ2' },
-                  { label: 'IJ3', value: 'IJ3' },
-                ]}
-                value={memberInput?.supplementalInsurance}
+                options={supplementalInsuranceOptions}
+                value={
+                  memberInput?.supplementalInsurance ||
+                  supplementalInsuranceOptions[0].value
+                }
                 onChange={(e) =>
                   handleMemberChange(e.target.value, 'supplementalInsurance')
                 }
