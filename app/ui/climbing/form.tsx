@@ -38,10 +38,10 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
-  // ATTENTION licenseType ne se met pas à jour en fonction de isMinor...
   const searchParams = useSearchParams();
   const seasonId = searchParams.get('seasonId');
   const [pictureFile, setPictureFile] = useState<File | null>(null);
+
   const [isMinor, setIsMinor] = useState(false);
   const [memberInput, setMemberInput] = useState<Partial<Member> | undefined>(
     member,
@@ -62,6 +62,34 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
+  // ATTENTION licenseType ne se met pas à jour en fonction de isMinor...
+  //ANCIEN CODE pour licenseType le RadioInput avait value et handleChange comme props=>
+  // const [licenseType, setLicenseType] = useState(() => {
+  //   if (member?.licenseType) {
+  //     return member.licenseType;
+  //   }
+  //   return isMinor ? 'J' : 'A';
+  // });
+
+  // const handleLicenseType = (
+  //   event: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   setLicenseType(event.target.value);
+  // };
+
+  // useEffect(() => {
+  //   setLicenseType(member?.licenseType ?? (isMinor ? 'J' : 'A'));
+  // }, [member, isMinor]);
+
+  // <RadioInput
+  //   className="ml-8"
+  //   label="Type de licence"
+  //   idFor="licenseType"
+  //   settingKey="licenseType"
+  //   options={licenseTypeOptions}
+  //   value={licenseType}
+  //   onChange={handleLicenseType}
+  // />;
 
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
@@ -76,15 +104,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
       handleBirthDate(setIsMinor)(birthDateEvent as any);
     }
   }, [member]);
-
-  // const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newBirthDate = e.target.value;
-  //   setMemberInput((prev) => ({
-  //     ...prev,
-  //     birthDate: newBirthDate,
-  //   }));
-  //   handleBirthDate(setIsMinor)(e);
-  // };
 
   useEffect(() => {
     setMemberInput((prev) => ({
@@ -154,7 +173,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
       formData.set('picture', pictureFile);
     } else if (memberInput?.picture) {
       formData.set('picture', memberInput.picture);
-    }
+    } // Voir si le else est vraiment ncessaire ici
     formData.set(
       'assaultProtectionOption',
       memberInput?.assaultProtectionOption?.toString() || '',
