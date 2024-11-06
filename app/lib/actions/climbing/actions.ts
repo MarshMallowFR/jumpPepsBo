@@ -578,21 +578,31 @@ export async function updateClimbingMember(
       SET picture = $1,
           last_name = $2,
           first_name = $3,
-          email = $4,
-          street = $5,
-          additional_address_information = $6,
-          zip_code = $7,
-          city = $8,
-          country = $9,
-          phone_number = $10,
-          phone_number2 = $11
-      WHERE id = $12
+          birth_date = $4,
+          gender = $5,
+          nationality = $6,
+          birth_town = $7,
+          birth_departement = $8,
+          email = $9,
+          street = $10,
+          additional_address_information = $11,
+          zip_code = $12,
+          city = $13,
+          country = $14,
+          phone_number = $15,
+          phone_number2 = $16
+      WHERE id = $17
     `;
 
     await client.query(updateMemberQuery, [
       imageUrl,
       lastName,
       firstName,
+      birthDate,
+      gender,
+      nationality,
+      birthTown,
+      birthDepartement,
       email,
       street,
       additionalAddressInformation,

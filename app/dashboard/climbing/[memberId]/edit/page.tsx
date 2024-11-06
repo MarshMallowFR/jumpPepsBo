@@ -3,7 +3,7 @@ import Breadcrumbs from '@/app/ui/common/breadcrumbs';
 import { fetchMemberByIdAndSeasonId } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 
-// export const revalidate = 0; // Disable caching for this page to get updated data
+export const revalidate = 0; // Disable caching for this page to get updated data
 
 export default async function Page({
   params,

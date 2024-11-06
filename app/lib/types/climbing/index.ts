@@ -47,7 +47,7 @@ export interface MemberWithContactsAndSeasonBD extends MemberWithContactsDB {
   has_paid: boolean;
 }
 
-export interface Member {
+export type Member = {
   id: string;
   picture: string;
   lastName: string;
@@ -81,12 +81,15 @@ export interface Member {
   insurance: string;
   supplementalInsurance: string;
   assaultProtectionOption: boolean;
+  isMediaCompliant: boolean;
+  hasPaid: boolean;
+} & MemberOptions;
+
+export interface MemberOptions {
   skiOption: boolean;
   slacklineOption: boolean;
   trailRunningOption: boolean;
   mountainBikingOption: boolean;
-  isMediaCompliant: boolean;
-  hasPaid: boolean;
 }
 
 export interface MemberRegistrationForm {

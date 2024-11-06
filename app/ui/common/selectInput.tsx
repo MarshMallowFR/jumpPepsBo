@@ -8,15 +8,17 @@ interface CheckboxOption {
 
 interface SelectInputProps {
   color?: Color;
-  options: CheckboxOption[];
+  defaultValues?: { [key: string]: boolean };
   onChange: (selectedValues: { [key: string]: boolean }) => void;
+  options: CheckboxOption[];
   title: string;
 }
 
 export const SelectInput: React.FC<SelectInputProps> = ({
   color = Color.BLUE,
-  options,
+  defaultValues = {},
   onChange,
+  options,
   title,
 }) => {
   const colorClasses = {
@@ -24,17 +26,9 @@ export const SelectInput: React.FC<SelectInputProps> = ({
     [Color.BLUE]: 'peer-checked:bg-blue-medium',
   };
 
-  const initialSelectedValues = options.reduce(
-    (acc, option) => {
-      acc[option.value] = false;
-      return acc;
-    },
-    {} as { [key: string]: boolean },
-  );
-
   const [selectedValues, setSelectedValues] = useState<{
     [key: string]: boolean;
-  }>(initialSelectedValues);
+  }>(defaultValues);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;

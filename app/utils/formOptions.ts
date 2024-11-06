@@ -1,9 +1,12 @@
-export const optionsToSelect = [
-  { label: 'Ski', value: 'skiOption' },
-  { label: 'Slackline', value: 'slacklineOption' },
-  { label: 'Trail', value: 'trailRunningOption' },
-  { label: 'VTT', value: 'mountainBikingOption' },
-];
+import { MemberOptions } from '../lib/types/climbing';
+
+export const optionsToSelect: { label: string; value: keyof MemberOptions }[] =
+  [
+    { label: 'Ski', value: 'skiOption' },
+    { label: 'Slackline', value: 'slacklineOption' },
+    { label: 'Trail', value: 'trailRunningOption' },
+    { label: 'VTT', value: 'mountainBikingOption' },
+  ];
 
 export const genderOptions = [
   { label: 'F', value: 'F' },

@@ -13,19 +13,16 @@ interface RadioInputProps {
   label: string;
   settingKey: string;
   options: RadioOption[];
-  value?: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const RadioInput = ({
   className,
   color = Color.BLUE,
+  defaultValue,
   label,
   idFor,
   settingKey,
   options,
-  value,
-  onChange,
 }: RadioInputProps) => {
   const colorClasses = {
     [Color.ORANGE]: 'focus:border-orange-medium',
@@ -42,10 +39,9 @@ export const RadioInput = ({
               id={`${idFor}-${option.value}`}
               name={settingKey}
               value={option.value}
-              checked={value === option.value}
+              defaultChecked={defaultValue === option.value}
               type="radio"
               className={`radio-input ${colorClasses[color]} focus:ring-0`}
-              onChange={onChange}
             />
             <label
               htmlFor={`${idFor}-${option.value}`}

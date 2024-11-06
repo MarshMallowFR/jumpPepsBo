@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { ClimbingState } from '@/app/lib/actions/climbing/actions';
 import {
   CheckIcon,
@@ -8,7 +8,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { Member } from '@/app/lib/types/climbing';
+import { Member, MemberOptions } from '@/app/lib/types/climbing';
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
 import { ToggleInput } from '../common/toggleInput';
@@ -38,43 +38,27 @@ interface FormProps {
 }
 
 export default function Form({ state, dispatch, member }: FormProps) {
+  // ATTENTION licenseType ne se met pas à jour en fonction de isMinor...
   const searchParams = useSearchParams();
   const seasonId = searchParams.get('seasonId');
-
-  const [picture, setPicture] = useState<File | string | null>(
-    member?.picture || null,
-  );
-  const [pictureUrl, setPictureUrl] = useState<string | null>(
-    member?.picture || null,
-  );
-
-  const [gender, setGender] = useState(member?.gender ?? 'F');
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
   const [isMinor, setIsMinor] = useState(false);
-  // const initialState: MemberForm = {
-  //   assaultProtectionOption: member?.assaultProtectionOption ?? false,
-  //   birthDate: member?.birthDate || '',
-  //   gender: member?.gender ?? 'F',
-  //   hasPaid: member?.hasPaid ?? false,
-  //   insurance: member?.insurance ?? 'RC',
-  //   isMediaCompliant: member?.isMediaCompliant ?? false,
-  //   licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
-  //   picture: member?.picture || null,
-  //   pictureUrl: member?.picture || null,
-  //   supplementalInsurance: member?.supplementalInsurance ?? 'NON',
-  //   skiOption: member?.skiOption ?? false,
-  //   slacklineOption: member?.slacklineOption ?? false,
-  //   trailRunningOption: member?.trailRunningOption ?? false,
-  //   mountainBikingOption: member?.mountainBikingOption ?? false,
-  // };
-
   const [memberInput, setMemberInput] = useState<Partial<Member> | undefined>(
     member,
   );
-  // const [memberInput, setMemberInput] = useState<MemberForm>(initialState);
-  const [hasPaid, setHasPaid] = useState(member?.hasPaid ?? false);
-  const [isMediaCompliant, setIsMediaCompliant] = useState(
-    member?.isMediaCompliant ?? false,
-  );
+
+  const defaultOptonsValues = (
+    memberInput: Partial<Member> | undefined,
+    options: { label: string; value: keyof MemberOptions }[],
+  ) => {
+    return options.reduce(
+      (acc, { value }) => {
+        acc[value] = memberInput?.[value] ?? false; // Par défaut false si undefined
+        return acc;
+      },
+      {} as { [key: string]: boolean },
+    );
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
@@ -82,15 +66,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
   };
-
-  // useEffect(() => {
-  //   if (member) {
-  //     setMemberInput((prev) => ({
-  //       ...prev,
-  //       ...member,
-  //     }));
-  //   }
-  // }, [member]);
 
   useEffect(() => {
     if (member?.birthDate) {
@@ -102,57 +77,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
     }
   }, [member]);
 
-  useEffect(() => {
-    setMemberInput((prev) => ({
-      ...prev,
-      licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
-    }));
-  }, [member, isMinor]);
-
-  const handleMemberChange = (
-    value: string | boolean | null,
-    key: keyof Member,
-  ) => {
-    console.log({ value, key });
-    setMemberInput((oldMemberValues) => ({
-      ...(oldMemberValues ? oldMemberValues : {}),
-      [key]: value,
-    }));
-  };
-
-  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
-  // useEffect(() => {
-  //   return () => {
-  //     if (memberInput.pictureUrl) {
-  //       URL.revokeObjectURL(memberInput.pictureUrl);
-  //     }
-  //   };
-  // }, [memberInput.pictureUrl]);
-
-  // Redirection vers dashboard après un délai en cas de succès
-
-  useEffect(() => {
-    if (state?.isSuccess) {
-      const timer = setTimeout(() => {
-        window.location.href = '/dashboard/climbing'; // Redirection côté client
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [state?.isSuccess]);
-
-  const handleHasPaid = () => {
-    setHasPaid((prevState) => !prevState);
-  };
-
-  const handleIsMediaCompliant = () => {
-    setIsMediaCompliant((prevState) => !prevState);
-  };
-
-  // const handleAssaultProtection = () => {
-  //   const newValue = memberInput?.assaultProtectionOption;
-  //   handleMemberChange(newValue, 'assaultProtectionOption');
-  // };
-
   // const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   const newBirthDate = e.target.value;
   //   setMemberInput((prev) => ({
@@ -162,6 +86,48 @@ export default function Form({ state, dispatch, member }: FormProps) {
   //   handleBirthDate(setIsMinor)(e);
   // };
 
+  useEffect(() => {
+    setMemberInput((prev) => ({
+      ...prev,
+      licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
+    }));
+  }, [member, isMinor]);
+
+  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
+  useEffect(() => {
+    return () => {
+      if (memberInput?.picture) {
+        URL.revokeObjectURL(memberInput.picture);
+      }
+    };
+  }, [memberInput?.picture]);
+
+  // Redirection vers dashboard après un délai en cas de succès
+  useEffect(() => {
+    if (state?.isSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = '/dashboard/climbing'; // Redirection côté client
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [state?.isSuccess]);
+
+  const handleMemberChange = (
+    value: string | boolean | null,
+    key: keyof Member,
+  ) => {
+    setMemberInput((oldMemberValues) => ({
+      ...(oldMemberValues ? oldMemberValues : {}),
+      [key]: value,
+    }));
+
+    if (key === 'birthDate' && typeof value === 'string') {
+      handleBirthDate(setIsMinor)({
+        target: { value },
+      } as ChangeEvent<HTMLInputElement>);
+    }
+  };
+
   const handleOptionsChange = (values: { [key: string]: boolean }) => {
     setMemberInput((prevInput) => ({
       ...prevInput,
@@ -169,41 +135,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
     }));
   };
 
-  // const handlePictureChange = (file: File) => {
-  //   const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
-  //   setMemberInput((oldMemberValues) => ({
-  //     ...oldMemberValues,
-  //     picture: file,
-  //     pictureUrl: url,
-  //   }));
-  // };
-
-  // const handleIsMediaCompliant = () => {
-  //   const newValue = !memberInput.isMediaCompliant;
-  //   handleMemberChange(newValue, 'isMediaCompliant');
-  // };
-
-  // const handleHasPaid = () => {
-  //   const newValue = !memberInput.hasPaid;
-  //   handleMemberChange(newValue, 'hasPaid');
-  // };
-
-  // const handleInsuranceChange = (
-  //   event: React.ChangeEvent<HTMLInputElement>,
-  // ) => {
-  //   const selectedValue = event.target.value;
-  //   setMemberInput((prev) => ({ ...prev, insurance: selectedValue }));
-  // };
-
-  // const handleSupplementalInsuranceChange = (
-  //   event: React.ChangeEvent<HTMLInputElement>,
-  // ) => {
-  //   const selectedValue = event.target.value;
-  //   setMemberInput((prev) => ({
-  //     ...prev,
-  //     supplementalInsurance: selectedValue,
-  //   }));
-  // };
+  const handlePictureChange = (file: File) => {
+    const url = URL.createObjectURL(file); // Créer une URL temporaire pour la prévisualisation
+    setPictureFile(file);
+    setMemberInput((oldMemberValues) => ({
+      ...oldMemberValues,
+      picture: url,
+    }));
+  };
 
   // Conversion valeurs du formulaire au bon format avant envoi
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -211,7 +150,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    if (memberInput?.picture) {
+    if (pictureFile) {
+      formData.set('picture', pictureFile);
+    } else if (memberInput?.picture) {
       formData.set('picture', memberInput.picture);
     }
     formData.set(
@@ -236,9 +177,10 @@ export default function Form({ state, dispatch, member }: FormProps) {
       'mountainBikingOption',
       memberInput?.mountainBikingOption?.toString() || '',
     );
-
-    console.log({ memberInput });
-
+    //Ne fonctionne pas?? =>
+    // Object.entries(memberInput || {}).forEach(([key, value]) => {
+    //   formData.set(key, value?.toString() || ''); // Transformez les booléens en string
+    // });
     try {
       await dispatch(formData);
       setDisplayToast(true);
@@ -249,25 +191,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
     }
   };
 
-  // Pour nettoyer l'URL de l'image lorsqu'elle n'est plus nécessaire
-  useEffect(() => {
-    return () => {
-      if (pictureUrl) {
-        URL.revokeObjectURL(pictureUrl);
-      }
-    };
-  }, [pictureUrl]);
-
-  // Redirection vers dashboard après un délai en cas de succès
-  useEffect(() => {
-    if (state?.isSuccess) {
-      const timer = setTimeout(() => {
-        window.location.href = `/dashboard/climbing?seasonId=${seasonId}`; // Redirection côté client
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [state?.isSuccess]);
-
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -277,11 +200,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
               Informations sur l'adhérent.ee
             </p>
             <div className="flex items-start">
-              {/* {memberInput.pictureUrl ? (
+              {memberInput?.picture ? (
                 <ProfileImage
                   idFor="picture"
                   settingKey="picture"
-                  imageUrl={memberInput.pictureUrl}
+                  imageUrl={memberInput.picture}
                   handlePictureChange={handlePictureChange}
                   error={state?.errors?.picture}
                   member={member}
@@ -293,7 +216,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   settingKey="picture"
                   error={state?.errors?.picture}
                 />
-              )} */}
+              )}
               <div className="ml-4 flex-grow">
                 <TextInput
                   defaultValue={member?.lastName}
@@ -328,10 +251,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
                     idFor="gender"
                     settingKey="gender"
                     options={genderOptions}
-                    value={memberInput?.gender || genderOptions[0].value}
-                    onChange={(event) =>
-                      handleMemberChange(event.target.value, 'gender')
-                    }
+                    defaultValue={memberInput?.gender || genderOptions[0].value}
                   />
                 </div>
               </div>
@@ -540,16 +460,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 idFor="licenseType"
                 settingKey="licenseType"
                 options={licenseTypeOptions}
-                value={memberInput?.licenseType || (isMinor ? 'J' : 'A')}
-                onChange={(event) =>
-                  handleMemberChange(event.target.value, 'licenseType')
-                }
+                defaultValue={memberInput?.licenseType || (isMinor ? 'J' : 'A')}
               />
             </div>
             <SelectInput
-              title="Options supplémentaires souhaitées"
-              options={optionsToSelect}
+              defaultValues={defaultOptonsValues(memberInput, optionsToSelect)}
               onChange={handleOptionsChange}
+              options={optionsToSelect}
+              title="Options supplémentaires souhaitées"
             />
             <div className="flex mt-8">
               <RadioInput
@@ -558,9 +476,8 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 idFor="insurance"
                 settingKey="insurance"
                 options={insuranceOptions}
-                value={memberInput?.insurance || insuranceOptions[0].value}
-                onChange={(e) =>
-                  handleMemberChange(e.target.value, 'insurance')
+                defaultValue={
+                  memberInput?.insurance || insuranceOptions[0].value
                 }
               />
               <RadioInput
@@ -569,19 +486,19 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 idFor="supplementalInsurance"
                 settingKey="supplementalInsurance"
                 options={supplementalInsuranceOptions}
-                value={
+                defaultValue={
                   memberInput?.supplementalInsurance ||
                   supplementalInsuranceOptions[0].value
-                }
-                onChange={(e) =>
-                  handleMemberChange(e.target.value, 'supplementalInsurance')
                 }
               />
               <ToggleInput
                 className="flex-1"
-                defaultValue={memberInput?.assaultProtectionOption}
+                checked={memberInput?.assaultProtectionOption || false}
                 handleChange={(e) =>
-                  handleMemberChange(e.target.value, 'assaultProtectionOption')
+                  handleMemberChange(
+                    e.target.checked,
+                    'assaultProtectionOption',
+                  )
                 }
                 idFor="assaultProtectionOption"
                 label="Option protection agression"
@@ -603,9 +520,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
                   title="Autorise le club à utiliser l'image de l'adhérent à des fins non commerciales sur tout type de support"
                 />
               }
-              defaultValue={memberInput?.isMediaCompliant}
+              checked={memberInput?.isMediaCompliant || false}
               handleChange={(e) =>
-                handleMemberChange(e.target.value, 'isMediaCompliant')
+                handleMemberChange(e.target.checked, 'isMediaCompliant')
               }
               idFor="isMediaCompliant"
               label="Autorisation média"
@@ -625,9 +542,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
             </ToggleInput>
             <ToggleInput
               className="mt-8"
-              defaultValue={memberInput?.hasPaid}
+              checked={memberInput?.hasPaid || false}
               handleChange={(e) =>
-                handleMemberChange(e.target.value, 'hasPaid')
+                handleMemberChange(e.target.checked, 'hasPaid')
               }
               idFor="hasPaid"
               label="Statut du paiement"

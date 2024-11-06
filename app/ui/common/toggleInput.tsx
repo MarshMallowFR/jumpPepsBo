@@ -4,7 +4,7 @@ interface ToggleInputProps {
   className?: string;
   children: React.ReactNode;
   color?: Color;
-  defaultValue?: boolean;
+  checked?: boolean;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   icon?: React.ReactNode;
   idFor: string;
@@ -16,7 +16,7 @@ export const ToggleInput = ({
   className,
   children,
   color = Color.BLUE,
-  defaultValue,
+  checked,
   handleChange,
   icon,
   idFor,
@@ -49,7 +49,7 @@ export const ToggleInput = ({
           className="relative inline-flex items-center cursor-pointer"
         >
           <input
-            checked={defaultValue}
+            checked={checked}
             id={idFor}
             name={settingKey}
             type="checkbox"
