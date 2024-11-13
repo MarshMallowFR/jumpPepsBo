@@ -2,16 +2,18 @@
 import { MemberList } from '@/app/lib/types/climbing';
 import DeleteMember from './delete-member';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
 
 interface TableProps {
   members: MemberList[];
+  onSelectionChange: (selectedIds: string[]) => void;
 }
 
-export default function AllMembersTable({ members }: TableProps) {
-  //   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
-  //     useDropdownContext();
+export default function AllMembersTable({
+  members,
+  onSelectionChange,
+}: TableProps) {
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -24,6 +26,10 @@ export default function AllMembersTable({ members }: TableProps) {
 
   const allSelected = useMemo(() => {
     return Object.values(selectedStates).every((isSelected) => isSelected);
+  }, [selectedStates]);
+
+  useEffect(() => {
+    onSelectionChange(getSelectedMemberIds());
   }, [selectedStates]);
 
   const handleSelectAll = () => {

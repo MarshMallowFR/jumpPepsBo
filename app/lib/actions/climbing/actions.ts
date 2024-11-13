@@ -820,33 +820,44 @@ export async function deleteMembersCompletely(
     await client.query('BEGIN');
     const placeholders = ids.map((_, index) => `$${index + 1}`).join(', ');
 
+    // Step 1: Retrieve contact IDs associated with members
     const contactsQuery = `
       SELECT mc.first_contact_id, mc.second_contact_id 
       FROM member_contact mc 
       WHERE mc.member_id IN (${placeholders})
     `;
-
     const contactsResult = await client.query(contactsQuery, ids);
-    const firstContactIds = contactsResult.rows.map(
-      (row) => row.first_contact_id,
-    );
+    const firstContactIds = contactsResult.rows
+      .map((row) => row.first_contact_id)
+      .filter(Boolean);
     const secondContactIds = contactsResult.rows
       .map((row) => row.second_contact_id)
       .filter(Boolean);
 
+    // Step 2: Delete from member_contact where member_id matches the given ids
+    const deleteMemberContactQuery = `
+      DELETE FROM member_contact 
+      WHERE member_id IN (${placeholders})
+    `;
+    await client.query(deleteMemberContactQuery, ids);
+
+    // Step 3: Delete images associated with members if they exist
     const imageQuery = `SELECT picture FROM members WHERE id IN (${placeholders})`;
     const imageResults = await client.query(imageQuery, ids);
     const imageUrls = imageResults.rows
       .map((row) => row.picture)
       .filter(Boolean); // Filter valid image URLs
 
-    const firstContactPlaceholders = firstContactIds
-      .map((_, index) => `$${index + 1}`)
-      .join(', ');
-    await client.query(
-      `DELETE FROM contacts WHERE id IN (${firstContactPlaceholders})`,
-      firstContactIds,
-    );
+    // Step 4: Delete contacts in the contacts table for first_contact_ids and second_contact_ids
+    if (firstContactIds.length > 0) {
+      const firstContactPlaceholders = firstContactIds
+        .map((_, index) => `$${index + 1}`)
+        .join(', ');
+      await client.query(
+        `DELETE FROM contacts WHERE id IN (${firstContactPlaceholders})`,
+        firstContactIds,
+      );
+    }
 
     if (secondContactIds.length > 0) {
       const secondContactPlaceholders = secondContactIds
@@ -858,15 +869,18 @@ export async function deleteMembersCompletely(
       );
     }
 
+    // Step 5: Delete from member_section_season for the specified members
     const deleteMemberSeasonQuery = `
       DELETE FROM member_section_season 
       WHERE member_id IN (${placeholders})
     `;
     await client.query(deleteMemberSeasonQuery, ids);
 
+    // Step 6: Finally, delete from members table
     const deleteQuery = `DELETE FROM members WHERE id IN (${placeholders})`;
     await client.query(deleteQuery, ids);
 
+    // Step 7: Delete images from cloud storage if they exist
     if (imageUrls.length > 0) {
       await deleteCloudinaryImages(imageUrls);
     }
