@@ -93,16 +93,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
     };
   }, [memberInput?.picture]);
 
-  // Redirection vers dashboard après un délai en cas de succès
-  // useEffect(() => {
-  //   if (state?.isSuccess) {
-  //     const timer = setTimeout(() => {
-  //       window.location.href = `/dashboard/climbing/${seasonId}`; // Redirection côté client
-  //     }, 1000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [state?.isSuccess]);
-
   const handleMemberChange = (
     value: string | boolean | null,
     key: keyof Member,
@@ -168,7 +158,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
       'mountainBikingOption',
       memberInput?.mountainBikingOption?.toString() || '',
     );
-    //Ne fonctionne pas?? =>
+    //Ne fonctionne pas. Tester pour avoir moins de formData.set =>
     // Object.entries(memberInput || {}).forEach(([key, value]) => {
     //   formData.set(key, value?.toString() || ''); // Transformez les booléens en string
     // });
