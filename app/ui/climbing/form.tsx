@@ -78,6 +78,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   }, [member]);
 
   useEffect(() => {
+    console.log('isMinor updated to:', isMinor);
     setMemberInput((prev) => ({
       ...prev,
       licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
@@ -92,6 +93,16 @@ export default function Form({ state, dispatch, member }: FormProps) {
       }
     };
   }, [memberInput?.picture]);
+
+  // Redirection vers dashboard après un délai en cas de succès create or update (pas nécessaire pour bouton annuler)
+  useEffect(() => {
+    if (state?.isSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/climbing?seasonId=${seasonId}`;
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [state?.isSuccess]);
 
   const handleMemberChange = (
     value: string | boolean | null,
@@ -442,6 +453,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 settingKey="licenseType"
                 options={licenseTypeOptions}
                 defaultValue={memberInput?.licenseType || (isMinor ? 'J' : 'A')}
+                handleChange={(e) =>
+                  handleMemberChange(e.target.value, 'licenseType')
+                }
               />
             </div>
             <SelectInput

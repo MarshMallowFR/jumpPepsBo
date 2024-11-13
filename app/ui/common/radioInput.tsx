@@ -1,4 +1,5 @@
 import { Color } from '@/app/lib/types/color';
+import { useState, useEffect } from 'react';
 
 interface RadioOption {
   label: string;
@@ -13,6 +14,7 @@ interface RadioInputProps {
   label: string;
   settingKey: string;
   options: RadioOption[];
+  handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const RadioInput = ({
@@ -23,10 +25,21 @@ export const RadioInput = ({
   idFor,
   settingKey,
   options,
+  handleChange,
 }: RadioInputProps) => {
   const colorClasses = {
     [Color.ORANGE]: 'focus:border-orange-medium',
     [Color.BLUE]: 'focus:border-blue-medium',
+  };
+  const [checkedValue, setCheckedValue] = useState(defaultValue || '');
+
+  useEffect(() => {
+    setCheckedValue(defaultValue || '');
+  }, [defaultValue]);
+
+  const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCheckedValue(e.target.value);
+    handleChange && handleChange(e);
   };
 
   return (
@@ -39,9 +52,10 @@ export const RadioInput = ({
               id={`${idFor}-${option.value}`}
               name={settingKey}
               value={option.value}
-              defaultChecked={defaultValue === option.value}
+              checked={checkedValue === option.value}
               type="radio"
               className={`radio-input ${colorClasses[color]} focus:ring-0`}
+              onChange={handleRadioChange}
             />
             <label
               htmlFor={`${idFor}-${option.value}`}
