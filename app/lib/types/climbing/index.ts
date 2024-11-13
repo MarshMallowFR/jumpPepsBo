@@ -92,35 +92,6 @@ export interface MemberOptions {
   mountainBikingOption: boolean;
 }
 
-export interface MemberRegistrationForm {
-  contactFirstName: string | null;
-  contactLastName: string | null;
-  firstName: string | null;
-  gender: string | null;
-  isMediaCompliant: boolean;
-  lastName: string | null;
-  picture: File | string | null;
-  pictureUrl: string | null;
-}
-
-export interface MemberForm {
-  assaultProtection: boolean;
-  birthDate: string | null;
-  gender: string | null;
-  hasPaid: boolean;
-  insurance: string;
-  isMediaCompliant: boolean;
-  licenseType: string | null;
-  picture: File | string | null;
-  pictureUrl: string | null;
-  supplementalInsurance: string;
-  //Options to select
-  skiOption: boolean;
-  slacklineOption: boolean;
-  trailRunningOption: boolean;
-  mountainBikingOption: boolean;
-}
-
 export interface MemberList {
   id: string;
   picture: string;

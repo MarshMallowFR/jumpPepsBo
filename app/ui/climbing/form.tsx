@@ -62,34 +62,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
-  // ATTENTION licenseType ne se met pas à jour en fonction de isMinor...
-  //ANCIEN CODE pour licenseType le RadioInput avait value et handleChange comme props=>
-  // const [licenseType, setLicenseType] = useState(() => {
-  //   if (member?.licenseType) {
-  //     return member.licenseType;
-  //   }
-  //   return isMinor ? 'J' : 'A';
-  // });
-
-  // const handleLicenseType = (
-  //   event: React.ChangeEvent<HTMLInputElement>,
-  // ) => {
-  //   setLicenseType(event.target.value);
-  // };
-
-  // useEffect(() => {
-  //   setLicenseType(member?.licenseType ?? (isMinor ? 'J' : 'A'));
-  // }, [member, isMinor]);
-
-  // <RadioInput
-  //   className="ml-8"
-  //   label="Type de licence"
-  //   idFor="licenseType"
-  //   settingKey="licenseType"
-  //   options={licenseTypeOptions}
-  //   value={licenseType}
-  //   onChange={handleLicenseType}
-  // />;
 
   const formatTimestamp = (date?: string) => {
     return date ? String(dayjs(date).format('YYYY-MM-DD')) : '';
@@ -125,7 +97,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
   useEffect(() => {
     if (state?.isSuccess) {
       const timer = setTimeout(() => {
-        window.location.href = '/dashboard/climbing'; // Redirection côté client
+        window.location.href = `/dashboard/climbing/${seasonId}`; // Redirection côté client
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -173,7 +145,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
       formData.set('picture', pictureFile);
     } else if (memberInput?.picture) {
       formData.set('picture', memberInput.picture);
-    } // Voir si le else est vraiment ncessaire ici
+    }
     formData.set(
       'assaultProtectionOption',
       memberInput?.assaultProtectionOption?.toString() || '',

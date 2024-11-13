@@ -13,7 +13,8 @@ import ToastContextProvider, {
 import ToastWrapper from '../common/toastWrapper';
 import { RadioInput } from '../common/radioInput';
 import { Season } from '@/app/lib/types/season';
-import { MemberRegistrationForm } from '@/app/lib/types/climbing';
+import { Member } from '@/app/lib/types/climbing';
+import { genderOptions } from '@/app/utils/formOptions';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -26,18 +27,18 @@ export default function FormRegistration({
   dispatch,
   season,
 }: FormProps) {
-  const initialState: MemberRegistrationForm = {
-    contactFirstName: null,
-    contactLastName: null,
-    firstName: null,
-    gender: null,
+  const initialState = {
+    contactFirstName: '',
+    contactLastName: '',
+    firstName: '',
+    lastName: '',
     isMediaCompliant: true,
-    lastName: null,
-    picture: null,
-    pictureUrl: null,
   };
 
-  const [member, setMember] = useState<MemberRegistrationForm>(initialState);
+  const [member, setMember] = useState<Partial<Member> | undefined>(
+    initialState,
+  );
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
   const [isMinor, setIsMinor] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
@@ -49,53 +50,6 @@ export default function FormRegistration({
     .padStart(2, '0')}-${(currentDate.getMonth() + 1)
     .toString()
     .padStart(2, '0')}-${currentDate.getFullYear()}`;
-
-  const handleMemberChange = (
-    value: string | boolean | null,
-    key: keyof MemberRegistrationForm,
-  ) => {
-    setMember((oldMemberValues) => ({
-      ...oldMemberValues,
-      [key]: value,
-    }));
-  };
-
-  const handleIsMediaCompliant = () => {
-    setMember((oldMemberValues) => ({
-      ...oldMemberValues,
-      isMediaCompliant: !oldMemberValues.isMediaCompliant,
-    }));
-  };
-
-  const handlePictureChange = (file: File) => {
-    const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
-    setMember((oldMemberValues) => ({
-      ...oldMemberValues,
-      picture: file,
-      pictureUrl: url,
-    }));
-  };
-
-  // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const formData = new FormData(e.currentTarget);
-    formData.set('isMediaCompliant', member.isMediaCompliant.toString());
-
-    if (member.picture) {
-      formData.set('picture', member.picture);
-    }
-    try {
-      await dispatch(formData);
-      setDisplayToast(true);
-    } catch (error) {
-      console.error('Erreur lors de l’envoi du formulaire', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Remise à zéro des champs du formulaire si tout est OK
   useEffect(() => {
@@ -111,11 +65,56 @@ export default function FormRegistration({
 
   useEffect(() => {
     return () => {
-      if (member.pictureUrl) {
-        URL.revokeObjectURL(member.pictureUrl);
+      if (member?.picture) {
+        URL.revokeObjectURL(member.picture);
       }
     };
-  }, [member.pictureUrl]);
+  }, [member?.picture]);
+
+  const handleMemberChange = (
+    value: string | boolean | null,
+    key: keyof Member,
+  ) => {
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      [key]: value,
+    }));
+  };
+
+  const handlePictureChange = (file: File) => {
+    const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
+    setPictureFile(file);
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      picture: url,
+    }));
+  };
+
+  // Conversion valeurs du formulaire au bon format avant envoi
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    formData.set(
+      'isMediaCompliant',
+      (member?.isMediaCompliant ?? true).toString(),
+    );
+
+    if (pictureFile) {
+      formData.set('picture', pictureFile);
+    } else if (member?.picture) {
+      formData.set('picture', member.picture);
+    } // Voir si le else est vraiment ncessaire ici
+    try {
+      await dispatch(formData);
+      setDisplayToast(true);
+    } catch (error) {
+      console.error('Erreur lors de l’envoi du formulaire', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -144,7 +143,7 @@ export default function FormRegistration({
             handleChange={handlePictureChange}
             idFor="picture"
             settingKey="picture"
-            imageUrl={member.pictureUrl ?? undefined}
+            imageUrl={member?.picture ?? undefined}
             error={state?.errors?.picture}
           />
           <div className="ml-6 flex-grow">
@@ -185,14 +184,8 @@ export default function FormRegistration({
                 label="Sexe"
                 idFor="gender"
                 settingKey="gender"
-                options={[
-                  { label: 'F', value: 'F' },
-                  { label: 'H', value: 'M' },
-                ]}
-                value={member.gender ?? 'F'}
-                onChange={(event) =>
-                  handleMemberChange(event.target.value, 'gender')
-                }
+                options={genderOptions}
+                defaultValue={member?.gender || genderOptions[0].value}
               />
             </div>
           </div>
@@ -401,11 +394,7 @@ export default function FormRegistration({
         </p>
         {!isMinor ? (
           <p className="mb-4">
-            Je soussigné(e){' '}
-            <span className="font-semibold">
-              {member.firstName} {member.lastName}
-            </span>{' '}
-            autorise le club à prendre des photos et/ou à filmer à l'occasion
+            J'autorise le club à prendre des photos et/ou à filmer à l'occasion
             des activités et compétitions sportives ou associatives auxquelles
             je participe et autorise leur publication dans le bulletin
             d'informations, la page facebook et sur le site internet du club à
@@ -413,13 +402,12 @@ export default function FormRegistration({
           </p>
         ) : (
           <p className="mb-4">
-            Je soussigné(e){' '}
             <span className="font-semibold">
-              {member.contactFirstName} {member.contactLastName}
+              {member?.contactFirstName} {member?.contactLastName}
             </span>{' '}
             responsable légal de l'enfant{' '}
             <span className="font-semibold">
-              {member.firstName} {member.lastName}
+              {member?.firstName} {member?.lastName}
             </span>{' '}
             autorise le club à prendre des photos et/ou à filmer mon enfant à
             l'occasion des activités et compétitions sportives ou associatives
@@ -430,44 +418,39 @@ export default function FormRegistration({
         )}
         <ToggleInput
           color={Color.ORANGE}
-          defaultValue={member.isMediaCompliant}
+          checked={member?.isMediaCompliant ?? true}
           idFor="isMediaCompliant"
-          handleChange={handleIsMediaCompliant}
+          handleChange={(e) =>
+            handleMemberChange(e.target.checked, 'isMediaCompliant')
+          }
           settingKey="isMediaCompliant"
         >
           <label
             htmlFor="isMediaCompliant"
             className="ml-4 mr flex items-center"
           >
-            {member.isMediaCompliant ? 'OUI' : 'NON'}
+            {member?.isMediaCompliant ? 'OUI' : 'NON'}
           </label>
         </ToggleInput>
         {!isMinor ? (
           <p className="mt-8">
-            {' '}
-            Je soussigné(e){' '}
-            <span className="font-semibold">
-              {member.firstName} {member.lastName}
-            </span>{' '}
-            atteste avoir pris connaissance du réglèment intérieur remis par
+            J'atteste avoir pris connaissance du réglèment intérieur remis par
             email avec les documents d'inscription.
           </p>
         ) : (
           <p className="mt-8">
-            {' '}
-            Je soussigné(e){' '}
             <span className="font-semibold">
-              {member.contactFirstName} {member.contactLastName}
+              {member?.contactFirstName} {member?.contactLastName}
             </span>{' '}
             responsable légal de l'enfant{' '}
             <span className="font-semibold">
-              {member.firstName} {member.lastName}
+              {member?.firstName} {member?.lastName}
             </span>{' '}
             atteste avoir pris connaissance du réglèment intérieur remis par
             email avec les documents d'inscription.
           </p>
         )}
-        <div className="mt-8 flex font-semibold justify-between">
+        {/* <div className="mt-8 flex font-semibold justify-between">
           <p>
             Lu et approuvé le{' '}
             <span className="font-normal">{formatedCurrentDate}</span>
@@ -476,7 +459,7 @@ export default function FormRegistration({
             <p>Signature</p>
             <svg className="ml-2 w-40 h-16 border border-gray-400 rounded-lg" />
           </div>
-        </div>
+        </div> */}
 
         <div className="mt-10 flex justify-center">
           <Button type="submit" color={Color.ORANGE} disabled={isSubmitting}>

@@ -32,10 +32,23 @@ export default async function Page({
 
   let allMembers: IsSeasonMemberList<typeof seasonId>;
 
+  // try {
+  //   allMembers = seasonId
+  //     ? await fetchMembersBySeasonId(seasonId)
+  //     : await fetchAllClimbingMembers(query, currentPage);
+  // } catch (error) {
+  //   console.error(error);
+  //   allMembers = [];
+  // }
+
   try {
-    allMembers = seasonId
-      ? await fetchMembersBySeasonId(seasonId)
-      : await fetchAllClimbingMembers(query, currentPage);
+    if (seasonId) {
+      allMembers = await fetchMembersBySeasonId(seasonId);
+      console.log('fetchMembersBySeasonId', allMembers);
+    } else {
+      allMembers = await fetchAllClimbingMembers(query, currentPage);
+      console.log('fetchAllClimbingMembers', allMembers);
+    }
   } catch (error) {
     console.error(error);
     allMembers = [];

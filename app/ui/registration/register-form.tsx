@@ -9,7 +9,7 @@ import FormRegistration from './form-registration';
 import { kanit } from '../style/fonts';
 import { Season } from '@/app/lib/types/season';
 import { getSeasons } from '@/app/lib/actions/season/actions';
-import { MemberWithSeason } from '@/app/lib/types/climbing';
+import NoRegistrationForm from './no-registration-form';
 
 export default function RegisterForm() {
   const initialState: ClimbingState = {
@@ -60,17 +60,19 @@ export default function RegisterForm() {
           transmis :
         </p>
         <ul className="list-disc pl-5">
-          <li>dossier d’inscription rempli et signé</li>
+          <li>dossier d’inscription rempli et envoyé</li>
           <li>questionnaire de santé</li>
           <li>paiement de la cotisation annuelle</li>
         </ul>
       </div>
-      {currentSeason && currentSeason.registrationOpen && (
+      {currentSeason && currentSeason.registrationOpen ? (
         <FormRegistration
           dispatch={dispatch}
           state={state}
           season={currentSeason}
         />
+      ) : (
+        <NoRegistrationForm />
       )}
     </div>
   );
