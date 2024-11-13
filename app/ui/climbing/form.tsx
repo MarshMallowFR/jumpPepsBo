@@ -94,14 +94,14 @@ export default function Form({ state, dispatch, member }: FormProps) {
   }, [memberInput?.picture]);
 
   // Redirection vers dashboard après un délai en cas de succès
-  useEffect(() => {
-    if (state?.isSuccess) {
-      const timer = setTimeout(() => {
-        window.location.href = `/dashboard/climbing/${seasonId}`; // Redirection côté client
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [state?.isSuccess]);
+  // useEffect(() => {
+  //   if (state?.isSuccess) {
+  //     const timer = setTimeout(() => {
+  //       window.location.href = `/dashboard/climbing/${seasonId}`; // Redirection côté client
+  //     }, 1000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [state?.isSuccess]);
 
   const handleMemberChange = (
     value: string | boolean | null,

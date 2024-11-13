@@ -19,11 +19,6 @@ const SeasonContextProvider = ({
   children: ReactNode;
 }) => {
   const [selectedSeason, setSelectedSeason] = useState<string | null>('all');
-
-  const handleSelectSeason = (seasonId: string | null) => {
-    setSelectedSeason(seasonId);
-  };
-
   const options = [
     { id: 'all', name: 'Voir tous les membres' },
     ...seasons.map((season) => ({ id: season.id, name: season.name })),
@@ -32,6 +27,15 @@ const SeasonContextProvider = ({
   const value = {
     selectedSeason,
     setSelectedSeason,
+  };
+
+  const handleSelectSeason = (seasonId: string | null) => {
+    setSelectedSeason(seasonId);
+    if (seasonId && seasonId !== 'all') {
+      window.location.href = `/dashboard/climbing?seasonId=${seasonId}`;
+    } else {
+      window.location.href = `/dashboard/climbing`;
+    }
   };
 
   return (
