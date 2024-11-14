@@ -94,11 +94,18 @@ export default function Form({ state, dispatch, member }: FormProps) {
     };
   }, [memberInput?.picture]);
 
-  // Redirection vers dashboard après un délai en cas de succès create or update (pas nécessaire pour bouton annuler)
+  // Redirection vers dashboard après un délai en cas de succès (pas nécessaire pour bouton annuler)
   useEffect(() => {
-    if (state?.isSuccess) {
+    if (state?.isSuccess && seasonId) {
+      // pour update on revient sur les membres de la saison
       const timer = setTimeout(() => {
         window.location.href = `/dashboard/climbing?seasonId=${seasonId}`;
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (state?.isSuccess) {
+      // pour creation la seasonId n'est pas sélectionnée
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/climbing`;
       }, 1000);
       return () => clearTimeout(timer);
     }

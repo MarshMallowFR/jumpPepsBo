@@ -43,9 +43,9 @@ export default function RegisterForm() {
 
   return (
     <div
-      className={`flex flex-col md:flex-row md:space-x-12 md:px-9 ${kanit.className}`}
+      className={`flex flex-col lg:flex-row lg:space-x-12 px-4 sm:px-6 md:px-8 lg:px-12 ${kanit.className}`}
     >
-      <div className="min-w-0 w-full md:w-1/2">
+      <div className="min-w-0 w-full lg:w-1/2 mb-8">
         <h2 className="text-lg font-bold">
           INSCRIPTION POUR LA SAISON {currentSeason?.name}
         </h2>

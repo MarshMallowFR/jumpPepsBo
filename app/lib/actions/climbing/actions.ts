@@ -204,12 +204,16 @@ async function isMemberAlreadyExists(
   birthDate: string,
 ) {
   const query = `
-    SELECT id FROM members WHERE first_name = $1 AND last_name = $2 AND birth_date = $3
-  `;
+    SELECT id FROM members 
+    WHERE unaccent(LOWER(first_name)) = unaccent(LOWER($1)) 
+      AND unaccent(LOWER(last_name)) = unaccent(LOWER($2)) 
+      AND birth_date = $3
+  `; //comparaison insensible à la casse: unaccent pour les accents et LOWER pour tout convertir en minucusle
   const result = await sql.query(query, [firstName, lastName, birthDate]);
   return result.rows.length > 0 ? result.rows[0].id : null;
 }
 
+// Voir pour améliorer la perf (temps de chargement long)
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
@@ -218,12 +222,13 @@ export async function createClimbingMember(
   const sectionRow = await getSectionIdByName('climbing');
   const sectionId = sectionRow;
 
-  // Récupérer la saison actuelle + inscription ouverte
+  // Récupérer la saison actuelle pour la création des membres.
   const { currentSeason } = await getSeasons();
-  if (!currentSeason || !currentSeason.registrationOpen) {
+  if (!currentSeason) {
+    // Pas besoin de vérifier que les inscriptions sont ouvertes avec || !currentSeason.registrationOpen => côté adhérent, le formulaire n'est affiché que si les inscriptions sont ouvertes et côté admin on doit pouvoir créer un membre quand on veut
     return {
       isSuccess: false,
-      message: 'Les inscriptions ne sont pas ouvertes pour la saison actuelle.',
+      message: 'Les inscriptions ne sont pas ouvertes actuellement.',
     };
   }
   const seasonId = currentSeason.id;
@@ -450,7 +455,9 @@ export async function createClimbingMember(
     await client.query('COMMIT');
     return {
       isSuccess: true,
-      message: `Membre créé avec succès.`,
+      message: isRegistration
+        ? `Formulaire d'inscription envoyé`
+        : 'Membre créé avec succès.',
     };
   } catch (error) {
     console.error('Erreur détectée :', error);
@@ -897,6 +904,7 @@ export async function deleteMembersCompletely(
   }
 }
 
+// A tester/vérifier dans une autre PR
 export async function removeMemberFromSeason(
   memberId: string,
   seasonId: string,
@@ -942,6 +950,7 @@ export async function removeMemberFromSeason(
   }
 }
 
+// A tester/vérifier dans une autre PR
 export async function removeMembersFromSeason(
   memberIds: string[],
   seasonId: string,

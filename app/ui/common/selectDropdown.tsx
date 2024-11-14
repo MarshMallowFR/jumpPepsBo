@@ -43,7 +43,7 @@ export default function SelectDropdown({
   const colorClass = colorClasses[color];
 
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative inline-block text-left mr-4">
       <button
         onClick={toggleDropdown}
         className={`inline-flex justify-center w-full rounded-md px-4 py-2 text-sm font-medium text-white ${colorClass.button} focus:outline-none`}

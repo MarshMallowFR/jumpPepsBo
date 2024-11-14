@@ -120,18 +120,19 @@ export default function FormRegistration({
     <>
       <form
         onSubmit={handleSubmit}
-        className="rounded-md shadow-custom-shadow bg-gray p-8 min-w-0 w-full md:w-1/2"
+        className="rounded-md shadow-custom-shadow bg-gray p-8 max-w-full w-full mx-auto"
       >
-        <div>
-          <h2 className="text-xl font-bold">GRIMP PEP'S</h2>
-          <h2 className="text-xl font-bold mb-4">
-            Formulaire d'inscription {season.name}
-          </h2>
+        <div className="text-xl font-bold">
+          <h2>GRIMP PEP'S</h2>
+          <div className="text-xl font-bold flex flex-wrap">
+            <h2 className="mr-2">Formulaire d'inscription</h2>
+            <h2>{season.name}</h2>
+          </div>
         </div>
-        <p className="text-lg mb-2 font-semibold text-orange-medium">
+        <p className="text-lg mb-2 mt-4 font-semibold text-orange-medium">
           Informations sur l'adhérent.e
         </p>
-        <div className="flex items-start">
+        <div className="flex flex-col md:flex-row items-start">
           <UploadPicture
             icon={
               <InformationCircleIcon
@@ -146,30 +147,34 @@ export default function FormRegistration({
             imageUrl={member?.picture ?? undefined}
             error={state?.errors?.picture}
           />
-          <div className="ml-6 flex-grow">
-            <TextInput
-              color={Color.ORANGE}
-              idFor="lastName"
-              label="Nom"
-              settingKey="lastName"
-              error={state?.errors?.lastName}
-              handleChange={(event) =>
-                handleMemberChange(event.target.value, 'lastName')
-              }
-            />
-            <TextInput
-              color={Color.ORANGE}
-              label="Prénom"
-              idFor="firstName"
-              settingKey="firstName"
-              error={state?.errors?.firstName}
-              handleChange={(event) =>
-                handleMemberChange(event.target.value, 'firstName')
-              }
-            />
-            <div className="w-full flex">
+          <div className="mt-4 md:mt-0 md:ml-4 flex-grow-4 flex-grow w-full">
+            <div className="flex flex-col">
               <TextInput
                 color={Color.ORANGE}
+                idFor="lastName"
+                label="Nom"
+                settingKey="lastName"
+                error={state?.errors?.lastName}
+                handleChange={(event) =>
+                  handleMemberChange(event.target.value, 'lastName')
+                }
+              />
+              <TextInput
+                color={Color.ORANGE}
+                label="Prénom"
+                idFor="firstName"
+                settingKey="firstName"
+                error={state?.errors?.firstName}
+                handleChange={(event) =>
+                  handleMemberChange(event.target.value, 'firstName')
+                }
+              />
+            </div>
+
+            <div className="flex">
+              <TextInput
+                color={Color.ORANGE}
+                className="mr-4"
                 type="date"
                 handleChange={handleBirthDate(setIsMinor)}
                 label="Date de naissance"
@@ -179,7 +184,7 @@ export default function FormRegistration({
                 error={state?.errors?.birthDate}
               />
               <RadioInput
-                className="ml-8"
+                className="min-w-[100px] md:mt-0"
                 color={Color.ORANGE}
                 label="Sexe"
                 idFor="gender"
@@ -190,7 +195,8 @@ export default function FormRegistration({
             </div>
           </div>
         </div>
-        <div className="w-full flex mt-2">
+
+        <div className="w-full flex mt-2 items-end space-x-4">
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
@@ -200,22 +206,21 @@ export default function FormRegistration({
             error={state?.errors?.birthTown}
           />
           <TextInput
-            className="flex-1 mx-2"
+            className="flex-1"
             color={Color.ORANGE}
             label="Département de naissance"
             idFor="birthDepartement"
             settingKey="birthDepartement"
             error={state?.errors?.birthDepartement}
           />
-          <TextInput
-            className="flex-1"
-            color={Color.ORANGE}
-            label="Nationalité"
-            idFor="nationality"
-            settingKey="nationality"
-            error={state?.errors?.nationality}
-          />
         </div>
+        <TextInput
+          color={Color.ORANGE}
+          label="Nationalité"
+          idFor="nationality"
+          settingKey="nationality"
+          error={state?.errors?.nationality}
+        />
         <p className="text-lg mb-2 font-semibold text-orange-medium">
           Coordonées de l'adhérent.e
         </p>
@@ -233,9 +238,10 @@ export default function FormRegistration({
           settingKey="additionalAddressInformation"
           error={state?.errors?.additionalAddressInformation}
         />
-        <div className="w-full flex">
+        <div className="w-full flex mt-2 items-end space-x-2">
           <TextInput
             color={Color.ORANGE}
+            className="w-24 min-w-[70px]"
             type="number"
             label="Code postal"
             idFor="zipCode"
@@ -243,7 +249,7 @@ export default function FormRegistration({
             error={state?.errors?.zipCode}
           />
           <TextInput
-            className="ml-2 flex-1"
+            className="flex-grow"
             color={Color.ORANGE}
             label="Ville"
             idFor="city"
@@ -251,7 +257,7 @@ export default function FormRegistration({
             error={state?.errors?.city}
           />
           <TextInput
-            className="ml-2 w-12"
+            className="w-14 min-w-[40px]"
             color={Color.ORANGE}
             defaultValue="FR"
             label="Pays"
@@ -260,7 +266,7 @@ export default function FormRegistration({
             error={state?.errors?.country}
           />
         </div>
-        <div className="flex">
+        <div className="w-full flex mt-2 items-end space-x-4">
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
@@ -270,7 +276,7 @@ export default function FormRegistration({
             error={state?.errors?.phoneNumber}
           />
           <TextInput
-            className="ml-2 flex-1"
+            className="flex-1"
             color={Color.ORANGE}
             label="Téléphone fixe"
             idFor="phoneNumber2"
@@ -315,9 +321,9 @@ export default function FormRegistration({
             handleMemberChange(event.target.value, 'contactFirstName')
           }
         />
-        <div className="flex">
+        <div className="w-full flex mt-2 items-end space-x-4">
           <TextInput
-            className="basis-1/2"
+            className="flex-1"
             color={Color.ORANGE}
             idFor="contactLink"
             label="Lien de parenté"
@@ -326,7 +332,7 @@ export default function FormRegistration({
           />
           <TextInput
             color={Color.ORANGE}
-            className="ml-2 basis-1/2"
+            className="flex-1"
             label="Numéro de téléphone"
             idFor="contactPhoneNumber"
             settingKey="contactPhoneNumber"
@@ -362,9 +368,9 @@ export default function FormRegistration({
               label="Prénom"
               settingKey="contact2FirstName"
             />
-            <div className="flex">
+            <div className="w-full flex mt-2 items-end space-x-4">
               <TextInput
-                className="basis-1/2"
+                className="flex-1"
                 color={Color.ORANGE}
                 idFor="contact2Link"
                 label="Lien de parenté"
@@ -372,7 +378,7 @@ export default function FormRegistration({
                 error={state?.errors?.contact2Link}
               />
               <TextInput
-                className="ml-2 basis-1/2"
+                className="flex-1"
                 color={Color.ORANGE}
                 error={state?.errors?.contact2PhoneNumber}
                 idFor="contact2PhoneNumber"

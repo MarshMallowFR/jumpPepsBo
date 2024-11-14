@@ -1,7 +1,7 @@
 'use client';
 import { deleteMembersCompletely } from '@/app/lib/actions/climbing/actions';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
-import { Button } from '../common/buttons';
+import { Button, DeleteManyBtn } from '../common/buttons';
 
 interface DeleteMembersProps {
   ids: string[];
@@ -17,10 +17,12 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
   const handleDelete = async () => {
     try {
       const result = await deleteMembersCompletely(ids);
+      setToastVisible(true);
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
     } catch (error: unknown) {
       console.error('Failed to delete members:', error);
+      setToastVisible(true);
       setToastType(ToastType.ERROR);
       if (error instanceof Error) {
         setToastMessage(error.message);
@@ -33,7 +35,7 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
   // Plutôt créer u, bouton à part (style)
   return (
     <div className="mt-4">
-      <Button onClick={handleDelete}> Suppresion multiple </Button>
+      <DeleteManyBtn onClick={handleDelete}>Suppresion multiple</DeleteManyBtn>
     </div>
   );
 }
