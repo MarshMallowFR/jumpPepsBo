@@ -1,7 +1,7 @@
 'use client';
 import { deleteMembersCompletely } from '@/app/lib/actions/climbing/actions';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
-import { Button, DeleteManyBtn } from '../common/buttons';
+import { DeleteManyBtn } from '../common/buttons';
 
 interface DeleteMembersProps {
   ids: string[];
@@ -32,7 +32,6 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
     }
   };
 
-  // Plutôt créer u, bouton à part (style)
   return (
     <div className="mt-4">
       <DeleteManyBtn onClick={handleDelete}>Suppresion multiple</DeleteManyBtn>
