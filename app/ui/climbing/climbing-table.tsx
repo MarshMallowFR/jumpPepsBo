@@ -1,38 +1,29 @@
-import { fetchFilteredClimbingMembers } from '@/app/lib/data';
-import Table from './table';
-import DropdownContextProvider from '@/app/lib/contexts/dropdownmenuContext';
 import ToastContextProvider from '@/app/lib/contexts/toastContext';
+import SeasonContextProvider from '@/app/lib/contexts/seasonContext';
+import MembersManager from './member-management';
+import { getSeasons } from '@/app/lib/actions/season/actions';
+import { MemberList, SeasonMemberList } from '@/app/lib/types/climbing';
+import NotFoundMessage from '../common/notFoundMessage';
 
 export default async function ClimbingTable({
-  query,
-  currentPage,
+  allMembers,
 }: {
-  query: string;
-  currentPage: number;
+  allMembers: MemberList[] | SeasonMemberList[];
 }) {
-  const members = await fetchFilteredClimbingMembers(query, currentPage);
-
-  const actions = [
-    {
-      label: 'Exporter au format Excel',
-      value: 'export',
-      action: 'export-excel',
-    },
-    {
-      label: 'Suppression multiple',
-      value: 'delete',
-      action: 'delete-many',
-    },
-  ];
+  const allseasons = await getSeasons();
 
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
-        <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
+        <div className="rounded-lg bg-gray-50 md:pt-0">
           <ToastContextProvider>
-            <DropdownContextProvider actions={actions} members={members}>
-              <Table members={members} />
-            </DropdownContextProvider>
+            <SeasonContextProvider seasons={allseasons.seasons}>
+              {allMembers && allMembers.length > 0 ? (
+                <MembersManager allMembers={allMembers} />
+              ) : (
+                <NotFoundMessage message="Aucun membre trouvé" />
+              )}
+            </SeasonContextProvider>
           </ToastContextProvider>
         </div>
       </div>

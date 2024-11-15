@@ -9,7 +9,7 @@ export default function NotFound() {
       <p>Nous n'avons pas trouvé le membre recherché.</p>
       <Link
         href="/dashboard/climbing"
-        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
+        className="mt-4 rounded-md bg-blue-medium px-4 py-2 text-sm text-white transition-colors hover:bg-blue-light"
       >
         Retour
       </Link>

@@ -69,3 +69,27 @@ export function DeleteBtn({ id, handleDelete }: DeleteBtnProps) {
     </button>
   );
 }
+
+export function DeleteManyBtn({
+  children,
+  color = Color.BLUE,
+  className,
+  ...rest
+}: ButtonProps) {
+  const colorClasses = {
+    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light',
+    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light',
+  };
+  return (
+    <button
+      {...rest}
+      className={clsx(
+        'flex items-center rounded-md px-6 py-2 text-sm font-medium text-white  transition-colors aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
+        colorClasses[color],
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}

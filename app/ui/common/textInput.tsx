@@ -1,7 +1,7 @@
-type TextInputColors = 'orange' | 'blue';
+import { Color } from '@/app/lib/types/color';
 interface TextInputProps {
   className?: string;
-  color?: TextInputColors;
+  color?: Color;
   defaultValue?: string;
   error?: string[];
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -14,7 +14,7 @@ interface TextInputProps {
 
 export const TextInput = ({
   className,
-  color = 'blue',
+  color = Color.BLUE,
   defaultValue,
   error,
   handleChange,
@@ -25,8 +25,8 @@ export const TextInput = ({
   type = 'text',
 }: TextInputProps) => {
   const colorClasses = {
-    orange: 'focus:border-orange-medium focus:ring-orange-medium',
-    blue: 'focus:border-blue-500 focus:ring-blue-500',
+    [Color.ORANGE]: 'focus:border-orange-medium focus:ring-orange-medium',
+    [Color.BLUE]: 'focus:border-blue-medium focus:ring-blue-medium',
   };
 
   return (

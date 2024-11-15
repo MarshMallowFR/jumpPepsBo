@@ -11,29 +11,83 @@ import ToastContextProvider, {
   ToastType,
 } from '@/app/lib/contexts/toastContext';
 import ToastWrapper from '../common/toastWrapper';
+import { RadioInput } from '../common/radioInput';
+import { Season } from '@/app/lib/types/season';
+import { Member } from '@/app/lib/types/climbing';
+import { genderOptions } from '@/app/utils/formOptions';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
   state: ClimbingState;
+  season: Season;
 }
 
-export default function FormRegistration({ state, dispatch }: FormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function FormRegistration({
+  state,
+  dispatch,
+  season,
+}: FormProps) {
+  const initialState = {
+    contactFirstName: '',
+    contactLastName: '',
+    firstName: '',
+    lastName: '',
+    isMediaCompliant: true,
+  };
+
+  const [member, setMember] = useState<Partial<Member> | undefined>(
+    initialState,
+  );
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
   const [isMinor, setIsMinor] = useState(false);
-  const [isMediaCompliant, setIsMediaCompliant] = useState(false);
-  const [picture, setPicture] = useState<File | null>(null);
-  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
-  const handleIsMediaCompliant = () => {
-    setIsMediaCompliant((prevState) => !prevState);
+  const currentDate = new Date();
+  const formatedCurrentDate = `${currentDate
+    .getDate()
+    .toString()
+    .padStart(2, '0')}-${(currentDate.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}-${currentDate.getFullYear()}`;
+
+  // Remise à zéro des champs du formulaire si tout est OK
+  useEffect(() => {
+    if (state?.isSuccess) {
+      setMember(initialState);
+      setIsMinor(false);
+      const form = document.querySelector('form');
+      if (form) {
+        form.reset();
+      }
+    }
+  }, [state?.isSuccess]);
+
+  useEffect(() => {
+    return () => {
+      if (member?.picture) {
+        URL.revokeObjectURL(member.picture);
+      }
+    };
+  }, [member?.picture]);
+
+  const handleMemberChange = (
+    value: string | boolean | null,
+    key: keyof Member,
+  ) => {
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      [key]: value,
+    }));
   };
 
   const handlePictureChange = (file: File) => {
-    setPicture(file);
-    // url locale pour la prévisualisation en attendant l'envoie du formulaire
-    const url = URL.createObjectURL(file);
-    setPictureUrl(url);
+    const url = URL.createObjectURL(file); // url locale pour la prévisualisation en attendant l'envoie du formulaire
+    setPictureFile(file);
+    setMember((oldMemberValues) => ({
+      ...oldMemberValues,
+      picture: url,
+    }));
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
@@ -42,11 +96,16 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    formData.set('isMediaCompliant', isMediaCompliant.toString());
+    formData.set(
+      'isMediaCompliant',
+      (member?.isMediaCompliant ?? true).toString(),
+    );
 
-    if (picture) {
-      formData.set('picture', picture);
-    }
+    if (pictureFile) {
+      formData.set('picture', pictureFile);
+    } else if (member?.picture) {
+      formData.set('picture', member.picture);
+    } // Voir si le else est vraiment ncessaire ici
     try {
       await dispatch(formData);
       setDisplayToast(true);
@@ -57,201 +116,358 @@ export default function FormRegistration({ state, dispatch }: FormProps) {
     }
   };
 
-  // Remise à zéro des champs du formulaire si tout est OK
-  useEffect(() => {
-    if (state?.isSuccess) {
-      setIsMinor(false);
-      setIsMediaCompliant(false);
-      setPicture(null);
-      setPictureUrl(null);
-      const form = document.querySelector('form');
-      if (form) {
-        form.reset();
-      }
-    }
-  }, [state?.isSuccess]);
-
-  useEffect(() => {
-    return () => {
-      if (pictureUrl) {
-        URL.revokeObjectURL(pictureUrl);
-      }
-    };
-  }, [pictureUrl]);
-
-  // RETURN FINAL
   return (
     <>
       <form
         onSubmit={handleSubmit}
-        className="rounded-md shadow-custom-shadow bg-gray p-8 min-w-0 w-full md:w-1/2"
+        className="rounded-md shadow-custom-shadow bg-gray p-8 max-w-full w-full mx-auto"
       >
-        <h2 className="text-lg font-bold">Formulaire de pré-insciption</h2>
-        <p className="my-2">
-          L'inscription sera effective une fois le formulaire rempli et le
-          paiment de la cotisation effectué auprès de notre équipe.
+        <div className="text-xl font-bold">
+          <h2>GRIMP PEP'S</h2>
+          <div className="text-xl font-bold flex flex-wrap">
+            <h2 className="mr-2">Formulaire d'inscription</h2>
+            <h2>{season.name}</h2>
+          </div>
+        </div>
+        <p className="text-lg mb-2 mt-4 font-semibold text-orange-medium">
+          Informations sur l'adhérent.e
         </p>
-        <div className=" flex mt-6 space-x-3">
+        <div className="flex flex-col md:flex-row items-start">
+          <UploadPicture
+            icon={
+              <InformationCircleIcon
+                className="h-4 w-4 ml-2 text-gray-600"
+                title=" Formats autorisés: PNG, JPEG, JPG OU WEBP (MAX. 5MB)"
+              />
+            }
+            label="Photo d'identité"
+            handleChange={handlePictureChange}
+            idFor="picture"
+            settingKey="picture"
+            imageUrl={member?.picture ?? undefined}
+            error={state?.errors?.picture}
+          />
+          <div className="mt-4 md:mt-0 md:ml-4 flex-grow-4 flex-grow w-full">
+            <div className="flex flex-col">
+              <TextInput
+                color={Color.ORANGE}
+                idFor="lastName"
+                label="Nom"
+                settingKey="lastName"
+                error={state?.errors?.lastName}
+                handleChange={(event) =>
+                  handleMemberChange(event.target.value, 'lastName')
+                }
+              />
+              <TextInput
+                color={Color.ORANGE}
+                label="Prénom"
+                idFor="firstName"
+                settingKey="firstName"
+                error={state?.errors?.firstName}
+                handleChange={(event) =>
+                  handleMemberChange(event.target.value, 'firstName')
+                }
+              />
+            </div>
+
+            <div className="flex">
+              <TextInput
+                color={Color.ORANGE}
+                className="mr-4"
+                type="date"
+                handleChange={handleBirthDate(setIsMinor)}
+                label="Date de naissance"
+                idFor="birthDate"
+                placeholder="JJ/MM/AAAA"
+                settingKey="birthDate"
+                error={state?.errors?.birthDate}
+              />
+              <RadioInput
+                className="min-w-[100px] md:mt-0"
+                color={Color.ORANGE}
+                label="Sexe"
+                idFor="gender"
+                settingKey="gender"
+                options={genderOptions}
+                defaultValue={member?.gender || genderOptions[0].value}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full flex mt-2 items-end space-x-4">
           <TextInput
-            className="basis-1/2"
-            color="orange"
-            label="Prénom"
-            idFor="firstName"
-            settingKey="firstName"
-            error={state?.errors?.firstName}
+            className="flex-1"
+            color={Color.ORANGE}
+            label="Commune de naissance"
+            idFor="birthTown"
+            settingKey="birthTown"
+            error={state?.errors?.birthTown}
           />
           <TextInput
-            className="basis-1/2"
-            color="orange"
-            idFor="lastName"
-            label="Nom"
-            settingKey="lastName"
-            error={state?.errors?.lastName}
+            className="flex-1"
+            color={Color.ORANGE}
+            label="Département de naissance"
+            idFor="birthDepartement"
+            settingKey="birthDepartement"
+            error={state?.errors?.birthDepartement}
           />
         </div>
         <TextInput
-          color="orange"
+          color={Color.ORANGE}
+          label="Nationalité"
+          idFor="nationality"
+          settingKey="nationality"
+          error={state?.errors?.nationality}
+        />
+        <p className="text-lg mb-2 font-semibold text-orange-medium">
+          Coordonées de l'adhérent.e
+        </p>
+        <TextInput
+          color={Color.ORANGE}
+          label="Rue"
+          idFor="street"
+          settingKey="street"
+          error={state?.errors?.street}
+        />
+        <TextInput
+          color={Color.ORANGE}
+          label="Complément d'adresse"
+          idFor="additionalAddressInformation"
+          settingKey="additionalAddressInformation"
+          error={state?.errors?.additionalAddressInformation}
+        />
+        <div className="w-full flex mt-2 items-end space-x-2">
+          <TextInput
+            color={Color.ORANGE}
+            className="w-24 min-w-[70px]"
+            type="number"
+            label="Code postal"
+            idFor="zipCode"
+            settingKey="zipCode"
+            error={state?.errors?.zipCode}
+          />
+          <TextInput
+            className="flex-grow"
+            color={Color.ORANGE}
+            label="Ville"
+            idFor="city"
+            settingKey="city"
+            error={state?.errors?.city}
+          />
+          <TextInput
+            className="w-14 min-w-[40px]"
+            color={Color.ORANGE}
+            defaultValue="FR"
+            label="Pays"
+            idFor="country"
+            settingKey="country"
+            error={state?.errors?.country}
+          />
+        </div>
+        <div className="w-full flex mt-2 items-end space-x-4">
+          <TextInput
+            className="flex-1"
+            color={Color.ORANGE}
+            label="Téléphone portable"
+            idFor="phoneNumber"
+            settingKey="phoneNumber"
+            error={state?.errors?.phoneNumber}
+          />
+          <TextInput
+            className="flex-1"
+            color={Color.ORANGE}
+            label="Téléphone fixe"
+            idFor="phoneNumber2"
+            settingKey="phoneNumber2"
+            error={state?.errors?.phoneNumber2}
+          />
+        </div>
+        <TextInput
+          color={Color.ORANGE}
           type="email"
           label="Email"
           idFor="email"
           settingKey="email"
           error={state?.errors?.email}
         />
-
-        <div className="flex mt-3 space-x-3">
+        {!isMinor ? (
+          <p className="text-lg mb-2 font-semibold text-orange-medium">
+            Personne à contacter en cas d'urgence
+          </p>
+        ) : (
+          <p className="text-lg mb-2 font-semibold text-orange-medium">
+            Coordonnées du représentant légal 1
+          </p>
+        )}
+        <TextInput
+          color={Color.ORANGE}
+          idFor="contactLastName"
+          label="Nom"
+          settingKey="contactLastName"
+          error={state?.errors?.contactLastName}
+          handleChange={(event) =>
+            handleMemberChange(event.target.value, 'contactLastName')
+          }
+        />
+        <TextInput
+          color={Color.ORANGE}
+          label="Prénom"
+          idFor="contactFirstName"
+          settingKey="contactFirstName"
+          error={state?.errors?.contactFirstName}
+          handleChange={(event) =>
+            handleMemberChange(event.target.value, 'contactFirstName')
+          }
+        />
+        <div className="w-full flex mt-2 items-end space-x-4">
           <TextInput
-            className="basis-1/2"
-            color="orange"
-            type="tel"
+            className="flex-1"
+            color={Color.ORANGE}
+            idFor="contactLink"
+            label="Lien de parenté"
+            settingKey="contactLink"
+            error={state?.errors?.contactLink}
+          />
+          <TextInput
+            color={Color.ORANGE}
+            className="flex-1"
             label="Numéro de téléphone"
-            idFor="phoneNumber"
-            settingKey="phoneNumber"
-            error={
-              state?.errors?.phoneNumber
-                ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
-                : []
-            }
+            idFor="contactPhoneNumber"
+            settingKey="contactPhoneNumber"
+            error={state?.errors?.contactPhoneNumber}
           />
-          <TextInput
-            className="basis-1/2"
-            color="orange"
-            type="date"
-            handleChange={handleBirthDate(setIsMinor)}
-            label="Date de naissance"
-            idFor="birthDate"
-            placeholder="JJ/MM/AAAA"
-            settingKey="birthDate"
-            error={state?.errors?.birthDate}
-          />
-        </div>
-        <div className="mt-3">
-          <TextInput
-            color="orange"
-            label="Rue"
-            idFor="street"
-            settingKey="street"
-            error={state?.errors?.street}
-          />
-          <div className="flex space-x-3">
-            <TextInput
-              className="basis-1/3"
-              color="orange"
-              type="number"
-              label="Code postal"
-              idFor="zipCode"
-              settingKey="zipCode"
-              error={state?.errors?.zipCode}
-            />
-            <TextInput
-              className="basis-2/3"
-              color="orange"
-              label="Ville"
-              idFor="city"
-              settingKey="city"
-              error={state?.errors?.city}
-            />
-          </div>
         </div>
 
-        <div className="flex my-3 justify-between space-x-9">
-          <div className="basis-1/2">
-            <UploadPicture
-              icon={
-                <InformationCircleIcon
-                  className="h-4 w-4 ml-2 text-gray-600"
-                  title=" Formats autorisés: PNG, JPEG, JPG OU WEBP (MAX. 5MB)"
-                />
-              }
-              label="Photo d'identité"
-              handleChange={handlePictureChange}
-              idFor="picture"
-              settingKey="picture"
-              imageUrl={pictureUrl ?? undefined}
-              error={state?.errors?.picture}
-            />
-          </div>
-          <div className="basis-1/2">
-            <ToggleInput
-              color={Color.ORANGE}
-              defaultValue={isMediaCompliant}
-              idFor="isMediaCompliant"
-              icon={
-                <InformationCircleIcon
-                  className="h-4 w-4 ml-2 text-gray-600"
-                  title="Autorise le club à utiliser l'image de l'adhérent à des fins non commerciales sur tout type de support"
-                />
-              }
-              handleChange={handleIsMediaCompliant}
-              label="Autorisation média"
-              settingKey="isMediaCompliant"
-            >
-              <label
-                htmlFor="isMediaCompliant"
-                className="ml-4 mr flex items-center"
-              >
-                {isMediaCompliant ? 'Accepte' : 'Refuse'}
-              </label>
-            </ToggleInput>
-          </div>
-        </div>
         {!isMinor ? null : (
-          <div className="my-6">
-            <h2 className="mb-2  text-sm font-semibold text-orange-medium">
-              Coordonnées du représentant légal
-            </h2>
-            <div className="flex space-x-3">
+          <TextInput
+            color={Color.ORANGE}
+            label="Email"
+            idFor="contactEmail"
+            settingKey="contactEmail"
+            error={state?.errors?.contactEmail}
+          />
+        )}
+        {!isMinor ? null : (
+          <div className="mb-4">
+            <p className="text-lg mb-2 font-semibold text-orange-medium">
+              Coordonnées du représentant légal 2
+            </p>
+            <TextInput
+              color={Color.ORANGE}
+              error={state?.errors?.contact2LastName}
+              idFor="contact2LastName"
+              label="Nom"
+              settingKey="contact2LastName"
+            />
+            <TextInput
+              color={Color.ORANGE}
+              error={state.errors?.contact2FirstName}
+              idFor="contact2FirstName"
+              label="Prénom"
+              settingKey="contact2FirstName"
+            />
+            <div className="w-full flex mt-2 items-end space-x-4">
               <TextInput
-                className="basis-1/2"
-                color="orange"
-                idFor="legalContactFirstName"
-                label="Prénom"
-                settingKey="legalContactFirstName"
-                error={state?.errors?.legalContactFirstName}
+                className="flex-1"
+                color={Color.ORANGE}
+                idFor="contact2Link"
+                label="Lien de parenté"
+                settingKey="contact2Link"
+                error={state?.errors?.contact2Link}
               />
               <TextInput
-                className="basis-1/2"
-                color="orange"
-                idFor="legalContactLastName"
-                label="Nom"
-                settingKey="legalContactLastName"
-                error={state?.errors?.legalContactLastName}
+                className="flex-1"
+                color={Color.ORANGE}
+                error={state?.errors?.contact2PhoneNumber}
+                idFor="contact2PhoneNumber"
+                label="Numéro de téléphone"
+                settingKey="contact2PhoneNumber"
               />
             </div>
             <TextInput
-              className="w-1/2"
-              color="orange"
-              idFor="legalContactPhoneNumber"
-              label="Numéro de téléphone"
-              settingKey="legalContactPhoneNumber"
-              error={
-                state?.errors?.legalContactPhoneNumber
-                  ? ['Le numéro de téléphone doit être composé de 10 chiffres.']
-                  : []
-              }
+              color={Color.ORANGE}
+              error={state?.errors?.contact2Email}
+              idFor="contact2Email"
+              label="Email"
+              settingKey="contact2Email"
             />
           </div>
         )}
-        <div className="mt-6 flex justify-center">
+        <p className="text-lg mb-2 font-semibold text-orange-medium">
+          Informations supplémentaire pour la saison {season.name}
+        </p>
+        {!isMinor ? (
+          <p className="mb-4">
+            J'autorise le club à prendre des photos et/ou à filmer à l'occasion
+            des activités et compétitions sportives ou associatives auxquelles
+            je participe et autorise leur publication dans le bulletin
+            d'informations, la page facebook et sur le site internet du club à
+            des fins pédagoqiques et non commerciales.
+          </p>
+        ) : (
+          <p className="mb-4">
+            <span className="font-semibold">
+              {member?.contactFirstName} {member?.contactLastName}
+            </span>{' '}
+            responsable légal de l'enfant{' '}
+            <span className="font-semibold">
+              {member?.firstName} {member?.lastName}
+            </span>{' '}
+            autorise le club à prendre des photos et/ou à filmer mon enfant à
+            l'occasion des activités et compétitions sportives ou associatives
+            auxquelles il participe et autorise leur publication dans le
+            bulletin d'informations, la page facebook et sur le site internet du
+            club à des fins pédagoqiques et non commerciales.
+          </p>
+        )}
+        <ToggleInput
+          color={Color.ORANGE}
+          checked={member?.isMediaCompliant ?? true}
+          idFor="isMediaCompliant"
+          handleChange={(e) =>
+            handleMemberChange(e.target.checked, 'isMediaCompliant')
+          }
+          settingKey="isMediaCompliant"
+        >
+          <label
+            htmlFor="isMediaCompliant"
+            className="ml-4 mr flex items-center"
+          >
+            {member?.isMediaCompliant ? 'OUI' : 'NON'}
+          </label>
+        </ToggleInput>
+        {!isMinor ? (
+          <p className="mt-8">
+            J'atteste avoir pris connaissance du réglèment intérieur remis par
+            email avec les documents d'inscription.
+          </p>
+        ) : (
+          <p className="mt-8">
+            <span className="font-semibold">
+              {member?.contactFirstName} {member?.contactLastName}
+            </span>{' '}
+            responsable légal de l'enfant{' '}
+            <span className="font-semibold">
+              {member?.firstName} {member?.lastName}
+            </span>{' '}
+            atteste avoir pris connaissance du réglèment intérieur remis par
+            email avec les documents d'inscription.
+          </p>
+        )}
+        {/* <div className="mt-8 flex font-semibold justify-between">
+          <p>
+            Lu et approuvé le{' '}
+            <span className="font-normal">{formatedCurrentDate}</span>
+          </p>
+          <div className="flex">
+            <p>Signature</p>
+            <svg className="ml-2 w-40 h-16 border border-gray-400 rounded-lg" />
+          </div>
+        </div> */}
+
+        <div className="mt-10 flex justify-center">
           <Button type="submit" color={Color.ORANGE} disabled={isSubmitting}>
             {isSubmitting ? 'Traitement en cours...' : 'ENVOYER'}
           </Button>

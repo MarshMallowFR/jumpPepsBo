@@ -1,5 +1,5 @@
 'use client';
-import { deleteMember } from '@/app/lib/actions/climbing/actions';
+import { deleteMemberCompletely } from '@/app/lib/actions/climbing/actions';
 import { DeleteBtn } from '../common/buttons';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 interface DeleteMemberProps {
@@ -11,7 +11,7 @@ export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
   const { setIsVisible, setToastType, setToastMessage } = useToastContext();
   const handleDelete = async () => {
     try {
-      const result = await deleteMember(id, imageUrl);
+      const result = await deleteMemberCompletely(id, imageUrl);
       setIsVisible(true);
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);

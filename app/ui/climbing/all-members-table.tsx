@@ -1,22 +1,19 @@
 'use client';
-import ToastContextProvider from '@/app/lib/contexts/toastContext';
-import { Member } from '@/app/lib/types/climbing';
-import { UpdateBtn } from '../common/buttons';
+import { MemberList } from '@/app/lib/types/climbing';
 import DeleteMember from './delete-member';
-import Status from './status';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Checkbox } from '../common/checkbox';
-import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 
 interface TableProps {
-  members: Member[];
+  members: MemberList[];
+  onSelectionChange: (selectedIds: string[]) => void;
 }
 
-export default function Table({ members }: TableProps) {
-  const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
-    useDropdownContext();
-
+export default function AllMembersTable({
+  members,
+  onSelectionChange,
+}: TableProps) {
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
       (acc, member) => {
@@ -29,6 +26,10 @@ export default function Table({ members }: TableProps) {
 
   const allSelected = useMemo(() => {
     return Object.values(selectedStates).every((isSelected) => isSelected);
+  }, [selectedStates]);
+
+  useEffect(() => {
+    onSelectionChange(getSelectedMemberIds());
   }, [selectedStates]);
 
   const handleSelectAll = () => {
@@ -55,16 +56,6 @@ export default function Table({ members }: TableProps) {
     return Object.keys(selectedStates).filter((id) => selectedStates[id]);
   };
 
-  useEffect(() => {
-    const selectedMemberIds = getSelectedMemberIds();
-    setSelectedIds(selectedMemberIds);
-    if (selectedMemberIds.length > 0) {
-      setIsVisibleDropdown(true);
-    } else {
-      setIsVisibleDropdown(false);
-    }
-  }, [selectedStates]);
-
   return (
     <table className="hidden min-w-full text-gray-900 md:table">
       <thead className="rounded-lg text-left text-sm font-normal">
@@ -81,9 +72,6 @@ export default function Table({ members }: TableProps) {
           </th>
           <th scope="col" className="px-3 py-5 font-medium">
             Email
-          </th>
-          <th scope="col" className="px-3 py-5 font-medium">
-            Statut du paiement
           </th>
           <th scope="col" className="relative py-3 pl-6 pr-3">
             <span className="sr-only">Edit</span>
@@ -119,14 +107,8 @@ export default function Table({ members }: TableProps) {
               </div>
             </td>
             <td className="whitespace-nowrap px-3 py-3">{member.email}</td>
-            <td className="whitespace-nowrap px-3 py-3">
-              <Status isValid={member.hasPaid} />
-            </td>
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
-              <div className="flex justify-end gap-3">
-                <UpdateBtn href={`/dashboard/climbing/${member.id}/edit`} />
-                <DeleteMember id={member.id} imageUrl={member.picture} />
-              </div>
+              <DeleteMember id={member.id} imageUrl={member.picture} />
             </td>
           </tr>
         ))}

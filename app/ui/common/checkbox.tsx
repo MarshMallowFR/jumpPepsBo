@@ -32,7 +32,7 @@ export const Checkbox = ({
           className="hidden peer"
         />
         <div
-          className={`w-6 h-6 border rounded-md ${colorClasses[color]} transition-colors transition-border border-black bg-white peer-checked:border-none`}
+          className={`w-6 h-6 border rounded-md ${colorClasses[color]} transition-colors transition-border border-black peer-checked:border-none`}
         ></div>
         <svg
           className={`absolute w-4 h-4 text-white peer-checked:block`}

@@ -1,41 +1,105 @@
 export interface MemberDB {
   id: string;
-  first_name: string;
+  picture: string;
   last_name: string;
+  first_name: string;
   birth_date: string;
-  email: string;
-  phone_number: string;
+  gender: string;
+  nationality: string;
   street: string;
+  additional_address_information: string;
   zip_code: string;
   city: string;
-  picture: string;
+  country: string;
+  email: string;
+  phone_number: string;
+  phone_number2: string;
+  birth_town: string;
+  birth_departement: string;
+}
+
+export interface MemberWithContactsDB extends MemberDB {
+  first_contact_id: string;
+  contact_link: string;
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_phone_number: string;
+  contact_email: string;
+  second_contact_id?: string;
+  contact2_link?: string;
+  contact2_first_name?: string;
+  contact2_last_name?: string;
+  contact2_phone_number?: string;
+  contact2_email?: string;
+}
+
+export interface MemberWithContactsAndSeasonBD extends MemberWithContactsDB {
+  license: string;
+  license_type: string;
+  insurance: string;
+  supplemental_insurance: string;
+  assault_protection_option: boolean;
+  ski_option: boolean;
+  slackline_option: boolean;
+  trail_running_option: boolean;
+  mountain_biking_option: boolean;
   is_media_compliant: boolean;
   has_paid: boolean;
-  legal_contact_id?: string;
 }
 
-export interface Member {
+export type Member = {
   id: string;
-  firstName: string;
+  picture: string;
   lastName: string;
+  firstName: string;
   birthDate: string;
-  email: string;
-  phoneNumber: string;
+  gender: string;
+  nationality: string;
   street: string;
+  additionalAddressInformation: string;
   zipCode: string;
   city: string;
-  picture: string;
+  country: string;
+  email: string;
+  phoneNumber: string;
+  phoneNumber2: string;
+  birthTown: string;
+  birthDepartement: string;
+  contactLink: string;
+  contactLastName: string;
+  contactFirstName: string;
+  contactPhoneNumber: string;
+  contactEmail: string;
+  contact2Id?: string;
+  contact2Link?: string;
+  contact2FirstName?: string;
+  contact2LastName?: string;
+  contact2PhoneNumber?: string;
+  contact2Email?: string;
+  license: string;
+  licenseType: string;
+  insurance: string;
+  supplementalInsurance: string;
+  assaultProtectionOption: boolean;
   isMediaCompliant: boolean;
   hasPaid: boolean;
-  legalContactId?: string;
-  legalContactFirstName?: string;
-  legalContactLastName?: string;
-  legalContactPhoneNumber?: string;
+} & MemberOptions;
+
+export interface MemberOptions {
+  skiOption: boolean;
+  slacklineOption: boolean;
+  trailRunningOption: boolean;
+  mountainBikingOption: boolean;
 }
 
-export interface LegalContactDB {
+export interface MemberList {
   id: string;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
+  picture: string;
+  lastName: string;
+  firstName: string;
+  email: string;
 }
+
+export type SeasonMemberList = {
+  hasPaid: boolean;
+} & MemberList;
