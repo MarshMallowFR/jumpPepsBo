@@ -16,7 +16,7 @@ export default function MembersManager({
   const seasonId = searchParams.get('seasonId');
 
   const { selectedSeason, setSelectedSeason } = useSeasonContext();
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]); // A faire autrement, plus propre avec un context??
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (seasonId) {

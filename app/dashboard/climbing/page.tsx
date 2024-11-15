@@ -51,11 +51,11 @@ export default async function Page({
         <CreateBtn href="/dashboard/climbing/create" text="Créer membre" />
       </div>
 
-      {/* <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}> */}
-      <div className="w-full">
-        <ClimbingTable allMembers={allMembers} />
-      </div>
-      {/* </Suspense> */}
+      <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}>
+        <div className="w-full">
+          <ClimbingTable allMembers={allMembers} />
+        </div>
+      </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />
       </div>
