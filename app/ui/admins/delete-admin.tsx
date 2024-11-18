@@ -22,5 +22,5 @@ export default function DeleteAdmin({ id }: { id: string }) {
     }
   };
 
-  return <DeleteBtn id={id} handleDelete={handleDelete} />;
+  return <DeleteBtn id={id} handleDeleteOrRemove={handleDelete} />;
 }
