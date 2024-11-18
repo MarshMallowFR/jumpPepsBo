@@ -10,6 +10,7 @@ import RemoveMemberFromSeason from './remove-member-season';
 import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
 import NotFoundMessage from '../common/notFoundMessage';
 import DeleteMember from './delete-member';
+import UserIcon from '../common/userIcon';
 
 interface TableProps {
   members: SeasonMemberList[] | MemberList[];
@@ -124,12 +125,16 @@ export default function Table({ members }: TableProps) {
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex items-center gap-3">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image
-                    src={member.picture}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    alt={`${member.firstName} ${member.lastName}'s profile picture`}
-                  />
+                  {member.picture ? (
+                    <Image
+                      src={member.picture}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      alt={`${member.firstName} ${member.lastName}'s profile picture`}
+                    />
+                  ) : (
+                    <UserIcon />
+                  )}
                 </div>
                 <p>
                   {member.lastName} {member.firstName}

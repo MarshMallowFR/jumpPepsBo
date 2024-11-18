@@ -7,19 +7,6 @@ export default function ClimbingMembers({
 }: {
   members: SeasonMemberList[] | MemberList[];
 }) {
-  // const actions = [
-  //   {
-  //     label: 'Exporter au format Excel',
-  //     value: 'export',
-  //     action: 'export-excel',
-  //   },
-  //   {
-  //     label: 'Désinscription multiple',
-  //     value: 'delete',
-  //     action: 'delete-many',
-  //   },
-  // ];
-
   const actions =
     Array.isArray(members) && members.length > 0 && 'hasPaid' in members[0]
       ? [

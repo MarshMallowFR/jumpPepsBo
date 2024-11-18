@@ -23,19 +23,20 @@ const ACCEPTED_IMAGE_TYPES = [
 const ClimbingMemberSchema = z.object({
   id: z.string(),
   picture: z
-    .string()
-    .url('Veuillez fournir une URL valide.')
-    .or(
-      z
-        .instanceof(File)
-        .refine(
-          (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-          'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
-        )
-        .refine(
-          (file) => file.size <= MAX_FILE_SIZE,
-          `La taille maximum de l'image est 5MB.`,
-        ),
+    .any()
+    .optional()
+    .refine(
+      (val) =>
+        val === null ||
+        val === undefined ||
+        typeof val === 'string' ||
+        (val instanceof File &&
+          ACCEPTED_IMAGE_TYPES.includes(val.type) &&
+          val.size <= MAX_FILE_SIZE),
+      {
+        message:
+          'Veuillez fournir une URL valide ou un fichier de type .jpg, .jpeg, .png, ou .webp de moins de 5MB.',
+      },
     ),
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthName: z.optional(z.string().optional().nullable()),
@@ -236,7 +237,7 @@ export async function createClimbingMember(
   }
 
   const validatedFields = CreateClimbingMember.safeParse({
-    picture: formData.get('picture'),
+    picture: formData.get('picture') as File | null,
     lastName: formData.get('lastName'),
     firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
@@ -289,9 +290,14 @@ export async function createClimbingMember(
   try {
     await client.query('BEGIN');
 
-    const imageUrl = await getCloudinaryPicture(
-      formData.get('picture') as File,
-    );
+    // const imageUrl = await getCloudinaryPicture(
+    //   formData.get('picture') as File,
+    // );
+    const picture = validatedFields.data.picture;
+    const imageUrl =
+      picture && picture instanceof File && picture.size > 0
+        ? await getCloudinaryPicture(picture)
+        : null;
 
     const {
       lastName,
