@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import {
   getCloudinaryPicture,
@@ -213,7 +212,6 @@ async function isMemberAlreadyExists(
   return result.rows.length > 0 ? result.rows[0].id : null;
 }
 
-// Voir pour améliorer la perf (temps de chargement long)
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
@@ -741,7 +739,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     // 2. Get the contact IDs from the member_contact table
     const contactsResult = await client.query(
       `
@@ -751,7 +748,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     const firstContactId = contactsResult.rows[0]?.first_contact_id;
     const secondContactId = contactsResult.rows[0]?.second_contact_id;
 
@@ -763,7 +759,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     // 4. Delete the contacts from the contacts table (if they exist)
     if (firstContactId) {
       await client.query(
@@ -784,7 +779,6 @@ export async function deleteMemberCompletely(
         [secondContactId],
       );
     }
-
     // 5. Delete the member from the members table
     await client.query(
       `
@@ -795,7 +789,6 @@ export async function deleteMemberCompletely(
     );
 
     await client.query('COMMIT');
-
     // Handle the image deletion
     const imageId = imageUrl.split('/').pop()?.split('.')[0];
     if (imageId) {
@@ -811,7 +804,7 @@ export async function deleteMemberCompletely(
     throw new Error('Erreur lors de la suppression du membre.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
+    //revalidatePath('/dashboard/climbing'); // A faire côté client car utilisé dans removeMemberFromSeason
   }
 }
 
@@ -900,43 +893,44 @@ export async function deleteMembersCompletely(
     throw new Error('Erreur lors de la suppression des membres.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
   }
 }
 
-// A tester/vérifier dans une autre PR
 export async function removeMemberFromSeason(
   memberId: string,
   seasonId: string,
 ): Promise<{ message: string }> {
   const client = await sql.connect();
+
   try {
     await client.query('BEGIN');
 
-    const checkMemberQuery = `
-      SELECT COUNT(*) AS season_count 
-      FROM member_section_season 
-      WHERE member_id = $1 AND season_id != $2
+    const checkMemberAndImageQuery = `
+      SELECT COUNT(*) FILTER (WHERE season_id != $2) AS season_count, m.picture AS image_url 
+      FROM member_section_season mss 
+      LEFT JOIN members m ON mss.member_id = m.id
+      WHERE mss.member_id = $1
+      GROUP BY m.picture
     `;
-    const { rows } = await client.query(checkMemberQuery, [memberId, seasonId]);
-    const seasonCount = parseInt(rows[0].season_count, 10);
-
-    const deleteMemberSeasonQuery = `
-      DELETE FROM member_section_season 
-      WHERE member_id = $1 AND season_id = $2
-    `;
-    await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
-
-    if (seasonCount === 0) {
-      const imageQuery = `SELECT picture FROM members WHERE id = $1`;
-      const imageResult = await client.query(imageQuery, [memberId]);
-      const imageUrl = imageResult.rows[0]?.picture || '';
-      await deleteMemberCompletely(memberId, imageUrl);
+    const { rows } = await client.query(checkMemberAndImageQuery, [
+      memberId,
+      seasonId,
+    ]);
+    const { season_count: seasonCount, image_url: imageUrl } = rows[0] || {};
+    if (parseInt(seasonCount, 10) === 0) {
+      await deleteMemberCompletely(memberId, imageUrl || '');
+      console.log(
+        "Le membre est complètement supprimé, car il n'existe pas dans d'autres saisons",
+      );
+    } else {
+      const deleteMemberSeasonQuery = `
+        DELETE FROM member_section_season 
+        WHERE member_id = $1 AND season_id = $2
+      `;
+      await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
     }
-
     await client.query('COMMIT');
-
-    return { message: 'Membre retiré de la saison.' };
+    return { message: 'Désinscription du membre effectuée.' };
   } catch (error) {
     await client.query('ROLLBACK');
     console.error(
@@ -946,11 +940,10 @@ export async function removeMemberFromSeason(
     throw new Error('Erreur lors de la suppression du membre de la saison.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
+    revalidatePath(`/dashboard/climbing?seasonId=${seasonId}`);
   }
 }
 
-// A tester/vérifier dans une autre PR
 export async function removeMembersFromSeason(
   memberIds: string[],
   seasonId: string,
@@ -958,7 +951,6 @@ export async function removeMembersFromSeason(
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
-
     for (const memberId of memberIds) {
       // check for each member the action to accomplish
       const checkMemberQuery = `
@@ -972,19 +964,17 @@ export async function removeMembersFromSeason(
       ]);
       const seasonCount = parseInt(rows[0].season_count, 10);
 
+      if (seasonCount === 0) {
+        const imageQuery = `SELECT picture FROM members WHERE id = $1`;
+        const imageResult = await client.query(imageQuery, [memberId]);
+        const imageUrl = imageResult.rows[0]?.picture || '';
+        await deleteMemberCompletely(memberId, imageUrl);
+      }
       const deleteMemberSeasonQuery = `
         DELETE FROM member_section_season 
         WHERE member_id = $1 AND season_id = $2
       `;
       await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
-
-      if (seasonCount === 0) {
-        const imageQuery = `SELECT picture FROM members WHERE id = $1`;
-        const imageResult = await client.query(imageQuery, [memberId]);
-        const imageUrl = imageResult.rows[0]?.picture || '';
-
-        await deleteMemberCompletely(memberId, imageUrl);
-      }
     }
 
     await client.query('COMMIT');
@@ -999,6 +989,6 @@ export async function removeMembersFromSeason(
     throw new Error('Erreur lors de la suppression des membres de la saison.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
+    revalidatePath(`/dashboard/climbing?seasonId=${seasonId}`);
   }
 }

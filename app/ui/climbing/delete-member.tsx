@@ -15,6 +15,9 @@ export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
       setIsVisible(true);
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/climbing`;
+      }, 600);
     } catch (error: unknown) {
       console.error('Failed to delete member:', error);
       setIsVisible(true);
@@ -27,5 +30,5 @@ export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
     }
   };
 
-  return <DeleteBtn id={id} handleDelete={handleDelete} />;
+  return <DeleteBtn id={id} handleDeleteOrRemove={handleDelete} />;
 }

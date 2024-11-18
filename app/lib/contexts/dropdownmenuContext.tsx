@@ -11,7 +11,10 @@ import {
 } from 'react';
 import { downloadExcel } from '@/app/lib/excel/excel';
 import { useToastContext, ToastType } from './toastContext';
-import { removeMembersFromSeason } from '../actions/climbing/actions';
+import {
+  deleteMembersCompletely,
+  removeMembersFromSeason,
+} from '../actions/climbing/actions';
 import { useSeasonContext } from './seasonContext';
 
 interface DropdownContextProps {
@@ -77,10 +80,18 @@ const DropdownContextProvider = ({
           await handlePromise(downloadExcel(selectedIds));
           break;
         case 'delete-many':
+          await handlePromise(deleteMembersCompletely(selectedIds));
+          setTimeout(() => {
+            window.location.href = `/dashboard/climbing`;
+          }, 600);
+          break;
+
+        case 'remove-many':
           if (selectedSeason) {
             await handlePromise(
               removeMembersFromSeason(selectedIds, selectedSeason),
             );
+            console.log('remove-many');
           } else {
             handleToast(true, ToastType.ERROR, 'Aucune saison sélectionnée.');
           }
@@ -102,7 +113,7 @@ const DropdownContextProvider = ({
   return (
     <DropdownContext.Provider value={value}>
       {isVisible && (
-        <Dropdown label="Actions" options={actions} onSelect={handleSelect} />
+        <Dropdown label="Options" options={actions} onSelect={handleSelect} />
       )}
       {children}
     </DropdownContext.Provider>

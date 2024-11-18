@@ -1,6 +1,6 @@
 'use client';
 import { removeMemberFromSeason } from '@/app/lib/actions/climbing/actions';
-import { DeleteBtn } from '../common/buttons';
+import { DeleteBtn, RemoveBtn } from '../common/buttons';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 interface RemoveMemberFromSeasonProps {
   memberId: string;
@@ -13,7 +13,6 @@ export default function RemoveMemberFromSeason({
 }: RemoveMemberFromSeasonProps) {
   const { setIsVisible, setToastType, setToastMessage } = useToastContext();
   const handleRemove = async () => {
-    console.log('RemoveMemberFromSeason needs to be reviewed');
     if (seasonId) {
       await removeMemberFromSeason(memberId, seasonId)
         .then((result) => {
@@ -34,5 +33,5 @@ export default function RemoveMemberFromSeason({
     }
   };
 
-  return <DeleteBtn id={memberId} handleDelete={handleRemove} />;
+  return <RemoveBtn id={memberId} handleDeleteOrRemove={handleRemove} />;
 }

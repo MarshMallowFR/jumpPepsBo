@@ -1,4 +1,9 @@
-import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { Color } from '@/app/lib/types/color';
@@ -53,16 +58,19 @@ export function UpdateBtn({ href }: { href: string }) {
   );
 }
 
-interface DeleteBtnProps {
+interface DeleteOrRemoveBtnProps {
   id: string;
-  handleDelete: () => Promise<void>;
+  handleDeleteOrRemove: () => Promise<void>;
 }
 
-export function DeleteBtn({ id, handleDelete }: DeleteBtnProps) {
+export function DeleteBtn({
+  id,
+  handleDeleteOrRemove,
+}: DeleteOrRemoveBtnProps) {
   return (
     <button
       id={id}
-      onClick={handleDelete}
+      onClick={handleDeleteOrRemove}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <TrashIcon className="w-5" />
@@ -90,6 +98,21 @@ export function DeleteManyBtn({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+export function RemoveBtn({
+  id,
+  handleDeleteOrRemove,
+}: DeleteOrRemoveBtnProps) {
+  return (
+    <button
+      id={id}
+      onClick={handleDeleteOrRemove}
+      className="rounded-md border p-2 hover:bg-gray-100"
+    >
+      <XCircleIcon className="w-5" />
     </button>
   );
 }

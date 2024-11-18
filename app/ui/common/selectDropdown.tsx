@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Color } from '@/app/lib/types/color';
 
 interface SelectDropdownProps {
-  label: string;
   options: { name: string; id: string }[];
   onSelect: (value: string) => void;
   color?: Color;
+  value: string | null;
 }
 
 export default function SelectDropdown({
-  label,
   options,
   onSelect,
   color = Color.BLUE,
+  value,
 }: SelectDropdownProps) {
   const colorClasses = {
     [Color.ORANGE]: {
@@ -35,10 +35,15 @@ export default function SelectDropdown({
   };
 
   const handleOptionClick = (value: string, label: string) => {
-    setSelectedOption(label);
     onSelect(value);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    const seasonName =
+      options.find(({ id }) => id === value)?.name || 'Toutes saisons';
+    setSelectedOption(seasonName);
+  }, [value]);
 
   const colorClass = colorClasses[color];
 
@@ -48,7 +53,7 @@ export default function SelectDropdown({
         onClick={toggleDropdown}
         className={`inline-flex justify-center w-full rounded-md px-4 py-2 text-sm font-medium text-white ${colorClass.button} focus:outline-none`}
       >
-        {selectedOption || label}{' '}
+        {selectedOption || 'Toutes saisons'}
         {/* Display selected season or initial label */}
         <svg
           className={`-mr-1 ml-2 h-5 w-5 transform transition-transform duration-200 ${
