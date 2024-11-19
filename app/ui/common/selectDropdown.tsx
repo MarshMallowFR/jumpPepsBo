@@ -73,7 +73,13 @@ export default function SelectDropdown({
       </button>
 
       {isOpen && (
-        <div className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50">
+        <div
+          className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50"
+          style={{
+            maxHeight: '200px', // Limite de hauteur pour les options
+            overflowY: 'auto', // Active la barre de défilement si nécessaire
+          }}
+        >
           <div className="py-1">
             {options.map((option) => (
               <button
