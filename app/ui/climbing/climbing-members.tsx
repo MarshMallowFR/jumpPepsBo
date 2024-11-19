@@ -28,7 +28,7 @@ export default function ClimbingMembers({
             action: 'export-excel',
           },
           {
-            label: 'Supprimer plusieurs membres',
+            label: 'Suppression multiple',
             value: 'delete',
             action: 'delete-many',
           },

@@ -328,7 +328,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               <TextInput
                 className="flex-1"
                 defaultValue={member?.phoneNumber}
-                label="Téléphone portable"
+                label="Téléphone principal"
                 idFor="phoneNumber"
                 settingKey="phoneNumber"
                 error={state?.errors?.phoneNumber}
@@ -336,7 +336,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               <TextInput
                 className="ml-2 flex-1"
                 defaultValue={member?.phoneNumber2}
-                label="Téléphone fixe"
+                label="Téléphone secondaire"
                 idFor="phoneNumber2"
                 settingKey="phoneNumber2"
                 error={state?.errors?.phoneNumber2}

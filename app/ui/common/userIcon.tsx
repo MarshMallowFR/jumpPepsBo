@@ -1,21 +1,20 @@
 import React from 'react';
 
-export default function UserIcon({ size = 20, color = 'gray' }) {
+export default function UserIcon() {
   return (
     <svg
+      className={`w-full h-full`}
+      viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={`text-${color}-500`}
-      aria-hidden="true"
     >
-      <path
-        fillRule="evenodd"
-        d="M12 2a5 5 0 100 10 5 5 0 000-10zM7 12a7 7 0 0110 0 6.972 6.972 0 013.528 5.487c.06.33-.188.627-.523.627H4.995c-.334 0-.583-.297-.523-.627A6.972 6.972 0 017 12z"
-        clipRule="evenodd"
-      />
+      {/* Fond circulaire */}
+      <circle cx="50" cy="50" r="50" className="fill-blue-extralight" />
+
+      {/* Tête du personnage */}
+      <circle cx="50" cy="35" r="15" className="fill-blue-medium" />
+
+      {/* Corps du personnage */}
+      <path d="M 25 75 A 25 25 0 0 1 75 75" className="fill-blue-medium" />
     </svg>
   );
 }

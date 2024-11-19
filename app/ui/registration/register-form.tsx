@@ -65,7 +65,7 @@ export default function RegisterForm() {
           <li>paiement de la cotisation annuelle</li>
         </ul>
       </div>
-      {currentSeason && currentSeason.registrationOpen ? (
+      {currentSeason ? (
         <FormRegistration
           dispatch={dispatch}
           state={state}
@@ -77,3 +77,15 @@ export default function RegisterForm() {
     </div>
   );
 }
+
+// {
+//   currentSeason && currentSeason.registrationOpen ? (
+//     <FormRegistration
+//       dispatch={dispatch}
+//       state={state}
+//       season={currentSeason}
+//     />
+//   ) : (
+//     <NoRegistrationForm />
+//   );
+// }

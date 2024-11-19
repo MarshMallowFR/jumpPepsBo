@@ -10,7 +10,7 @@ import RemoveMemberFromSeason from './remove-member-season';
 import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
 import NotFoundMessage from '../common/notFoundMessage';
 import DeleteMember from './delete-member';
-import UserIcon from '../common/userIcon';
+import UserInitial from '../common/userInitial';
 
 interface TableProps {
   members: SeasonMemberList[] | MemberList[];
@@ -133,7 +133,10 @@ export default function Table({ members }: TableProps) {
                       alt={`${member.firstName} ${member.lastName}'s profile picture`}
                     />
                   ) : (
-                    <UserIcon />
+                    <UserInitial
+                      firstName={member.firstName}
+                      lastName={member.lastName}
+                    />
                   )}
                 </div>
                 <p>

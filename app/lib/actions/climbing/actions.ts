@@ -23,21 +23,37 @@ const ACCEPTED_IMAGE_TYPES = [
 const ClimbingMemberSchema = z.object({
   id: z.string(),
   picture: z
-    .any()
-    .optional()
+    .union([
+      // Cas où le champ peut être une URL valide ou vide (facultatif et nullable)
+      z.string().url('Veuillez fournir une URL valide.').optional().nullable(),
+
+      // Cas où un fichier est fourni, avec la validation sur type et taille
+      z
+        .instanceof(File)
+        .refine(
+          (file) => file.size === 0 || ACCEPTED_IMAGE_TYPES.includes(file.type),
+          'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
+        )
+        .refine(
+          (file) => file.size === 0 || file.size <= MAX_FILE_SIZE,
+          "La taille maximum de l'image est 5MB.",
+        )
+        .optional() // Permet au fichier d'être omis
+        .nullable(), // Permet que le fichier soit nul
+    ])
     .refine(
       (val) =>
         val === null ||
         val === undefined ||
-        typeof val === 'string' ||
-        (val instanceof File &&
-          ACCEPTED_IMAGE_TYPES.includes(val.type) &&
-          val.size <= MAX_FILE_SIZE),
+        val === '' ||
+        val instanceof File ||
+        typeof val === 'string',
       {
-        message:
-          'Veuillez fournir une URL valide ou un fichier de type .jpg, .jpeg, .png, ou .webp de moins de 5MB.',
+        message: 'Veuillez fournir une URL valide ou une image.',
       },
-    ),
+    )
+    .optional() // Permet de ne pas avoir à remplir ce champ
+    .nullable(), // Permet de laisser ce champ vide
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthName: z.optional(z.string().optional().nullable()),
   firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
@@ -224,7 +240,6 @@ export async function createClimbingMember(
   // Récupérer la saison actuelle pour la création des membres.
   const { currentSeason } = await getSeasons();
   if (!currentSeason) {
-    // Pas besoin de vérifier que les inscriptions sont ouvertes avec || !currentSeason.registrationOpen => côté adhérent, le formulaire n'est affiché que si les inscriptions sont ouvertes et côté admin on doit pouvoir créer un membre quand on veut
     return {
       isSuccess: false,
       message: 'Les inscriptions ne sont pas ouvertes actuellement.',
@@ -289,10 +304,6 @@ export async function createClimbingMember(
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
-
-    // const imageUrl = await getCloudinaryPicture(
-    //   formData.get('picture') as File,
-    // );
     const picture = validatedFields.data.picture;
     const imageUrl =
       picture && picture instanceof File && picture.size > 0
@@ -529,17 +540,14 @@ export async function updateClimbingMember(
     };
   }
 
-  // Vérifier si une nouvelle image a été téléchargée
-  let imageUrl: string | undefined;
   const pictureInput = validationStatus.data.picture || null;
 
-  if (pictureInput instanceof File) {
-    imageUrl = await getCloudinaryPicture(pictureInput);
-  } else if (typeof pictureInput === 'string') {
-    imageUrl = pictureInput;
-  } else {
-    imageUrl = undefined; // Pas d'image à mettre à jour
-  }
+  let imageUrl =
+    pictureInput instanceof File && pictureInput.size > 0
+      ? await getCloudinaryPicture(pictureInput)
+      : typeof pictureInput === 'string'
+        ? pictureInput
+        : '';
 
   const {
     lastName,
@@ -625,6 +633,7 @@ export async function updateClimbingMember(
       id,
     ]);
 
+    // Mise à jour des contacts
     const updateContactQuery = `
       UPDATE contacts
       SET link = $1,
@@ -648,6 +657,7 @@ export async function updateClimbingMember(
       id,
     ]);
 
+    // Mise à jour du second contact si nécessaire
     const contact2Query = `
       SELECT second_contact_id FROM member_contact
       WHERE member_id = $1
@@ -656,7 +666,7 @@ export async function updateClimbingMember(
     const contact2Result = await client.query(contact2Query, [id]);
 
     if (contact2Result.rowCount > 0) {
-      const contact2Id = contact2Result.rows[0].contact2_id;
+      const contact2Id = contact2Result.rows[0].second_contact_id;
 
       if (contact2Id && contact2Id !== null) {
         await client.query(
@@ -679,6 +689,7 @@ export async function updateClimbingMember(
       }
     }
 
+    // Mise à jour des informations de la section et saison
     const updateSectionSeasonQuery = `
       UPDATE member_section_season
       SET license = $1,
@@ -719,6 +730,7 @@ export async function updateClimbingMember(
     };
   } catch (error) {
     await client.query('ROLLBACK');
+    console.error('Error during member update:', error);
     return {
       message: isRegistration
         ? "Erreur lors de l'envoi du formulaire."
@@ -796,11 +808,15 @@ export async function deleteMemberCompletely(
 
     await client.query('COMMIT');
     // Handle the image deletion
-    const imageId = imageUrl.split('/').pop()?.split('.')[0];
-    if (imageId) {
-      await deleteCloudinaryImage(imageId);
+    if (imageUrl) {
+      const imageId = imageUrl.split('/').pop()?.split('.')[0];
+      if (imageId) {
+        await deleteCloudinaryImage(imageId);
+      } else {
+        console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+      }
     } else {
-      console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+      console.warn('imageUrl is an empty string, no image to delete.');
     }
 
     return { message: 'Membre supprimé.' };
