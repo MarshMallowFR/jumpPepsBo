@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Color } from '@/app/lib/types/color';
+import { createNewSeason } from '@/app/lib/actions/season/actions';
 
 interface SelectDropdownProps {
   options: { name: string; id: string }[];
@@ -37,6 +38,15 @@ export default function SelectDropdown({
   const handleOptionClick = (value: string, label: string) => {
     onSelect(value);
     setIsOpen(false);
+  };
+
+  const handleCreateNewSeason = async () => {
+    try {
+      await createNewSeason();
+      window.location.reload();
+    } catch (error) {
+      alert('Erreur lors de la création de la saison.');
+    }
   };
 
   useEffect(() => {
@@ -76,7 +86,7 @@ export default function SelectDropdown({
         <div
           className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50"
           style={{
-            maxHeight: '200px', // Limite de hauteur pour les options
+            maxHeight: '300px', // Limite de hauteur pour les options
             overflowY: 'auto', // Active la barre de défilement si nécessaire
           }}
         >
@@ -85,11 +95,17 @@ export default function SelectDropdown({
               <button
                 key={option.id}
                 onClick={() => handleOptionClick(option.id, option.name)}
-                className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left ${colorClass.option}`}
+                className={`block px-4 py-2 text-sm text-gray-700 w-full text-left ${colorClass.option}`}
               >
                 {option.name}
               </button>
             ))}
+            <button
+              onClick={handleCreateNewSeason}
+              className={`block px-4 py-2 text-sm text-blue-medium bg-blue-50 hover:bg-blue-extralight text-left w-full`}
+            >
+              Ajouter la saison en cours
+            </button>
           </div>
         </div>
       )}
