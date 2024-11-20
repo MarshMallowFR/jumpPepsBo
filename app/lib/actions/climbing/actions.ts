@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import {
   getCloudinaryPicture,
@@ -24,20 +23,37 @@ const ACCEPTED_IMAGE_TYPES = [
 const ClimbingMemberSchema = z.object({
   id: z.string(),
   picture: z
-    .string()
-    .url('Veuillez fournir une URL valide.')
-    .or(
+    .union([
+      // Cas où le champ peut être une URL valide ou vide (facultatif et nullable)
+      z.string().url('Veuillez fournir une URL valide.').optional().nullable(),
+
+      // Cas où un fichier est fourni, avec la validation sur type et taille
       z
         .instanceof(File)
         .refine(
-          (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
+          (file) => file.size === 0 || ACCEPTED_IMAGE_TYPES.includes(file.type),
           'Seuls les fichiers de types .jpg, .jpeg, .png et .webp sont acceptés.',
         )
         .refine(
-          (file) => file.size <= MAX_FILE_SIZE,
-          `La taille maximum de l'image est 5MB.`,
-        ),
-    ),
+          (file) => file.size === 0 || file.size <= MAX_FILE_SIZE,
+          "La taille maximum de l'image est 5MB.",
+        )
+        .optional()
+        .nullable(),
+    ])
+    .refine(
+      (val) =>
+        val === null ||
+        val === undefined ||
+        val === '' ||
+        val instanceof File ||
+        typeof val === 'string',
+      {
+        message: 'Veuillez fournir une URL valide ou une image.',
+      },
+    )
+    .optional()
+    .nullable(),
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthName: z.optional(z.string().optional().nullable()),
   firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
@@ -213,7 +229,6 @@ async function isMemberAlreadyExists(
   return result.rows.length > 0 ? result.rows[0].id : null;
 }
 
-// Voir pour améliorer la perf (temps de chargement long)
 export async function createClimbingMember(
   _prevState: ClimbingState,
   formData: FormData,
@@ -225,7 +240,6 @@ export async function createClimbingMember(
   // Récupérer la saison actuelle pour la création des membres.
   const { currentSeason } = await getSeasons();
   if (!currentSeason) {
-    // Pas besoin de vérifier que les inscriptions sont ouvertes avec || !currentSeason.registrationOpen => côté adhérent, le formulaire n'est affiché que si les inscriptions sont ouvertes et côté admin on doit pouvoir créer un membre quand on veut
     return {
       isSuccess: false,
       message: 'Les inscriptions ne sont pas ouvertes actuellement.',
@@ -238,7 +252,7 @@ export async function createClimbingMember(
   }
 
   const validatedFields = CreateClimbingMember.safeParse({
-    picture: formData.get('picture'),
+    picture: formData.get('picture') as File | null,
     lastName: formData.get('lastName'),
     firstName: formData.get('firstName'),
     birthDate: formData.get('birthDate'),
@@ -279,7 +293,6 @@ export async function createClimbingMember(
   });
 
   if (!validatedFields.success) {
-    console.error('Validation error:', validatedFields.error);
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       errors: fieldErrors,
@@ -290,10 +303,11 @@ export async function createClimbingMember(
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
-
-    const imageUrl = await getCloudinaryPicture(
-      formData.get('picture') as File,
-    );
+    const picture = validatedFields.data.picture;
+    const imageUrl =
+      picture && picture instanceof File && picture.size > 0
+        ? await getCloudinaryPicture(picture)
+        : null;
 
     const {
       lastName,
@@ -460,7 +474,6 @@ export async function createClimbingMember(
         : 'Membre créé avec succès.',
     };
   } catch (error) {
-    console.error('Erreur détectée :', error);
     await client.query('ROLLBACK');
     return {
       error,
@@ -525,17 +538,14 @@ export async function updateClimbingMember(
     };
   }
 
-  // Vérifier si une nouvelle image a été téléchargée
-  let imageUrl: string | undefined;
   const pictureInput = validationStatus.data.picture || null;
 
-  if (pictureInput instanceof File) {
-    imageUrl = await getCloudinaryPicture(pictureInput);
-  } else if (typeof pictureInput === 'string') {
-    imageUrl = pictureInput;
-  } else {
-    imageUrl = undefined; // Pas d'image à mettre à jour
-  }
+  const imageUrl =
+    pictureInput instanceof File && pictureInput.size > 0
+      ? await getCloudinaryPicture(pictureInput)
+      : typeof pictureInput === 'string'
+        ? pictureInput
+        : '';
 
   const {
     lastName,
@@ -621,6 +631,7 @@ export async function updateClimbingMember(
       id,
     ]);
 
+    // Mise à jour des contacts
     const updateContactQuery = `
       UPDATE contacts
       SET link = $1,
@@ -644,6 +655,7 @@ export async function updateClimbingMember(
       id,
     ]);
 
+    // Mise à jour du second contact si nécessaire
     const contact2Query = `
       SELECT second_contact_id FROM member_contact
       WHERE member_id = $1
@@ -675,6 +687,7 @@ export async function updateClimbingMember(
       }
     }
 
+    // Mise à jour des informations de la section et saison
     const updateSectionSeasonQuery = `
       UPDATE member_section_season
       SET license = $1,
@@ -741,7 +754,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     // 2. Get the contact IDs from the member_contact table
     const contactsResult = await client.query(
       `
@@ -751,7 +763,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     const firstContactId = contactsResult.rows[0]?.first_contact_id;
     const secondContactId = contactsResult.rows[0]?.second_contact_id;
 
@@ -763,7 +774,6 @@ export async function deleteMemberCompletely(
     `,
       [id],
     );
-
     // 4. Delete the contacts from the contacts table (if they exist)
     if (firstContactId) {
       await client.query(
@@ -784,7 +794,6 @@ export async function deleteMemberCompletely(
         [secondContactId],
       );
     }
-
     // 5. Delete the member from the members table
     await client.query(
       `
@@ -795,23 +804,22 @@ export async function deleteMemberCompletely(
     );
 
     await client.query('COMMIT');
-
     // Handle the image deletion
-    const imageId = imageUrl.split('/').pop()?.split('.')[0];
-    if (imageId) {
-      await deleteCloudinaryImage(imageId);
-    } else {
-      console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+    if (imageUrl) {
+      const imageId = imageUrl.split('/').pop()?.split('.')[0];
+      if (imageId) {
+        await deleteCloudinaryImage(imageId);
+      } else {
+        console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
+      }
     }
 
     return { message: 'Membre supprimé.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error during member deletion:', error);
     throw new Error('Erreur lors de la suppression du membre.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
   }
 }
 
@@ -896,61 +904,53 @@ export async function deleteMembersCompletely(
     return { message: 'Membres supprimés.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Erreur lors de la suppression', error);
     throw new Error('Erreur lors de la suppression des membres.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
   }
 }
 
-// A tester/vérifier dans une autre PR
 export async function removeMemberFromSeason(
   memberId: string,
   seasonId: string,
 ): Promise<{ message: string }> {
   const client = await sql.connect();
+
   try {
     await client.query('BEGIN');
 
-    const checkMemberQuery = `
-      SELECT COUNT(*) AS season_count 
-      FROM member_section_season 
-      WHERE member_id = $1 AND season_id != $2
+    const checkMemberAndImageQuery = `
+      SELECT COUNT(*) FILTER (WHERE season_id != $2) AS season_count, m.picture AS image_url 
+      FROM member_section_season mss 
+      LEFT JOIN members m ON mss.member_id = m.id
+      WHERE mss.member_id = $1
+      GROUP BY m.picture
     `;
-    const { rows } = await client.query(checkMemberQuery, [memberId, seasonId]);
-    const seasonCount = parseInt(rows[0].season_count, 10);
-
-    const deleteMemberSeasonQuery = `
-      DELETE FROM member_section_season 
-      WHERE member_id = $1 AND season_id = $2
-    `;
-    await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
-
-    if (seasonCount === 0) {
-      const imageQuery = `SELECT picture FROM members WHERE id = $1`;
-      const imageResult = await client.query(imageQuery, [memberId]);
-      const imageUrl = imageResult.rows[0]?.picture || '';
-      await deleteMemberCompletely(memberId, imageUrl);
+    const { rows } = await client.query(checkMemberAndImageQuery, [
+      memberId,
+      seasonId,
+    ]);
+    const { season_count: seasonCount, image_url: imageUrl } = rows[0] || {};
+    if (parseInt(seasonCount, 10) === 0) {
+      await deleteMemberCompletely(memberId, imageUrl || '');
+    } else {
+      const deleteMemberSeasonQuery = `
+        DELETE FROM member_section_season 
+        WHERE member_id = $1 AND season_id = $2
+      `;
+      await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
     }
-
     await client.query('COMMIT');
-
-    return { message: 'Membre retiré de la saison.' };
+    return { message: 'Désinscription du membre effectuée.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error(
-      'Erreur lors de la suppression du membre de la saison',
-      error,
-    );
     throw new Error('Erreur lors de la suppression du membre de la saison.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
+    revalidatePath(`/dashboard/climbing?seasonId=${seasonId}`);
   }
 }
 
-// A tester/vérifier dans une autre PR
 export async function removeMembersFromSeason(
   memberIds: string[],
   seasonId: string,
@@ -958,7 +958,6 @@ export async function removeMembersFromSeason(
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
-
     for (const memberId of memberIds) {
       // check for each member the action to accomplish
       const checkMemberQuery = `
@@ -972,19 +971,17 @@ export async function removeMembersFromSeason(
       ]);
       const seasonCount = parseInt(rows[0].season_count, 10);
 
+      if (seasonCount === 0) {
+        const imageQuery = `SELECT picture FROM members WHERE id = $1`;
+        const imageResult = await client.query(imageQuery, [memberId]);
+        const imageUrl = imageResult.rows[0]?.picture || '';
+        await deleteMemberCompletely(memberId, imageUrl);
+      }
       const deleteMemberSeasonQuery = `
         DELETE FROM member_section_season 
         WHERE member_id = $1 AND season_id = $2
       `;
       await client.query(deleteMemberSeasonQuery, [memberId, seasonId]);
-
-      if (seasonCount === 0) {
-        const imageQuery = `SELECT picture FROM members WHERE id = $1`;
-        const imageResult = await client.query(imageQuery, [memberId]);
-        const imageUrl = imageResult.rows[0]?.picture || '';
-
-        await deleteMemberCompletely(memberId, imageUrl);
-      }
     }
 
     await client.query('COMMIT');
@@ -992,13 +989,9 @@ export async function removeMembersFromSeason(
     return { message: 'Membres retirés de la saison.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error(
-      'Erreur lors de la suppression des membres de la saison',
-      error,
-    );
     throw new Error('Erreur lors de la suppression des membres de la saison.');
   } finally {
     client.release();
-    revalidatePath('/dashboard/climbing');
+    revalidatePath(`/dashboard/climbing?seasonId=${seasonId}`);
   }
 }

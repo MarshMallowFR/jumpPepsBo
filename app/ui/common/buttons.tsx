@@ -1,4 +1,9 @@
-import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { Color } from '@/app/lib/types/color';
@@ -15,8 +20,9 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const colorClasses = {
-    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light',
-    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light',
+    [Color.ORANGE]:
+      'bg-orange-medium hover:bg-orange-light disabled:bg-orange-light',
+    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light disabled:bg-blue-light',
   };
   return (
     <button
@@ -53,17 +59,21 @@ export function UpdateBtn({ href }: { href: string }) {
   );
 }
 
-interface DeleteBtnProps {
+interface DeleteOrRemoveBtnProps {
   id: string;
-  handleDelete: () => Promise<void>;
+  handleDeleteOrRemove: () => Promise<void>;
 }
 
-export function DeleteBtn({ id, handleDelete }: DeleteBtnProps) {
+export function DeleteBtn({
+  id,
+  handleDeleteOrRemove,
+}: DeleteOrRemoveBtnProps) {
   return (
     <button
       id={id}
-      onClick={handleDelete}
+      onClick={handleDeleteOrRemove}
       className="rounded-md border p-2 hover:bg-gray-100"
+      title="Supprimer"
     >
       <TrashIcon className="w-5" />
     </button>
@@ -90,6 +100,22 @@ export function DeleteManyBtn({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+export function RemoveBtn({
+  id,
+  handleDeleteOrRemove,
+}: DeleteOrRemoveBtnProps) {
+  return (
+    <button
+      id={id}
+      onClick={handleDeleteOrRemove}
+      className="rounded-md border p-2 hover:bg-gray-100"
+      title="Désincrire"
+    >
+      <XCircleIcon className="w-5" />
     </button>
   );
 }

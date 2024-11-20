@@ -1,20 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Color } from '@/app/lib/types/color';
+import { createNewSeason } from '@/app/lib/actions/season/actions';
 
 interface SelectDropdownProps {
-  label: string;
   options: { name: string; id: string }[];
   onSelect: (value: string) => void;
   color?: Color;
+  value: string | null;
 }
 
 export default function SelectDropdown({
-  label,
   options,
   onSelect,
   color = Color.BLUE,
+  value,
 }: SelectDropdownProps) {
   const colorClasses = {
     [Color.ORANGE]: {
@@ -35,10 +36,24 @@ export default function SelectDropdown({
   };
 
   const handleOptionClick = (value: string, label: string) => {
-    setSelectedOption(label);
     onSelect(value);
     setIsOpen(false);
   };
+
+  const handleCreateNewSeason = async () => {
+    try {
+      await createNewSeason();
+      window.location.reload();
+    } catch (error) {
+      alert('Erreur lors de la création de la saison.');
+    }
+  };
+
+  useEffect(() => {
+    const seasonName =
+      options.find(({ id }) => id === value)?.name || 'Toutes saisons';
+    setSelectedOption(seasonName);
+  }, [value]);
 
   const colorClass = colorClasses[color];
 
@@ -48,7 +63,7 @@ export default function SelectDropdown({
         onClick={toggleDropdown}
         className={`inline-flex justify-center w-full rounded-md px-4 py-2 text-sm font-medium text-white ${colorClass.button} focus:outline-none`}
       >
-        {selectedOption || label}{' '}
+        {selectedOption || 'Toutes saisons'}
         {/* Display selected season or initial label */}
         <svg
           className={`-mr-1 ml-2 h-5 w-5 transform transition-transform duration-200 ${
@@ -68,17 +83,29 @@ export default function SelectDropdown({
       </button>
 
       {isOpen && (
-        <div className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50">
+        <div
+          className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-custom-shadow bg-white z-50"
+          style={{
+            maxHeight: '300px', // Limite de hauteur pour les options
+            overflowY: 'auto', // Active la barre de défilement si nécessaire
+          }}
+        >
           <div className="py-1">
             {options.map((option) => (
               <button
                 key={option.id}
                 onClick={() => handleOptionClick(option.id, option.name)}
-                className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left ${colorClass.option}`}
+                className={`block px-4 py-2 text-sm text-gray-700 w-full text-left ${colorClass.option}`}
               >
                 {option.name}
               </button>
             ))}
+            <button
+              onClick={handleCreateNewSeason}
+              className={`block px-4 py-2 text-sm text-blue-medium bg-blue-50 hover:bg-blue-extralight text-left w-full`}
+            >
+              Ajouter la saison en cours
+            </button>
           </div>
         </div>
       )}

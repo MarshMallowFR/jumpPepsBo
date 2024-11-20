@@ -20,6 +20,9 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
       setToastVisible(true);
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/climbing`;
+      }, 600);
     } catch (error: unknown) {
       console.error('Failed to delete members:', error);
       setToastVisible(true);

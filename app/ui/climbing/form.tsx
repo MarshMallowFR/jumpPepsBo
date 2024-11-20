@@ -78,7 +78,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
   }, [member]);
 
   useEffect(() => {
-    console.log('isMinor updated to:', isMinor);
     setMemberInput((prev) => ({
       ...prev,
       licenseType: member?.licenseType ?? (isMinor ? 'J' : 'A'),
@@ -255,7 +254,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
                 </div>
               </div>
             </div>
-            <div className="w-full flex mt-2">
+            <div className="w-full flex mt-2 items-end">
               <TextInput
                 className="flex-1"
                 defaultValue={member?.birthTown}
@@ -300,7 +299,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               settingKey="additionalAddressInformation"
               error={state?.errors?.additionalAddressInformation}
             />
-            <div className="mb-4 w-full flex">
+            <div className="mb-4 w-full flex items-end">
               <TextInput
                 defaultValue={member?.zipCode}
                 label="Code postal"
@@ -329,7 +328,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               <TextInput
                 className="flex-1"
                 defaultValue={member?.phoneNumber}
-                label="Téléphone portable"
+                label="Téléphone principal"
                 idFor="phoneNumber"
                 settingKey="phoneNumber"
                 error={state?.errors?.phoneNumber}
@@ -337,7 +336,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
               <TextInput
                 className="ml-2 flex-1"
                 defaultValue={member?.phoneNumber2}
-                label="Téléphone fixe"
+                label="Téléphone secondaire"
                 idFor="phoneNumber2"
                 settingKey="phoneNumber2"
                 error={state?.errors?.phoneNumber2}

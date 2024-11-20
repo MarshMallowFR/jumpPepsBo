@@ -1,5 +1,5 @@
 'use client';
-import { SeasonMemberList } from '@/app/lib/types/climbing';
+import { MemberList, SeasonMemberList } from '@/app/lib/types/climbing';
 import { UpdateBtn } from '../common/buttons';
 import Status from './status';
 import Image from 'next/image';
@@ -8,15 +8,23 @@ import { Checkbox } from '../common/checkbox';
 import { useDropdownContext } from '@/app/lib/contexts/dropdownmenuContext';
 import RemoveMemberFromSeason from './remove-member-season';
 import { useSeasonContext } from '@/app/lib/contexts/seasonContext';
+import NotFoundMessage from '../common/notFoundMessage';
+import DeleteMember from './delete-member';
+import UserInitial from '../common/userInitial';
 
 interface TableProps {
-  members: SeasonMemberList[];
+  members: SeasonMemberList[] | MemberList[];
 }
 
-export default function SeasonTable({ members }: TableProps) {
+export default function Table({ members }: TableProps) {
   const { setIsVisible: setIsVisibleDropdown, setSelectedIds } =
     useDropdownContext();
   const { selectedSeason } = useSeasonContext();
+
+  const isSeasonMembers = (
+    members: SeasonMemberList[] | MemberList[],
+  ): members is SeasonMemberList[] => 'hasPaid' in (members[0] || {});
+  const seasonMembersMode = isSeasonMembers(members);
 
   const [selectedStates, setSelectedStates] = useState(
     members.reduce(
@@ -66,6 +74,14 @@ export default function SeasonTable({ members }: TableProps) {
     }
   }, [selectedStates]);
 
+  if (!members) {
+    return <div>Loading</div>;
+  }
+
+  if (members?.length < 1) {
+    return <NotFoundMessage message="Aucun membre trouvé" />;
+  }
+
   return (
     <table className="hidden min-w-full text-gray-900 md:table">
       <thead className="rounded-lg text-left text-sm font-normal">
@@ -83,11 +99,13 @@ export default function SeasonTable({ members }: TableProps) {
           <th scope="col" className="px-3 py-5 font-medium">
             Email
           </th>
-          <th scope="col" className="px-3 py-5 font-medium">
-            Statut du paiement
-          </th>
-          <th scope="col" className="relative py-3 pl-6 pr-3">
-            <span className="sr-only">Edit</span>
+          {seasonMembersMode && (
+            <th scope="col" className="px-3 py-5 font-medium">
+              Statut du paiement
+            </th>
+          )}
+          <th scope="col" className="py-5 px-3 font-medium text-right">
+            Actions
           </th>
         </tr>
       </thead>
@@ -107,12 +125,19 @@ export default function SeasonTable({ members }: TableProps) {
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex items-center gap-3">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image
-                    src={member.picture}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    alt={`${member.firstName} ${member.lastName}'s profile picture`}
-                  />
+                  {member.picture ? (
+                    <Image
+                      src={member.picture}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      alt={`${member.firstName} ${member.lastName}'s profile picture`}
+                    />
+                  ) : (
+                    <UserInitial
+                      firstName={member.firstName}
+                      lastName={member.lastName}
+                    />
+                  )}
                 </div>
                 <p>
                   {member.lastName} {member.firstName}
@@ -120,18 +145,26 @@ export default function SeasonTable({ members }: TableProps) {
               </div>
             </td>
             <td className="whitespace-nowrap px-3 py-3">{member.email}</td>
-            <td className="whitespace-nowrap px-3 py-3">
-              <Status isValid={member.hasPaid} />
-            </td>
+            {seasonMembersMode && (
+              <td className="whitespace-nowrap px-3 py-3">
+                <Status isValid={(member as SeasonMemberList).hasPaid} />
+              </td>
+            )}
             <td className="whitespace-nowrap py-3 pl-6 pr-3">
               <div className="flex justify-end gap-3">
-                <UpdateBtn
-                  href={`/dashboard/climbing/${member.id}/edit?seasonId=${selectedSeason}`}
-                />
-                <RemoveMemberFromSeason
-                  memberId={member.id}
-                  seasonId={selectedSeason}
-                />
+                {seasonMembersMode ? (
+                  <>
+                    <UpdateBtn
+                      href={`/dashboard/climbing/${member.id}/edit?seasonId=${selectedSeason}`}
+                    />
+                    <RemoveMemberFromSeason
+                      memberId={member.id}
+                      seasonId={selectedSeason}
+                    />
+                  </>
+                ) : (
+                  <DeleteMember id={member.id} imageUrl={member.picture} />
+                )}
               </div>
             </td>
           </tr>
