@@ -7,14 +7,14 @@ export default function ClimbingMembers({
 }: {
   members: SeasonMemberList[] | MemberList[];
 }) {
-  const actions =
-    Array.isArray(members) && members.length > 0 && 'hasPaid' in members[0]
+  const actions = [
+    {
+      label: 'Exporter au format Excel',
+      value: 'export',
+      action: 'export-excel',
+    },
+    ...(members.length > 0 && 'hasPaid' in members[0] // vérification qu'il y a bien un élément dans le tableau avant de voir si la propriété hasPaid (différencie les deux types possibles pour members) est présente
       ? [
-          {
-            label: 'Exporter au format Excel',
-            value: 'export',
-            action: 'export-excel',
-          },
           {
             label: 'Désinscrire plusieurs membres',
             value: 'remove',
@@ -23,16 +23,12 @@ export default function ClimbingMembers({
         ]
       : [
           {
-            label: 'Exporter au format Excel',
-            value: 'export',
-            action: 'export-excel',
-          },
-          {
             label: 'Suppression multiple',
             value: 'delete',
             action: 'delete-many',
           },
-        ];
+        ]),
+  ];
 
   return (
     <DropdownContextProvider actions={actions}>

@@ -38,8 +38,8 @@ const ClimbingMemberSchema = z.object({
           (file) => file.size === 0 || file.size <= MAX_FILE_SIZE,
           "La taille maximum de l'image est 5MB.",
         )
-        .optional() // Permet au fichier d'être omis
-        .nullable(), // Permet que le fichier soit nul
+        .optional()
+        .nullable(),
     ])
     .refine(
       (val) =>
@@ -52,8 +52,8 @@ const ClimbingMemberSchema = z.object({
         message: 'Veuillez fournir une URL valide ou une image.',
       },
     )
-    .optional() // Permet de ne pas avoir à remplir ce champ
-    .nullable(), // Permet de laisser ce champ vide
+    .optional()
+    .nullable(),
   lastName: z.string().min(1, `Veuillez indiquer le nom.`),
   birthName: z.optional(z.string().optional().nullable()),
   firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
@@ -293,7 +293,6 @@ export async function createClimbingMember(
   });
 
   if (!validatedFields.success) {
-    console.error('Validation error:', validatedFields.error);
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
     return {
       errors: fieldErrors,
@@ -475,7 +474,6 @@ export async function createClimbingMember(
         : 'Membre créé avec succès.',
     };
   } catch (error) {
-    console.error('Erreur détectée :', error);
     await client.query('ROLLBACK');
     return {
       error,
@@ -542,7 +540,7 @@ export async function updateClimbingMember(
 
   const pictureInput = validationStatus.data.picture || null;
 
-  let imageUrl =
+  const imageUrl =
     pictureInput instanceof File && pictureInput.size > 0
       ? await getCloudinaryPicture(pictureInput)
       : typeof pictureInput === 'string'
@@ -666,7 +664,7 @@ export async function updateClimbingMember(
     const contact2Result = await client.query(contact2Query, [id]);
 
     if (contact2Result.rowCount > 0) {
-      const contact2Id = contact2Result.rows[0].second_contact_id;
+      const contact2Id = contact2Result.rows[0].contact2_id;
 
       if (contact2Id && contact2Id !== null) {
         await client.query(
@@ -730,7 +728,6 @@ export async function updateClimbingMember(
     };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error during member update:', error);
     return {
       message: isRegistration
         ? "Erreur lors de l'envoi du formulaire."
@@ -815,18 +812,14 @@ export async function deleteMemberCompletely(
       } else {
         console.warn(`Failed to extract public ID from imageUrl: ${imageUrl}`);
       }
-    } else {
-      console.warn('imageUrl is an empty string, no image to delete.');
     }
 
     return { message: 'Membre supprimé.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error during member deletion:', error);
     throw new Error('Erreur lors de la suppression du membre.');
   } finally {
     client.release();
-    //revalidatePath('/dashboard/climbing'); // A faire côté client car utilisé dans removeMemberFromSeason
   }
 }
 
@@ -911,7 +904,6 @@ export async function deleteMembersCompletely(
     return { message: 'Membres supprimés.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Erreur lors de la suppression', error);
     throw new Error('Erreur lors de la suppression des membres.');
   } finally {
     client.release();
@@ -941,9 +933,6 @@ export async function removeMemberFromSeason(
     const { season_count: seasonCount, image_url: imageUrl } = rows[0] || {};
     if (parseInt(seasonCount, 10) === 0) {
       await deleteMemberCompletely(memberId, imageUrl || '');
-      console.log(
-        "Le membre est complètement supprimé, car il n'existe pas dans d'autres saisons",
-      );
     } else {
       const deleteMemberSeasonQuery = `
         DELETE FROM member_section_season 
@@ -955,10 +944,6 @@ export async function removeMemberFromSeason(
     return { message: 'Désinscription du membre effectuée.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error(
-      'Erreur lors de la suppression du membre de la saison',
-      error,
-    );
     throw new Error('Erreur lors de la suppression du membre de la saison.');
   } finally {
     client.release();
@@ -1004,10 +989,6 @@ export async function removeMembersFromSeason(
     return { message: 'Membres retirés de la saison.' };
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error(
-      'Erreur lors de la suppression des membres de la saison',
-      error,
-    );
     throw new Error('Erreur lors de la suppression des membres de la saison.');
   } finally {
     client.release();
