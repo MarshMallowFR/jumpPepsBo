@@ -20,8 +20,9 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const colorClasses = {
-    [Color.ORANGE]: 'bg-orange-medium hover:bg-orange-light',
-    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light',
+    [Color.ORANGE]:
+      'bg-orange-medium hover:bg-orange-light disabled:bg-orange-light',
+    [Color.BLUE]: 'bg-blue-medium hover:bg-blue-light disabled:bg-blue-light',
   };
   return (
     <button
@@ -72,6 +73,7 @@ export function DeleteBtn({
       id={id}
       onClick={handleDeleteOrRemove}
       className="rounded-md border p-2 hover:bg-gray-100"
+      title="Supprimer"
     >
       <TrashIcon className="w-5" />
     </button>
@@ -111,6 +113,7 @@ export function RemoveBtn({
       id={id}
       onClick={handleDeleteOrRemove}
       className="rounded-md border p-2 hover:bg-gray-100"
+      title="Désincrire"
     >
       <XCircleIcon className="w-5" />
     </button>

@@ -15,6 +15,7 @@ import { RadioInput } from '../common/radioInput';
 import { Season } from '@/app/lib/types/season';
 import { Member } from '@/app/lib/types/climbing';
 import { genderOptions } from '@/app/utils/formOptions';
+import { Checkbox } from '../common/checkbox';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -40,6 +41,7 @@ export default function FormRegistration({
   );
   const [pictureFile, setPictureFile] = useState<File | null>(null);
   const [isMinor, setIsMinor] = useState(false);
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
@@ -90,6 +92,10 @@ export default function FormRegistration({
     }));
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsCheckboxChecked(e.target.checked);
+  };
+
   // Conversion valeurs du formulaire au bon format avant envoi
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,6 +135,7 @@ export default function FormRegistration({
             <h2>{season.name}</h2>
           </div>
         </div>
+        <p className="mt-4">Les champs marqués d'un * sont obligatoires.</p>
         <p className="text-lg mb-2 mt-4 font-semibold text-orange-medium">
           Informations sur l'adhérent.e
         </p>
@@ -152,7 +159,7 @@ export default function FormRegistration({
               <TextInput
                 color={Color.ORANGE}
                 idFor="lastName"
-                label="Nom"
+                label="Nom *"
                 settingKey="lastName"
                 error={state?.errors?.lastName}
                 handleChange={(event) =>
@@ -161,7 +168,7 @@ export default function FormRegistration({
               />
               <TextInput
                 color={Color.ORANGE}
-                label="Prénom"
+                label="Prénom *"
                 idFor="firstName"
                 settingKey="firstName"
                 error={state?.errors?.firstName}
@@ -177,7 +184,7 @@ export default function FormRegistration({
                 className="mr-4"
                 type="date"
                 handleChange={handleBirthDate(setIsMinor)}
-                label="Date de naissance"
+                label="Date de naissance *"
                 idFor="birthDate"
                 placeholder="JJ/MM/AAAA"
                 settingKey="birthDate"
@@ -186,7 +193,7 @@ export default function FormRegistration({
               <RadioInput
                 className="min-w-[100px] md:mt-0"
                 color={Color.ORANGE}
-                label="Sexe"
+                label="Sexe *"
                 idFor="gender"
                 settingKey="gender"
                 options={genderOptions}
@@ -200,7 +207,7 @@ export default function FormRegistration({
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
-            label="Commune de naissance"
+            label="Commune de naissance *"
             idFor="birthTown"
             settingKey="birthTown"
             error={state?.errors?.birthTown}
@@ -208,7 +215,7 @@ export default function FormRegistration({
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
-            label="Département de naissance"
+            label="Département de naissance *"
             idFor="birthDepartement"
             settingKey="birthDepartement"
             error={state?.errors?.birthDepartement}
@@ -216,7 +223,7 @@ export default function FormRegistration({
         </div>
         <TextInput
           color={Color.ORANGE}
-          label="Nationalité"
+          label="Nationalité *"
           idFor="nationality"
           settingKey="nationality"
           error={state?.errors?.nationality}
@@ -226,7 +233,7 @@ export default function FormRegistration({
         </p>
         <TextInput
           color={Color.ORANGE}
-          label="Rue"
+          label="Rue *"
           idFor="street"
           settingKey="street"
           error={state?.errors?.street}
@@ -243,7 +250,7 @@ export default function FormRegistration({
             color={Color.ORANGE}
             className="w-24 min-w-[70px]"
             type="number"
-            label="Code postal"
+            label="Code postal *"
             idFor="zipCode"
             settingKey="zipCode"
             error={state?.errors?.zipCode}
@@ -251,7 +258,7 @@ export default function FormRegistration({
           <TextInput
             className="flex-grow"
             color={Color.ORANGE}
-            label="Ville"
+            label="Ville *"
             idFor="city"
             settingKey="city"
             error={state?.errors?.city}
@@ -260,7 +267,7 @@ export default function FormRegistration({
             className="w-14 min-w-[40px]"
             color={Color.ORANGE}
             defaultValue="FR"
-            label="Pays"
+            label="Pays *"
             idFor="country"
             settingKey="country"
             error={state?.errors?.country}
@@ -270,7 +277,7 @@ export default function FormRegistration({
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
-            label="Téléphone portable"
+            label="Téléphone principal*"
             idFor="phoneNumber"
             settingKey="phoneNumber"
             error={state?.errors?.phoneNumber}
@@ -278,7 +285,7 @@ export default function FormRegistration({
           <TextInput
             className="flex-1"
             color={Color.ORANGE}
-            label="Téléphone fixe"
+            label="Téléphone secondaire"
             idFor="phoneNumber2"
             settingKey="phoneNumber2"
             error={state?.errors?.phoneNumber2}
@@ -287,7 +294,7 @@ export default function FormRegistration({
         <TextInput
           color={Color.ORANGE}
           type="email"
-          label="Email"
+          label="Email *"
           idFor="email"
           settingKey="email"
           error={state?.errors?.email}
@@ -304,7 +311,7 @@ export default function FormRegistration({
         <TextInput
           color={Color.ORANGE}
           idFor="contactLastName"
-          label="Nom"
+          label="Nom *"
           settingKey="contactLastName"
           error={state?.errors?.contactLastName}
           handleChange={(event) =>
@@ -313,7 +320,7 @@ export default function FormRegistration({
         />
         <TextInput
           color={Color.ORANGE}
-          label="Prénom"
+          label="Prénom *"
           idFor="contactFirstName"
           settingKey="contactFirstName"
           error={state?.errors?.contactFirstName}
@@ -326,14 +333,14 @@ export default function FormRegistration({
             className="flex-1"
             color={Color.ORANGE}
             idFor="contactLink"
-            label="Lien de parenté"
+            label="Lien de parenté *"
             settingKey="contactLink"
             error={state?.errors?.contactLink}
           />
           <TextInput
             color={Color.ORANGE}
             className="flex-1"
-            label="Numéro de téléphone"
+            label="Numéro de téléphone *"
             idFor="contactPhoneNumber"
             settingKey="contactPhoneNumber"
             error={state?.errors?.contactPhoneNumber}
@@ -343,7 +350,7 @@ export default function FormRegistration({
         {!isMinor ? null : (
           <TextInput
             color={Color.ORANGE}
-            label="Email"
+            label="Email *"
             idFor="contactEmail"
             settingKey="contactEmail"
             error={state?.errors?.contactEmail}
@@ -438,37 +445,39 @@ export default function FormRegistration({
             {member?.isMediaCompliant ? 'OUI' : 'NON'}
           </label>
         </ToggleInput>
-        {!isMinor ? (
-          <p className="mt-8">
-            J'atteste avoir pris connaissance du réglèment intérieur remis par
-            email avec les documents d'inscription.
-          </p>
-        ) : (
-          <p className="mt-8">
-            <span className="font-semibold">
-              {member?.contactFirstName} {member?.contactLastName}
-            </span>{' '}
-            responsable légal de l'enfant{' '}
-            <span className="font-semibold">
-              {member?.firstName} {member?.lastName}
-            </span>{' '}
-            atteste avoir pris connaissance du réglèment intérieur remis par
-            email avec les documents d'inscription.
-          </p>
-        )}
-        {/* <div className="mt-8 flex font-semibold justify-between">
-          <p>
-            Lu et approuvé le{' '}
-            <span className="font-normal">{formatedCurrentDate}</span>
-          </p>
-          <div className="flex">
-            <p>Signature</p>
-            <svg className="ml-2 w-40 h-16 border border-gray-400 rounded-lg" />
-          </div>
-        </div> */}
+        <div className="mt-8 flex">
+          <Checkbox
+            color={Color.ORANGE}
+            idFor="attestation-checkbox"
+            defaultValue={isCheckboxChecked}
+            handleChange={handleCheckboxChange}
+          />
+          {!isMinor ? (
+            <p className="ml-4">
+              J'atteste avoir pris connaissance du réglèment intérieur remis par
+              email avec les documents d'inscription.
+            </p>
+          ) : (
+            <p className="ml-4">
+              <span className="font-semibold">
+                {member?.contactFirstName} {member?.contactLastName}
+              </span>{' '}
+              responsable légal de l'enfant{' '}
+              <span className="font-semibold">
+                {member?.firstName} {member?.lastName}
+              </span>{' '}
+              atteste avoir pris connaissance du réglèment intérieur remis par
+              email avec les documents d'inscription.
+            </p>
+          )}
+        </div>
 
         <div className="mt-10 flex justify-center">
-          <Button type="submit" color={Color.ORANGE} disabled={isSubmitting}>
+          <Button
+            type="submit"
+            color={Color.ORANGE}
+            disabled={isSubmitting || !isCheckboxChecked}
+          >
             {isSubmitting ? 'Traitement en cours...' : 'ENVOYER'}
           </Button>
         </div>
