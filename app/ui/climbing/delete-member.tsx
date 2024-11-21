@@ -19,7 +19,6 @@ export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
         window.location.href = `/dashboard/climbing`;
       }, 600);
     } catch (error: unknown) {
-      console.error('Failed to delete member:', error);
       setIsVisible(true);
       setToastType(ToastType.ERROR);
       if (error instanceof Error) {

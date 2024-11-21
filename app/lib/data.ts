@@ -54,7 +54,6 @@ export async function fetchSections() {
     }));
     return sections;
   } catch (err) {
-    console.error('Database Error:', err);
     throw new Error('Failed to fetch all sections.');
   }
 }

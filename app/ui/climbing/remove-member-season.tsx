@@ -1,6 +1,6 @@
 'use client';
 import { removeMemberFromSeason } from '@/app/lib/actions/climbing/actions';
-import { DeleteBtn, RemoveBtn } from '../common/buttons';
+import { RemoveBtn } from '../common/buttons';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 interface RemoveMemberFromSeasonProps {
   memberId: string;
