@@ -20,6 +20,7 @@ type CompleteAdmin = {
 };
 
 export type AdminState = {
+  isSuccess?: boolean;
   errors?: {
     firstName?: string[];
     lastName?: string[];
@@ -28,6 +29,7 @@ export type AdminState = {
   message?: string | null;
 };
 export type ValidateAdminState = {
+  isSuccess?: boolean;
   errors?: {
     password?: string[];
     checkPassword?: string[];
@@ -37,9 +39,11 @@ export type ValidateAdminState = {
 
 const AdminSchema = z.object({
   id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string(),
+  firstName: z.string().min(1, `Veuillez indiquer le prénom.`),
+  lastName: z.string().min(1, `Veuillez indiquer le nom.`),
+  email: z.string().refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+    message: 'Veuillez entrer une adresse email valide.',
+  }),
 });
 
 const CreateUpdateAdmin = AdminSchema.omit({
@@ -48,16 +52,21 @@ const CreateUpdateAdmin = AdminSchema.omit({
 
 const ValidAdminSchema = z
   .object({
-    password: z.string().min(8),
-    checkPassword: z.string().min(8),
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères.'),
+    checkPassword: z
+      .string()
+      .min(8, 'Les deux mots de passe doivent être identiques.'),
   })
   .refine(
     ({ password, checkPassword }) => {
+      console.log(password === checkPassword);
       return password === checkPassword;
     },
     {
-      message: 'Passwords must match!',
-      path: ['confirmPassword'],
+      message: 'Les deux mots de passe doivent être identiques.',
+      path: ['checkPassword'],
     },
   );
 
@@ -70,6 +79,7 @@ export async function createAdmin(_prevState: AdminState, formData: FormData) {
 
   if (!validatedFields.success) {
     return {
+      isSuccess: false,
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Champs manquants. Impossible de créer un admin.',
     };
@@ -102,17 +112,23 @@ export async function createAdmin(_prevState: AdminState, formData: FormData) {
         ${validity}
       )
     `;
-    await handlerEmail(email, token);
-  } catch (error) {
-    console.log(error);
-
+    const emailResult = await handlerEmail(email, token);
+    if (!emailResult.isSuccess) {
+      return {
+        isSuccess: false,
+        message: `L'email de validation n'a pas pu être envoyé.`,
+      };
+    }
     return {
-      message: 'Erreur base de données. Impossible de créer un admin.',
+      isSuccess: true,
+      message: 'Admin créé avec succès et email  envoyé.',
+    };
+  } catch (error) {
+    return {
+      isSuccess: false,
+      message: 'Erreur base de données.',
     };
   }
-
-  revalidatePath('/dashboard/admins');
-  redirect('/dashboard/admins');
 }
 
 export async function updateAdmin(
@@ -143,13 +159,13 @@ export async function updateAdmin(
         email =   ${email}
       WHERE id = ${id}
     `;
+    return { isSuccess: true, message: 'Mise à jour effectuée.' };
   } catch (error) {
-    console.log(error);
-    return { message: "Erreur base de données. Impossible d'éditer un admin." };
+    return {
+      isSuccess: false,
+      message: 'Erreur base de données.',
+    };
   }
-
-  revalidatePath('/dashboard/admins');
-  redirect('/dashboard/admins');
 }
 
 export async function deleteAdmin(id: string): Promise<{ message: string }> {
@@ -180,9 +196,11 @@ export async function validateAdmin(
     });
 
     if (!validatedFields.success) {
+      const fieldErrors = validatedFields.error.flatten().fieldErrors;
       return {
-        errors: validatedFields.error.flatten().fieldErrors,
-        message: "Champs manquants. Impossible d'éditer un admin.",
+        errors: fieldErrors,
+        message: 'Mot de passe non validé. Admin non enregistré',
+        isSuccess: false,
       };
     }
 
@@ -213,11 +231,14 @@ export async function validateAdmin(
     newFormData.append('password', password);
 
     await authenticate('', newFormData);
-
-    revalidatePath('/dashboard/admins');
-    redirect('/dashboard/admins');
+    return {
+      isSuccess: true,
+      message: 'Mot de passe enregistré. Nouvel admin validé.',
+    };
   } catch (error) {
-    console.log(error);
-    return { message: `Erreur: Impossible de valider l'Admin.` };
+    return {
+      isSuccess: false,
+      message: `Erreur: Impossible de valider l'admin.`,
+    };
   }
 }

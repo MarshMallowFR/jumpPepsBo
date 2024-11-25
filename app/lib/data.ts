@@ -70,7 +70,6 @@ export async function fetchClimbPages() {
     const totalPages = Math.ceil(totalMembers / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
-    console.error('Database Error:', error);
     throw new Error('Failed to fetch members');
   }
 }
@@ -102,7 +101,6 @@ export async function fetchAllClimbingMembers(
       email: member.email,
     }));
   } catch (error) {
-    console.error('Database Error:', error);
     throw new Error(`Failed to fetch members. ${error}`);
   }
 }
@@ -133,7 +131,6 @@ export async function fetchMembersBySeasonId(
       hasPaid: member.has_paid,
     }));
   } catch (error) {
-    console.error('Database Error:', error);
     throw new Error(
       `Failed to fetch members for the given season. Details: ${error}`,
     );
@@ -256,9 +253,12 @@ export async function fetchMemberByIdAndSeasonId(
 export async function fetchAdminsPages() {
   noStore();
   try {
-    const count = await sql`SELECT COUNT(id) FROM admins`;
+    const count = await sql`SELECT COUNT(id) AS total_admins FROM admins`;
 
-    return Math.ceil(Number(count.rowCount) / ITEMS_PER_PAGE);
+    const totalAdmins = parseInt(count.rows[0]?.total_admins, 10) || 0;
+    const totalPages = Math.ceil(totalAdmins / ITEMS_PER_PAGE);
+
+    return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch members');
@@ -290,7 +290,6 @@ export async function fetchFilteredAdmins(query: string, currentPage: number) {
       validated: admin.validated,
     }));
   } catch (error) {
-    console.error('Database Error:', error);
     throw new Error('Failed to fetch members.');
   }
 }

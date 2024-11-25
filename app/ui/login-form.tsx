@@ -17,9 +17,7 @@ export default function LoginForm() {
   return (
     <form action={action} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
-        <h1 className={`${lusitana.className} mb-3 text-2xl`}>
-          Veuillez vous connecter.
-        </h1>
+        <h1 className="mb-3 text-2xl">Veuillez vous connecter.</h1>
         <div className="w-full">
           <div>
             <label
@@ -81,10 +79,7 @@ function LoginButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button
-      className={`mt-4 w-full ${lusitana.className}`}
-      aria-disabled={pending}
-    >
+    <Button className="mt-4 w-full" aria-disabled={pending}>
       Se connecter <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
     </Button>
   );

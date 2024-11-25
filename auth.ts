@@ -6,12 +6,11 @@ import { z } from 'zod';
 import type { Admin } from '@/app/lib/types/admins';
 import bcrypt from 'bcrypt';
 
-async function getUser(email: string): Promise<Admin | undefined> {
+async function getAdmin(email: string): Promise<Admin | undefined> {
   try {
-    const user = await sql<Admin>`SELECT * from admins where email=${email}`;
-    return user.rows[0];
+    const admin = await sql<Admin>`SELECT * from admins where email=${email}`;
+    return admin.rows[0];
   } catch (error) {
-    console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
   }
 }
@@ -27,17 +26,18 @@ export const { auth, signIn, signOut } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          const user = await getUser(email);
+          const admin = await getAdmin(email);
 
-          if (!user) throw new Error('CredentialSignin');;
+          if (!admin) throw new Error('CredentialSignin');
 
-          if (!user?.password) return null;
-          // const passwordsMatch = await bcrypt.compare(password, user?.password);
+          if (!admin?.password) return null;
 
-          
-          const passwordsMatch = password === user?.password
+          const passwordsMatch = await bcrypt.compare(
+            password,
+            admin?.password,
+          );
 
-          if (passwordsMatch) return user;
+          if (passwordsMatch) return admin;
         }
 
         throw new Error('CredentialSignin');
