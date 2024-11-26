@@ -14,32 +14,40 @@ async function getAdmin(email: string): Promise<Admin | undefined> {
     throw new Error('Failed to fetch user.');
   }
 }
-
+//Ou export default NextAuth({ ...authConfig, providers: [...] }) ??
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
+          .object({
+            email: z.string().email(),
+            password: z.string().min(6), // Longueur du mot de passe 8
+          })
           .safeParse(credentials);
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
+
           const admin = await getAdmin(email);
+          if (!admin) {
+            throw new Error('Admin non trouvé');
+          }
 
-          if (!admin) throw new Error('CredentialSignin');
+          if (!admin.password) {
+            return null;
+          }
 
-          if (!admin?.password) return null;
+          //const passwordsMatch = await bcrypt.compare(password, admin.password);
+          const passwordsMatch = password === admin.password;
 
-          const passwordsMatch = await bcrypt.compare(
-            password,
-            admin?.password,
-          );
-
-          if (passwordsMatch) return admin;
+          if (passwordsMatch) {
+            return admin;
+          } else {
+            throw new Error('Mot de passe non valide.');
+          }
         }
-
         throw new Error('CredentialSignin');
       },
     }),

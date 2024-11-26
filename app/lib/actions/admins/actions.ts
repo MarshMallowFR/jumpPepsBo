@@ -186,7 +186,7 @@ export async function validateAdmin(
   formData: FormData,
 ) {
   if (!token || !email) {
-    return { message: 'Invalid Token or Email' };
+    return { message: 'Email ou Token non valide' };
   }
 
   try {

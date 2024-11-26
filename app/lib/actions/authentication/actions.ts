@@ -10,8 +10,25 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', Object.fromEntries(formData));
+    await signIn('credentials', {
+      redirect: false,
+      ...Object.fromEntries(formData),
+    });
+    return 'Authentification réussie';
   } catch (error) {
-    return 'CredentialSignin';
+    return `Erreur d'authentification.`;
   }
 }
+
+//OLD
+
+// export async function authenticate(
+//   prevState: string | undefined,
+//   formData: FormData,
+// ) {
+//   try {
+//     await signIn('credentials', Object.fromEntries(formData));
+//   } catch (error) {
+//     return 'CredentialSignin';
+//   }
+// }

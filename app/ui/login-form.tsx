@@ -1,6 +1,5 @@
 'use client';
 
-import { lusitana } from '@/app/ui/style/fonts';
 import {
   AtSymbolIcon,
   KeyIcon,
@@ -10,9 +9,18 @@ import { ArrowRightIcon } from '@heroicons/react/20/solid';
 import { Button } from './common/buttons';
 import { useFormState, useFormStatus } from 'react-dom';
 import { authenticate } from '@/app/lib/actions/authentication/actions';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginForm() {
   const [code, action] = useFormState(authenticate, undefined);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (code === 'Authentification réussie') {
+      router.push('/dashboard');
+    }
+  }, [code, router]);
 
   return (
     <form action={action} className="space-y-3">
@@ -61,7 +69,7 @@ export default function LoginForm() {
         </div>
         <LoginButton />
         <div className="flex h-8 items-end space-x-1">
-          {code === 'CredentialSignin' && (
+          {code === `Erreur d'authentification.` && (
             <>
               <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
               <p aria-live="polite" className="text-sm text-red-500">
