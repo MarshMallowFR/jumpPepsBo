@@ -30,7 +30,7 @@ const sendEmail = async (data: EmailPayload) => {
 };
 
 export default async function handlerEmail(email: string, token: string) {
-  const validationUrl = `http://localhost:3000/dashboard/admins/validate?token=${token}&email=${email}`;
+  const validationUrl = `http://jump-peps-bo.vercel.app/dashboard/admins/validate?token=${token}&email=${email}`;
 
   const messageContent = `
     <p>Bonjour,<p/>

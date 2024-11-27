@@ -61,7 +61,6 @@ const ValidAdminSchema = z
   })
   .refine(
     ({ password, checkPassword }) => {
-      console.log(password === checkPassword);
       return password === checkPassword;
     },
     {

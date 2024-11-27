@@ -23,7 +23,7 @@ export const { auth, signIn, signOut } = NextAuth({
         const parsedCredentials = z
           .object({
             email: z.string().email(),
-            password: z.string().min(6), // Longueur du mot de passe 8
+            password: z.string().min(8),
           })
           .safeParse(credentials);
 
@@ -31,6 +31,7 @@ export const { auth, signIn, signOut } = NextAuth({
           const { email, password } = parsedCredentials.data;
 
           const admin = await getAdmin(email);
+
           if (!admin) {
             throw new Error('Admin non trouvé');
           }
@@ -39,8 +40,7 @@ export const { auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          //const passwordsMatch = await bcrypt.compare(password, admin.password);
-          const passwordsMatch = password === admin.password;
+          const passwordsMatch = await bcrypt.compare(password, admin.password);
 
           if (passwordsMatch) {
             return admin;

@@ -19,16 +19,3 @@ export async function authenticate(
     return `Erreur d'authentification.`;
   }
 }
-
-//OLD
-
-// export async function authenticate(
-//   prevState: string | undefined,
-//   formData: FormData,
-// ) {
-//   try {
-//     await signIn('credentials', Object.fromEntries(formData));
-//   } catch (error) {
-//     return 'CredentialSignin';
-//   }
-// }

@@ -91,7 +91,6 @@ const DropdownContextProvider = ({
             await handlePromise(
               removeMembersFromSeason(selectedIds, selectedSeason),
             );
-            console.log('remove-many');
           } else {
             handleToast(true, ToastType.ERROR, 'Aucune saison sélectionnée.');
           }
