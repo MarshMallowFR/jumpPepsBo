@@ -15,3 +15,23 @@ export interface AdminDB {
   password: string;
   validated: boolean;
 }
+
+type CommonState = {
+  isSuccess?: boolean;
+  message?: string | null;
+};
+
+export type AdminState = {
+  errors?: {
+    firstName?: string[];
+    lastName?: string[];
+    email?: string[];
+  };
+} & CommonState;
+
+export type ValidateAdminState = {
+  errors?: {
+    password?: string[];
+    checkPassword?: string[];
+  };
+} & CommonState;

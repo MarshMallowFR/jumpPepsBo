@@ -2,10 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import {
-  ValidateAdminState,
-  validateAdmin,
-} from '@/app/lib/actions/admins/actions';
+import { validateAdmin } from '@/app/lib/actions/admins/actions';
 
 import { Button } from '../common/buttons';
 import { TextInput } from '../common/textInput';
@@ -13,6 +10,7 @@ import ToastWrapper from '../common/toastWrapper';
 import ToastContextProvider, {
   ToastType,
 } from '@/app/lib/contexts/toastContext';
+import { ValidateAdminState } from '@/app/lib/types/admins';
 
 export default function ValidateForm() {
   const params = useSearchParams();
@@ -33,15 +31,21 @@ export default function ValidateForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const result = await validateAdmin(email, token, formState, formData);
+    const { message, errors, isSuccess } = await validateAdmin(
+      email,
+      token,
+      formState,
+      formData,
+    );
+
     setFormState((prevState) => ({
       ...prevState,
-      message: result.message,
-      errors: result.errors || {},
-      isSuccess: result.isSuccess || false,
+      message,
+      errors: errors || {},
+      isSuccess: isSuccess || false,
     }));
     setDisplayToast(true);
-    if (result.isSuccess) {
+    if (isSuccess) {
       setTimeout(() => {
         router.push('/dashboard/climbing');
       }, 800);

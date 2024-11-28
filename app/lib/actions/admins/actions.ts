@@ -4,38 +4,11 @@ import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { randomUUID } from 'crypto';
 import handlerEmail from './sendMail';
 import { generateActivationToken, hashActivationToken } from './createToken';
 import { authenticate } from '../authentication/actions';
-
-type CompleteAdmin = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  token: string;
-  validity: string;
-};
-
-export type AdminState = {
-  isSuccess?: boolean;
-  errors?: {
-    firstName?: string[];
-    lastName?: string[];
-    email?: string[];
-  };
-  message?: string | null;
-};
-export type ValidateAdminState = {
-  isSuccess?: boolean;
-  errors?: {
-    password?: string[];
-    checkPassword?: string[];
-  };
-  message?: string | null;
-};
+import { AdminState, ValidateAdminState } from '../../types/admins';
 
 const AdminSchema = z.object({
   id: z.string(),

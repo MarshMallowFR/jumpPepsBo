@@ -1,8 +1,9 @@
 'use client';
 
-import { AdminState, createAdmin } from '@/app/lib/actions/admins/actions';
+import { createAdmin } from '@/app/lib/actions/admins/actions';
 import Form from './form';
 import { useState } from 'react';
+import { AdminState } from '@/app/lib/types/admins';
 
 export default function CreateForm() {
   const initialState = { message: null, errors: {} };

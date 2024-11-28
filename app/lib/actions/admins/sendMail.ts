@@ -14,10 +14,6 @@ const smtpOptions = {
     user: process.env.SMTP_USER || 'user',
     pass: process.env.SMTP_PASSWORD || 'password',
   },
-  // tls: {
-  //   ciphers: 'SSLv3',
-  //   rejectUnauthorized: false, // Désactive la vérification du certificat pour le développement
-  // },
 };
 
 const sendEmail = async (data: EmailPayload) => {
@@ -31,7 +27,6 @@ const sendEmail = async (data: EmailPayload) => {
 
 export default async function handlerEmail(email: string, token: string) {
   const validationUrl = `http://jump-peps-bo.vercel.app/dashboard/admins/validate?token=${token}&email=${email}`;
-
   const messageContent = `
     <p>Bonjour,<p/>
     <p>Vous êtes invité(e) à rejoindre l'administration de l'association <strong>Grimp Pep's</strong>.<br/>

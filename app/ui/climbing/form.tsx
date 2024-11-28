@@ -173,10 +173,6 @@ export default function Form({ state, dispatch, member }: FormProps) {
       'mountainBikingOption',
       memberInput?.mountainBikingOption?.toString() || '',
     );
-    //Tester pour avoir moins de formData.set // Ne fonctionne pas =>
-    // Object.entries(memberInput || {}).forEach(([key, value]) => {
-    //   formData.set(key, value?.toString() || ''); // Transformez les booléens en string
-    // });
     try {
       await dispatch(formData);
       setDisplayToast(true);
