@@ -29,7 +29,7 @@ import ToastWrapper from '../common/toastWrapper';
 import { RadioInput } from '../common/radioInput';
 import { ProfileImage } from '../common/profilImage';
 import { SelectInput } from '../common/selectInput';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface FormProps {
   dispatch: (payload: FormData) => Promise<ClimbingState>;
@@ -40,6 +40,7 @@ interface FormProps {
 export default function Form({ state, dispatch, member }: FormProps) {
   const searchParams = useSearchParams();
   const seasonId = searchParams.get('seasonId');
+  const router = useRouter();
   const [pictureFile, setPictureFile] = useState<File | null>(null);
 
   const [isMinor, setIsMinor] = useState(false);
@@ -93,22 +94,19 @@ export default function Form({ state, dispatch, member }: FormProps) {
     };
   }, [memberInput?.picture]);
 
-  // Redirection vers dashboard après un délai en cas de succès (pas nécessaire pour bouton annuler)
+  // Redirection vers dashboard après un délai (pour pouvoir afficher le Toast avant) en cas de succès.
   useEffect(() => {
-    if (state?.isSuccess && seasonId) {
-      // pour update on revient sur les membres de la saison
+    if (state?.isSuccess) {
       const timer = setTimeout(() => {
-        window.location.href = `/dashboard/climbing?seasonId=${seasonId}`;
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (state?.isSuccess) {
-      // pour creation la seasonId n'est pas sélectionnée
-      const timer = setTimeout(() => {
-        window.location.href = `/dashboard/climbing`;
+        if (seasonId) {
+          router.push(`/dashboard/climbing?seasonId=${seasonId}`); // Edit avec seasonID déjà fourni
+        } else {
+          router.push('/dashboard/climbing'); //Create
+        }
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [state?.isSuccess]);
+  }, [state?.isSuccess, seasonId, router]);
 
   const handleMemberChange = (
     value: string | boolean | null,
@@ -175,15 +173,9 @@ export default function Form({ state, dispatch, member }: FormProps) {
       'mountainBikingOption',
       memberInput?.mountainBikingOption?.toString() || '',
     );
-    //Ne fonctionne pas. Tester pour avoir moins de formData.set =>
-    // Object.entries(memberInput || {}).forEach(([key, value]) => {
-    //   formData.set(key, value?.toString() || ''); // Transformez les booléens en string
-    // });
     try {
       await dispatch(formData);
       setDisplayToast(true);
-    } catch (error) {
-      console.error('Erreur lors de l’envoi du formulaire', error);
     } finally {
       setIsSubmitting(false);
     }

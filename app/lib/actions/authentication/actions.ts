@@ -10,8 +10,12 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', Object.fromEntries(formData));
+    await signIn('credentials', {
+      redirect: false,
+      ...Object.fromEntries(formData),
+    });
+    return 'Success';
   } catch (error) {
-    return 'CredentialSignin';
+    return `Error`;
   }
 }

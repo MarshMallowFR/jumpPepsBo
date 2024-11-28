@@ -2,6 +2,7 @@
 import { deleteMembersCompletely } from '@/app/lib/actions/climbing/actions';
 import { ToastType, useToastContext } from '@/app/lib/contexts/toastContext';
 import { DeleteManyBtn } from '../common/buttons';
+import { useRouter } from 'next/navigation';
 
 interface DeleteMembersProps {
   ids: string[];
@@ -13,6 +14,7 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
     setToastType,
     setToastMessage,
   } = useToastContext();
+  const router = useRouter();
 
   const handleDelete = async () => {
     try {
@@ -21,8 +23,9 @@ export default function DeleteMembers({ ids }: DeleteMembersProps) {
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
       const timer = setTimeout(() => {
-        window.location.href = `/dashboard/climbing`;
+        router.push('/dashboard/climbing');
       }, 600);
+      return () => clearTimeout(timer);
     } catch (error: unknown) {
       console.error('Failed to delete members:', error);
       setToastVisible(true);

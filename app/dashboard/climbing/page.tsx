@@ -37,7 +37,6 @@ export default async function Page({
       ? await fetchMembersBySeasonId(seasonId)
       : await fetchAllClimbingMembers(query, currentPage);
   } catch (error) {
-    console.error(error);
     allMembers = [];
   }
 

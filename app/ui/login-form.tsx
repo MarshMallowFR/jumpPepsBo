@@ -1,6 +1,5 @@
 'use client';
 
-import { lusitana } from '@/app/ui/style/fonts';
 import {
   AtSymbolIcon,
   KeyIcon,
@@ -10,16 +9,23 @@ import { ArrowRightIcon } from '@heroicons/react/20/solid';
 import { Button } from './common/buttons';
 import { useFormState, useFormStatus } from 'react-dom';
 import { authenticate } from '@/app/lib/actions/authentication/actions';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginForm() {
   const [code, action] = useFormState(authenticate, undefined);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (code === 'Success') {
+      router.push('/dashboard');
+    }
+  }, [code, router]);
 
   return (
     <form action={action} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
-        <h1 className={`${lusitana.className} mb-3 text-2xl`}>
-          Veuillez vous connecter.
-        </h1>
+        <h1 className="mb-3 text-2xl">Veuillez vous connecter.</h1>
         <div className="w-full">
           <div>
             <label
@@ -55,7 +61,7 @@ export default function LoginForm() {
                 name="password"
                 placeholder="Mot de passe"
                 required
-                minLength={6}
+                minLength={8}
               />
               <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
@@ -63,7 +69,7 @@ export default function LoginForm() {
         </div>
         <LoginButton />
         <div className="flex h-8 items-end space-x-1">
-          {code === 'CredentialSignin' && (
+          {code === `Error` && (
             <>
               <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
               <p aria-live="polite" className="text-sm text-red-500">
@@ -81,10 +87,7 @@ function LoginButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button
-      className={`mt-4 w-full ${lusitana.className}`}
-      aria-disabled={pending}
-    >
+    <Button className="mt-4 w-full" aria-disabled={pending}>
       Se connecter <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
     </Button>
   );

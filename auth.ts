@@ -6,40 +6,48 @@ import { z } from 'zod';
 import type { Admin } from '@/app/lib/types/admins';
 import bcrypt from 'bcrypt';
 
-async function getUser(email: string): Promise<Admin | undefined> {
+async function getAdmin(email: string): Promise<Admin | undefined> {
   try {
-    const user = await sql<Admin>`SELECT * from admins where email=${email}`;
-    return user.rows[0];
+    const admin = await sql<Admin>`SELECT * from admins where email=${email}`;
+    return admin.rows[0];
   } catch (error) {
-    console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
   }
 }
-
+//Ou export default NextAuth({ ...authConfig, providers: [...] }) ??
 export const { auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
+          .object({
+            email: z.string().email(),
+            password: z.string().min(8),
+          })
           .safeParse(credentials);
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          const user = await getUser(email);
 
-          if (!user) throw new Error('CredentialSignin');;
+          const admin = await getAdmin(email);
 
-          if (!user?.password) return null;
-          // const passwordsMatch = await bcrypt.compare(password, user?.password);
+          if (!admin) {
+            throw new Error('Admin non trouvé');
+          }
 
-          
-          const passwordsMatch = password === user?.password
+          if (!admin.password) {
+            return null;
+          }
 
-          if (passwordsMatch) return user;
+          const passwordsMatch = await bcrypt.compare(password, admin.password);
+
+          if (passwordsMatch) {
+            return admin;
+          } else {
+            throw new Error('Mot de passe non valide.');
+          }
         }
-
         throw new Error('CredentialSignin');
       },
     }),
