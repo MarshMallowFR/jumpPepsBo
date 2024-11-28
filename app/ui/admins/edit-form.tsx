@@ -1,9 +1,8 @@
 'use client';
 
-import { useFormState } from 'react-dom';
-import { AdminState, updateAdmin } from '@/app/lib/actions/admins/actions';
+import { updateAdmin } from '@/app/lib/actions/admins/actions';
 import Form from './form';
-import { Admin } from '@/app/lib/types/admins';
+import { Admin, AdminState } from '@/app/lib/types/admins';
 import { useState } from 'react';
 
 export default function EditForm({ admin }: { admin: Admin }) {
