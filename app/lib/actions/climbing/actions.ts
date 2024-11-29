@@ -236,7 +236,7 @@ export async function createClimbingMember(
 ) {
   const sectionRow = await getSectionIdByName('climbing');
   const sectionId = sectionRow;
-
+  console.log('go');
   // Récupérer la saison actuelle pour la création des membres.
   const { currentSeason } = await getSeasons();
   if (!currentSeason) {
@@ -246,7 +246,7 @@ export async function createClimbingMember(
     };
   }
   const seasonId = currentSeason.id;
-
+  console.log('currentseason:', currentSeason);
   if (!sectionId || !seasonId) {
     throw new Error('Section or season ID not found.');
   }
@@ -301,6 +301,7 @@ export async function createClimbingMember(
     };
   }
   const client = await sql.connect();
+  console.log('connect');
   try {
     await client.query('BEGIN');
     const picture = validatedFields.data.picture;
@@ -663,10 +664,10 @@ export async function updateClimbingMember(
 
     const contact2Result = await client.query(contact2Query, [id]);
 
-    if (contact2Result.rowCount > 0) {
+    if (contact2Result!.rowCount) {
       const contact2Id = contact2Result.rows[0].contact2_id;
 
-      if (contact2Id && contact2Id !== null) {
+      if (contact2Id) {
         await client.query(
           `UPDATE contacts
            SET link = $1,
@@ -738,10 +739,7 @@ export async function updateClimbingMember(
   }
 }
 
-export async function deleteMemberCompletely(
-  id: string,
-  imageUrl: string,
-): Promise<{ message: string }> {
+export async function deleteMemberCompletely(id: string, imageUrl: string) {
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
@@ -823,9 +821,7 @@ export async function deleteMemberCompletely(
   }
 }
 
-export async function deleteMembersCompletely(
-  ids: string[],
-): Promise<{ message: string }> {
+export async function deleteMembersCompletely(ids: string[]) {
   const client = await sql.connect();
   try {
     if (ids.length === 0) {
@@ -913,7 +909,7 @@ export async function deleteMembersCompletely(
 export async function removeMemberFromSeason(
   memberId: string,
   seasonId: string,
-): Promise<{ message: string }> {
+) {
   const client = await sql.connect();
 
   try {
@@ -954,7 +950,7 @@ export async function removeMemberFromSeason(
 export async function removeMembersFromSeason(
   memberIds: string[],
   seasonId: string,
-): Promise<{ message: string }> {
+) {
   const client = await sql.connect();
   try {
     await client.query('BEGIN');
