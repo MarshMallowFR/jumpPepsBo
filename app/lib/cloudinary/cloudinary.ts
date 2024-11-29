@@ -1,41 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
-//import sharp from 'sharp';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// export async function getCloudinaryPicture(picture: File) {
-//   let imageUrl = '';
-//   if (picture) {
-//     const arrayBuffer = await picture.arrayBuffer();
-//     const buffer = new Uint8Array(arrayBuffer);
-
-//     // Convertion de l'image en WebP pour limiter le poids du fichier
-//     const webpBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
-
-//     // Envoyer l'image convertie à Cloudinary
-//     const result = await new Promise<any>((resolve, reject) => {
-//       cloudinary.uploader
-//         .upload_stream(
-//           { tags: ['nextjs-server-actions-upload-sneakers'] },
-//           (error, result) => {
-//             if (error) {
-//               reject(error);
-//               return;
-//             }
-//             resolve(result);
-//           },
-//         )
-//         .end(webpBuffer);
-//     });
-
-//     imageUrl = result.secure_url;
-//   }
-//   return imageUrl;
-// }
 
 export async function getCloudinaryPicture(picture: File) {
   let imageUrl = '';
