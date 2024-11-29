@@ -32,7 +32,7 @@ import { SelectInput } from '../common/selectInput';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface FormProps {
-  dispatch: (payload: FormData) => Promise<ClimbingState>;
+  dispatch: (payload: FormData) => Promise<any>;
   member?: Member;
   state: ClimbingState;
 }
@@ -119,7 +119,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
     if (key === 'birthDate' && typeof value === 'string') {
       handleBirthDate(setIsMinor)({
-        target: { value },
+        target: { value } as HTMLInputElement,
       } as ChangeEvent<HTMLInputElement>);
     }
   };
@@ -141,11 +141,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     if (pictureFile) {
       formData.set('picture', pictureFile);
     } else if (memberInput?.picture) {
