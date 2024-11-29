@@ -45,19 +45,12 @@ export default function FormRegistration({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [displayToast, setDisplayToast] = useState(false);
 
-  const currentDate = new Date();
-  const formatedCurrentDate = `${currentDate
-    .getDate()
-    .toString()
-    .padStart(2, '0')}-${(currentDate.getMonth() + 1)
-    .toString()
-    .padStart(2, '0')}-${currentDate.getFullYear()}`;
-
   // Remise à zéro des champs du formulaire si tout est OK
   useEffect(() => {
     if (state?.isSuccess) {
       setMember(initialState);
       setIsMinor(false);
+      setDisplayToast(true);
       const form = document.querySelector('form');
       if (form) {
         form.reset();
