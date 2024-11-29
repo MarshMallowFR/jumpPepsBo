@@ -245,7 +245,7 @@ export async function createClimbingMember(
     };
   }
   const seasonId = currentSeason.id;
-  console.log('currentseason:', currentSeason);
+
   if (!sectionId || !seasonId) {
     throw new Error('Section or season ID not found.');
   }
@@ -300,13 +300,13 @@ export async function createClimbingMember(
     };
   }
   const client = await sql.connect();
-  console.log('connect');
+
   try {
     await client.query('BEGIN');
 
     const picture = validatedFields.data.picture;
-    console.log('Received picture:', picture);
-    console.log('Type:', picture instanceof File);
+    console.log('Received picture:', picture); //Received picture: File {size: 3782326, type: 'image/jpeg', name: 'BoiÌ\x82te de reÌ\x81ception Sept 9.jpg',lastModified: 1732868041285}
+    console.log('Type:', picture instanceof File); //Type:  true
     const imageUrl =
       picture && picture instanceof File && picture.size > 0
         ? await getCloudinaryPicture(picture)
