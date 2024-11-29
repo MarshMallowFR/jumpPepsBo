@@ -17,7 +17,7 @@ export default function LoginForm() {
   const router = useRouter();
 
   useEffect(() => {
-    if (code === 'Success') {
+    if (code === 'AuthSuccess') {
       router.push('/dashboard');
     }
   }, [code, router]);
@@ -69,7 +69,7 @@ export default function LoginForm() {
         </div>
         <LoginButton />
         <div className="flex h-8 items-end space-x-1">
-          {code === `Error` && (
+          {code === `AuthError` && (
             <>
               <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
               <p aria-live="polite" className="text-sm text-red-500">

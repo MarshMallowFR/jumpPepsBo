@@ -14,8 +14,8 @@ export async function authenticate(
       redirect: false,
       ...Object.fromEntries(formData),
     });
-    return 'Success';
+    return 'AuthSuccess';
   } catch (error) {
-    return `Error`;
+    return `AuthError`;
   }
 }
