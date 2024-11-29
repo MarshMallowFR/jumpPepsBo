@@ -19,7 +19,8 @@ export default function DeleteMember({ id, imageUrl }: DeleteMemberProps) {
       setToastType(ToastType.SUCCESS);
       setToastMessage(result.message);
       setTimeout(() => {
-        router.push('/dashboard/climbing');
+        const refreshParam = `&refresh=${Date.now()}`;
+        router.push(`/dashboard/climbing?${refreshParam}`);
       }, 600);
     } catch (error: unknown) {
       setIsVisible(true);

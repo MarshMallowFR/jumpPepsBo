@@ -32,7 +32,7 @@ import { SelectInput } from '../common/selectInput';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface FormProps {
-  dispatch: (payload: FormData) => Promise<any>;
+  dispatch: (payload: FormData) => Promise<ClimbingState>;
   member?: Member;
   state: ClimbingState;
 }
@@ -98,12 +98,16 @@ export default function Form({ state, dispatch, member }: FormProps) {
   useEffect(() => {
     if (state?.isSuccess) {
       const timer = setTimeout(() => {
+        const refreshParam = `&refresh=${Date.now()}`;
         if (seasonId) {
-          router.push(`/dashboard/climbing?seasonId=${seasonId}`); // Edit avec seasonID déjà fourni
+          router.push(
+            `/dashboard/climbing?seasonId=${seasonId}${refreshParam}`,
+          );
         } else {
-          router.push('/dashboard/climbing'); //Create
+          router.push(`/dashboard/climbing?${refreshParam}`);
         }
       }, 1000);
+
       return () => clearTimeout(timer);
     }
   }, [state?.isSuccess, seasonId, router]);
@@ -119,7 +123,7 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
     if (key === 'birthDate' && typeof value === 'string') {
       handleBirthDate(setIsMinor)({
-        target: { value } as HTMLInputElement,
+        target: { value },
       } as ChangeEvent<HTMLInputElement>);
     }
   };
@@ -141,11 +145,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
   };
 
   // Conversion valeurs du formulaire au bon format avant envoi
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const formData = new FormData(e.currentTarget);
     if (pictureFile) {
       formData.set('picture', pictureFile);
     } else if (memberInput?.picture) {
@@ -557,7 +561,11 @@ export default function Form({ state, dispatch, member }: FormProps) {
 
         <div className="mt-6 flex justify-end gap-4">
           <Link
-            href={`/dashboard/climbing?seasonId=${seasonId}`}
+            href={
+              seasonId
+                ? `/dashboard/climbing?seasonId=${seasonId}`
+                : '/dashboard/climbing'
+            }
             className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             Annuler

@@ -22,6 +22,7 @@ export default async function Page({
     query?: string;
     page?: string;
     seasonId?: string;
+    refresh?: string;
   };
 }) {
   const query = searchParams?.query || '';
@@ -50,7 +51,10 @@ export default async function Page({
         <CreateBtn href="/dashboard/climbing/create" text="Créer membre" />
       </div>
 
-      <Suspense key={query + currentPage} fallback={<ClimbingTableSkeleton />}>
+      <Suspense
+        key={searchParams?.refresh || query + currentPage}
+        fallback={<ClimbingTableSkeleton />}
+      >
         <div className="w-full">
           <ClimbingTable allMembers={allMembers} />
         </div>
