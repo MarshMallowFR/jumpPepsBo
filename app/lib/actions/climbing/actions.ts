@@ -236,7 +236,6 @@ export async function createClimbingMember(
 ) {
   const sectionRow = await getSectionIdByName('climbing');
   const sectionId = sectionRow;
-  console.log('go');
   // Récupérer la saison actuelle pour la création des membres.
   const { currentSeason } = await getSeasons();
   if (!currentSeason) {
@@ -309,6 +308,7 @@ export async function createClimbingMember(
       picture && picture instanceof File && picture.size > 0
         ? await getCloudinaryPicture(picture)
         : null;
+    console.log('imageUrl:', imageUrl);
 
     const {
       lastName,
@@ -355,7 +355,7 @@ export async function createClimbingMember(
       lastName,
       birthDate,
     );
-
+    console.log('validatedfields.data:', validatedFields.data);
     if (existingMemberId) {
       return await updateClimbingMember(
         existingMemberId,
@@ -396,7 +396,7 @@ export async function createClimbingMember(
         birthDepartement,
       ],
     );
-
+    console.log('insertion into member done');
     await client.query(
       `INSERT INTO contacts (id, link, last_name, first_name, phone_number, email)
          VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -433,13 +433,13 @@ export async function createClimbingMember(
         ],
       );
     }
-
+    console.log('insertion into contacts done');
     await client.query(
       `INSERT INTO member_contact (member_id, first_contact_id, second_contact_id)
     VALUES ($1, $2, $3)`,
       [memberId, contactId, contact2Id ?? null],
     );
-
+    console.log('insertion into member_contact done');
     await client.query(
       `INSERT INTO member_section_season (
         section_id, member_id, season_id, license, license_type, insurance,
@@ -467,6 +467,7 @@ export async function createClimbingMember(
         hasPaid,
       ],
     );
+    console.log('insertion into member_section_season done');
     await client.query('COMMIT');
     return {
       isSuccess: true,
