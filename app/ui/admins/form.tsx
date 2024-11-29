@@ -25,7 +25,8 @@ export default function Form({ state, dispatch, admin }: Readonly<FormProps>) {
   useEffect(() => {
     if (state?.isSuccess) {
       const timer = setTimeout(() => {
-        router.push('/dashboard/admins');
+        const refreshParam = `&refresh=${Date.now()}`;
+        router.push(`/dashboard/admins?${refreshParam}`);
       }, 2000);
 
       return () => clearTimeout(timer);

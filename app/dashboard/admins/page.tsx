@@ -12,6 +12,7 @@ export default async function Page({
   searchParams?: {
     query?: string;
     page?: string;
+    refresh?: string;
   };
 }) {
   const query = searchParams?.query || '';
@@ -28,7 +29,10 @@ export default async function Page({
         <Search placeholder="Rechercher des admins" />
         <CreateBtn href="/dashboard/admins/create" text="Créer admin" />
       </div>
-      <Suspense key={query + currentPage} fallback={<AdminTableSkeleton />}>
+      <Suspense
+        key={searchParams?.refresh || query + currentPage}
+        fallback={<AdminTableSkeleton />}
+      >
         <Table query={query} currentPage={currentPage} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
