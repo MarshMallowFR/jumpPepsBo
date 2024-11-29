@@ -303,7 +303,10 @@ export async function createClimbingMember(
   console.log('connect');
   try {
     await client.query('BEGIN');
+
     const picture = validatedFields.data.picture;
+    console.log('Received picture:', picture);
+    console.log('Type:', picture instanceof File);
     const imageUrl =
       picture && picture instanceof File && picture.size > 0
         ? await getCloudinaryPicture(picture)
