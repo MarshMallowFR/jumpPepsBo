@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Color } from '@/app/lib/types/color';
-import { createNewSeason } from '@/app/lib/actions/season/actions';
 
 interface SelectDropdownProps {
   options: { name: string; id: string }[];
@@ -38,15 +37,6 @@ export default function SelectDropdown({
   const handleOptionClick = (value: string, label: string) => {
     onSelect(value);
     setIsOpen(false);
-  };
-
-  const handleCreateNewSeason = async () => {
-    try {
-      await createNewSeason();
-      window.location.reload();
-    } catch (error) {
-      alert('Erreur lors de la création de la saison.');
-    }
   };
 
   useEffect(() => {
@@ -100,12 +90,6 @@ export default function SelectDropdown({
                 {option.name}
               </button>
             ))}
-            <button
-              onClick={handleCreateNewSeason}
-              className={`block px-4 py-2 text-sm text-blue-medium bg-blue-50 hover:bg-blue-extralight text-left w-full`}
-            >
-              Ajouter la saison en cours
-            </button>
           </div>
         </div>
       )}

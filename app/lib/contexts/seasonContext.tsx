@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Season } from '../types/season';
 import SelectDropdown from '@/app/ui/common/selectDropdown';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface SeasonContextProps {
   selectedSeason: string | null;
@@ -20,6 +20,7 @@ const SeasonContextProvider = ({
   children: ReactNode;
 }) => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const seasonId = searchParams.get('seasonId');
 
   const [selectedSeason, setSelectedSeason] = useState<string | null>(seasonId);
@@ -36,9 +37,9 @@ const SeasonContextProvider = ({
   const handleSelectSeason = (seasonId: string) => {
     setSelectedSeason(seasonId);
     if (seasonId && seasonId !== 'all') {
-      window.location.href = `/dashboard/climbing?seasonId=${seasonId}`;
+      router.push(`/dashboard/climbing?seasonId=${seasonId}`);
     } else {
-      window.location.href = `/dashboard/climbing`;
+      router.push(`/dashboard/climbing`);
     }
   };
 

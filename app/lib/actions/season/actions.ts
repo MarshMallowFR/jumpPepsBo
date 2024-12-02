@@ -4,7 +4,7 @@ import { sql } from '@vercel/postgres';
 import { randomUUID } from 'crypto';
 import { Season } from '../../types/season';
 
-export async function createNewSeason(): Promise<void> {
+async function createNewSeason(): Promise<void> {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const nextYear = currentYear + 1;
@@ -39,7 +39,6 @@ export async function getSeasons(): Promise<{
 }> {
   try {
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
 
     const selectSeasonQuery = `SELECT * FROM seasons ORDER BY name ASC`;
     const result = await sql.query(selectSeasonQuery);
@@ -52,10 +51,21 @@ export async function getSeasons(): Promise<{
       }),
     );
 
-    // registrations should be open between June to November
+    const currentSeason = seasons.find((season) => {
+      const [startYear, endYear] = season.name.split('-');
+      const startDate = new Date(`${startYear}-09-01`);
+      const endDate = new Date(`${endYear}-07-30`);
+      return currentDate >= startDate && currentDate <= endDate;
+    });
+
+    if (!currentSeason) {
+      await createNewSeason();
+      return await getSeasons();
+    }
+
+    const currentMonth = currentDate.getMonth();
     const shouldBeOpen = currentMonth >= 5 && currentMonth <= 10;
 
-    // Update registration_open status if needed
     for (const season of seasons) {
       const [startYear, endYear] = season.name.split('-');
       const startDate = new Date(`${startYear}-09-01`);
@@ -69,17 +79,9 @@ export async function getSeasons(): Promise<{
           SET registration_open = ${shouldBeOpen}
           WHERE id = ${season.id}
         `;
-        // Reflect the change locally in the seasons array
         season.registrationOpen = shouldBeOpen;
       }
     }
-
-    const currentSeason = seasons.find((season) => {
-      const [startYear, endYear] = season.name.split('-');
-      const startDate = new Date(`${startYear}-09-01`);
-      const endDate = new Date(`${endYear}-07-30`);
-      return currentDate >= startDate && currentDate <= endDate;
-    });
 
     return { seasons, currentSeason };
   } catch (error) {

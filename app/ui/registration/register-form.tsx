@@ -21,6 +21,7 @@ export default function RegisterForm() {
   const [currentSeason, setCurrentSeason] = useState<Season | undefined>(
     undefined,
   );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSeasons = async () => {
@@ -29,6 +30,8 @@ export default function RegisterForm() {
         setCurrentSeason(currentSeason);
       } catch (error) {
         console.error('Erreur lors de la récupération des saison', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -41,18 +44,36 @@ export default function RegisterForm() {
     return newState;
   };
 
+  if (loading) {
+    return (
+      <div className={`text-lg font-bold ${kanit.className}`}>
+        CHARGEMENT DE LA SAISON EN COURS . . .
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex flex-col lg:flex-row lg:space-x-12 px-4 sm:px-6 md:px-8 lg:px-12 ${kanit.className}`}
     >
       <div className="min-w-0 w-full lg:w-1/2 mb-8">
-        <h2 className="text-lg font-bold">
-          INSCRIPTION POUR LA SAISON {currentSeason?.name}
-        </h2>
-        <p className="my-2">
-          Les inscriptions sont actuellement{' '}
-          {currentSeason?.registrationOpen ? 'ouvertes' : 'fermées'}.
-        </p>
+        {currentSeason ? (
+          <>
+            <h2 className="text-lg font-bold">
+              INSCRIPTION POUR LA SAISON {currentSeason?.name}
+            </h2>
+            <p className="my-2">
+              Les inscriptions sont actuellement{' '}
+              {currentSeason?.registrationOpen ? 'ouvertes' : 'fermées'}.
+            </p>{' '}
+          </>
+        ) : (
+          <div className="text-lg font-bold">
+            La saison n'est pas encore créée. Les inscriptions ne pas possibles
+            pour le moment.
+          </div>
+        )}
+
         <h2 className="text-lg font-bold mt-8">INFORMATIONS IMPORTANTES</h2>
         <p className="my-2">
           Le dossier sera validé et donnera accès à l’adhérent aux
